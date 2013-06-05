@@ -2,6 +2,8 @@
 #include <SoftwareSerial.h>
 #include "BGLib.h"
 
+#define LED_PIN 13 // Arduino Uno LED
+
 // BLE112 module connections:
 // - BLE P0_2 -> GND (CTS tied to ground to bypass flow control)
 // - BLE P0_4 -> Arduino Digital Pin 6 (BLE TX -> Arduino soft RX)
@@ -18,55 +20,114 @@
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( 6, 5 ); // RX, TX
-BGLib ble112( &ble112uart /*, &mac */ );
+// create BGLib object:
+//  - use SoftwareSerial por for module comms
+//  - use nothing for passthrough comms (0 = null pointer)
+//  - enable packet mode on API protocol since flow control is unavailable
+BGLib ble112((HardwareSerial *)&ble112uart, 0, 1);
 
 uint8_t isScanActive = 0;
 
-#define LED_PIN 13 // Arduino Uno LED
+// ================================================================
+// INTERNAL BGLIB CLASS CALLBACK FUNCTIONS
+// ================================================================
 
-void ble_rsp_system_hello(const void *nul) {
+void onBusy() {
+    // turn LED on when we're busy
+    digitalWrite(LED_PIN, HIGH);
 }
 
-void ble_rsp_gap_set_scan_parameters(const struct ble_msg_gap_set_scan_parameters_rsp_t *msg) {
+void onIdle() {
+    // turn LED off when we're no longer busy
+    digitalWrite(LED_PIN, LOW);
 }
 
-void ble_rsp_gap_discover(const struct ble_msg_gap_discover_rsp_t *msg) {
+void onTimeout() {
+    Serial.println("!!!\tTimeout occurred!");
 }
 
-void ble_rsp_gap_end_procedure(const struct ble_msg_gap_end_procedure_rsp_t *msg) {
-}
+void onBeforeTXCommand() {
+    // wake module up (assuming here that digital pin 5 is connected to the BLE wake-up pin)
+    // digitalWrite(BLE_WAKEUP_PIN, HIGH);
 
-void ble_evt_system_boot(const struct ble_msg_system_boot_evt_t *msg) {
-}
-
-void ble_evt_gap_scan_response(const struct ble_msg_gap_scan_response_evt_t *msg) {
-}
-
-void ble_evt_connection_disconnected(const struct ble_msg_connection_disconnected_evt_t *msg) {
-    printf( "reconnecting\r\n" );
-
-    ble_cmd_gap_set_mode( gap_general_discoverable, gap_undirected_connectable );
-}
-
-void output(uint8 len1, uint8* data1, uint16 len2, uint8* data2) {
-    printf( ">\traw: " );
-
-    ble112uart.write( len1 + len2 );
-    printf( "%02X ", len1 + len2 );
-
-    unsigned int index = 0;
-    for ( index=0; index < len1; index++ ) {
-        ble112uart.write( data1[ index ] );
-        printf( "%02X ", data1[ index ] );
+    // wait for "hardware_io_port_status" event to come through, and parse it (and otherwise ignore it)
+    uint8_t *last;
+    while (1) {
+        ble112.checkActivity();
+        last = ble112.getLastEvent();
+        if (last[0] == 0x07 && last[1] == 0x00) break;
     }
 
-    index = 0;
-    for ( index=0; index < len2; index++ ) {
-        ble112uart.write( data2[ index ] );
-        printf( "%02X ", data2[ index ] );
-    }
+    // give a bit of a gap between parsing the wake-up event and allowing the command to go out
+    delayMicroseconds(1000);
+}
 
-    printf( "\r\n" );
+void onTXCommandComplete() {
+    // allow module to return to sleep (assuming here that digital pin 5 is connected to the BLE wake-up pin)
+    // digitalWrite(BLE_WAKEUP_PIN, LOW);
+}
+
+// ================================================================
+// USER-DEFINED BGLIB RESPONSE CALLBACKS
+// ================================================================
+
+void my_rsp_system_hello(const ble_msg_system_hello_rsp_t *msg) {
+    Serial.println("<--\tsystem_hello");
+}
+
+void my_rsp_gap_set_scan_parameters(const ble_msg_gap_set_scan_parameters_rsp_t *msg) {
+    Serial.print("<--\tgap_set_scan_parameters: { ");
+    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+void my_rsp_gap_discover(const ble_msg_gap_discover_rsp_t *msg) {
+    Serial.print("<--\tgap_discover: { ");
+    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+void my_rsp_gap_end_procedure(const ble_msg_gap_end_procedure_rsp_t *msg) {
+    Serial.print("<--\tgap_end_procedure: { ");
+    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+// ================================================================
+// USER-DEFINED BGLIB EVENT CALLBACKS
+// ================================================================
+
+void my_evt_system_boot(const ble_msg_system_boot_evt_t *msg) {
+    Serial.print("###\tsystem_boot: { ");
+    Serial.print("major: "); Serial.print(msg -> major, HEX);
+    Serial.print(", minor: "); Serial.print(msg -> minor, HEX);
+    Serial.print(", patch: "); Serial.print(msg -> patch, HEX);
+    Serial.print(", build: "); Serial.print(msg -> build, HEX);
+    Serial.print(", ll_version: "); Serial.print(msg -> ll_version, HEX);
+    Serial.print(", protocol_version: "); Serial.print(msg -> protocol_version, HEX);
+    Serial.print(", hw: "); Serial.print(msg -> hw, HEX);
+    Serial.println(" }");
+}
+
+void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
+    Serial.print("###\tgap_scan_response: { ");
+    Serial.print("rssi: "); Serial.print(msg -> rssi);
+    Serial.print(", packet_type: "); Serial.print((uint8_t)msg -> packet_type, HEX);
+    Serial.print(", sender: ");
+    // this is a "bd_addr" data type, which is a 6-byte uint8_t array
+    for (uint8_t i = 0; i < 6; i++) {
+        if (msg -> sender.addr[i] < 16) Serial.write('0');
+        Serial.print(msg -> sender.addr[i], HEX);
+    }
+    Serial.print(", address_type: "); Serial.print(msg -> address_type, HEX);
+    Serial.print(", bond: "); Serial.print(msg -> bond, HEX);
+    Serial.print(", data: ");
+    // this is a "uint8array" data type, which is a length byte and a uint8_t* pointer
+    for (uint8_t i = 0; i < msg -> data.len; i++) {
+        if (msg -> data.data[i] < 16) Serial.write('0');
+        Serial.print(msg -> data.data[i], HEX);
+    }
+    Serial.println(" }");
 }
 
 void setup() {
@@ -74,85 +135,88 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
 
-    // open Arduino USB serial (and wait, if we're using Leonardo)
+    // USB serial
     Serial.begin(115200);
-
-    // set the data rate for the SoftwareSerial port
-    ble112uart.begin(38400);
 
     // welcome!
     Serial.println("BLE112 BGAPI Scanner Demo");
 
-    // bglib_output:
-    // void (*bglib_output)(uint8 len1,uint8* data1,uint16 len2,uint8* data2)=0;
-    bglib_output = output;
+    // set up internal status handlers
+    // (these are technically optional)
+    ble112.onBusy = onBusy;
+    ble112.onIdle = onIdle;
+    ble112.onTimeout = onTimeout;
 
-    ble112.start();
-}
+    // ONLY enable these if you are using the <wakeup_pin> parameter in your firmware's hardware.xml file
+    ble112.onBeforeTXCommand = onBeforeTXCommand;
+    ble112.onTXCommandComplete = onTXCommandComplete;
 
-void readMac() {
-    static uint8_t write_count = 1;
+    // set up BGLib response handlers (called almost immediately after sending commands)
+    // (these are also technicaly optional)
+    ble112.ble_rsp_system_hello = my_rsp_system_hello;
+    ble112.ble_rsp_gap_set_scan_parameters = my_rsp_gap_set_scan_parameters;
+    ble112.ble_rsp_gap_discover = my_rsp_gap_discover;
+    ble112.ble_rsp_gap_end_procedure = my_rsp_gap_end_procedure;
 
-    if ( Serial.available() > 0 ) {
-        uint8_t ch = Serial.read();
+    // set up BGLib event handlers (called at unknown times)
+    ble112.ble_evt_system_boot = my_evt_system_boot;
+    ble112.ble_evt_gap_scan_response = my_evt_gap_scan_response;
 
-        // echo
-        printf("serial: %c\r\n", ch);
-
-        if (ch == '0') {
-            // Reset BLE112 module
-            Serial.println(">\tsystem_reset: { boot_in_dfu: 0 }");
-            ble_cmd_system_reset(0);
-        }
-        if (ch == '1') {
-            // Say hello to the BLE112 and wait for response
-            Serial.println(">\tsystem_hello");
-            ble_cmd_system_hello();
-        }
-        else if (ch == '2') {
-            // Toggle scanning for advertising BLE devices
-            if (isScanActive) {
-                isScanActive = 0;
-                Serial.println(">\tgap_end_procedure");
-                ble_cmd_gap_end_procedure();
-            } else {
-                isScanActive = 1;
-                Serial.println(">\tgap_set_scan_parameters: { scan_interval: 0xC8, scan_window: 0xC8, active: 1 }");
-                ble_cmd_gap_set_scan_parameters(0xC8, 0xC8, 1);
-
-                Serial.println(">\tgap_discover: { mode: 2 (GENERIC) }");
-                ble_cmd_gap_discover( gap_discover_generic );
-            }
-        }
-        else if (ch == '3') {
-            Serial.println(">\tgap_set_mode: { discover: 0x2, connect: 0x2 }");
-            ble_cmd_gap_set_mode( gap_general_discoverable, gap_undirected_connectable );
-        }
-        else if (ch == '4') {
-            Serial.println(">\tattributes_write");
-            uint8_t data[] = { write_count ++ };
-            ble_cmd_attributes_write( 0x0014,       // handle
-                                      0,            // offset
-                                      sizeof(data), // value_len
-                                      &data         // value_data
-                                      );
-        }
-        else if (ch == '5') {
-            Serial.println(">\tget_rssi");
-            ble_cmd_connection_get_rssi( 0x00 );
-        }
-    }
+    // set the data rate for the SoftwareSerial port
+    ble112uart.begin(38400);
 }
 
 void loop() {
-    readMac();
+    Serial.println("Operations Menu:");
+    Serial.println("0) Reset BLE112 module");
+    Serial.println("1) Say hello to the BLE112 and wait for response");
+    Serial.println("2) Toggle scanning for advertising BLE devices");
+    Serial.println("Command?");
+    while (1) {
+        // keep polling for new data from BLE
+        ble112.checkActivity();
 
-    while ( ble112.receivedCommand() ) {
-        ble112.processCommand();
-    }
-    if ( ble112.errno ) {
-        printf( "\r\n\r\n!!! ble112 error: %d !!! \r\n\r\n", ble112.errno );
-        ble112.clearError();
-        ble112.clearRXBuffer();
+        // check for input from the user
+        if (Serial.available()) {
+            uint8_t ch = Serial.read();
+            uint8_t status;
+            if (ch == '0') {
+                // Reset BLE112 module
+                Serial.println("-->\tsystem_reset: { boot_in_dfu: 0 }");
+                ble112.ble_cmd_system_reset(0);
+                while ((status = ble112.checkActivity(1000)));
+                // system_reset doesn't have a response, but this BGLib
+                // implementation allows the system_boot event specially to
+                // set the "busy" flag to false for this particular case
+            }
+            if (ch == '1') {
+                // Say hello to the BLE112 and wait for response
+                Serial.println("-->\tsystem_hello");
+                ble112.ble_cmd_system_hello();
+                while ((status = ble112.checkActivity(1000)));
+                // response should come back within milliseconds
+            }
+            else if (ch == '2') {
+                // Toggle scanning for advertising BLE devices
+                if (isScanActive) {
+                    isScanActive = 0;
+                    Serial.println("-->\tgap_end_procedure");
+                    ble112.ble_cmd_gap_end_procedure();
+                    while ((status = ble112.checkActivity(1000)));
+                    // response should come back within milliseconds
+                } else {
+                    isScanActive = 1;
+                    Serial.println("-->\tgap_set_scan_parameters: { scan_interval: 0xC8, scan_window: 0xC8, active: 1 }");
+                    ble112.ble_cmd_gap_set_scan_parameters(0xC8, 0xC8, 1);
+                    while ((status = ble112.checkActivity(1000)));
+                    // response should come back within milliseconds
+                    Serial.println("-->\tgap_discover: { mode: 2 (GENERIC) }");
+                    ble112.ble_cmd_gap_discover(BGLIB_GAP_DISCOVER_GENERIC);
+                    while ((status = ble112.checkActivity(1000)));
+                    // response should come back within milliseconds
+                    // scan response events may happen at any time after this
+                }
+            }
+        }
     }
 }
