@@ -150,6 +150,24 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
     Serial.println(" }");
 }
 
+void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
+    Serial.print("###\tconnection_status: { ");
+    Serial.print("conn: ");    Serial.print(msg -> connection, HEX);
+    Serial.print(", flags: "); Serial.print(msg -> flags, HEX);
+    Serial.print(", address: ");
+    // this is a "bd_addr" data type, which is a 6-byte uint8_t array
+    for (uint8_t i = 0; i < 6; i++) {
+        if (msg -> address.addr[i] < 16) Serial.write('0');
+        Serial.print(msg -> address.addr[i], HEX);
+    }
+    Serial.print(", address_type: "); Serial.print(msg -> address_type, HEX);
+    Serial.print(", intvl: ");        Serial.print(msg -> conn_interval, HEX);
+    Serial.print(", timeout: ");      Serial.print(msg -> timeout, HEX);
+    Serial.print(", latency: ");      Serial.print(msg -> latency, HEX);
+    Serial.print(", bonding: ");      Serial.print(msg -> bonding, HEX);
+    Serial.println(" }");
+}
+
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
     Serial.println( "###\tdisconnected" );
 
@@ -190,6 +208,7 @@ void setup() {
     // set up BGLib event handlers (called at unknown times)
     ble112.ble_evt_system_boot             = my_evt_system_boot;
     ble112.ble_evt_gap_scan_response       = my_evt_gap_scan_response;
+    ble112.ble_evt_connection_status       = my_evt_connection_status_evt_t;
     ble112.ble_evt_connection_disconnected = my_evt_connection_disconnected;
 
     // set the data rate for the SoftwareSerial port
