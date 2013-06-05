@@ -937,20 +937,6 @@ uint8_t BGLib::sendCommand(uint16_t len, uint8_t commandClass, uint8_t commandId
     lastCommand[0] = commandClass;
     lastCommand[1] = commandId;
     if (len > 0) memcpy(bgapiTXBuffer + 4, payload, len);
-    #ifdef DEBUG
-        Serial.print("\n=>[ ");
-        if (packetMode) {
-            if (len + 4 < 16) Serial.write(0x30);
-            Serial.print(len + 4, HEX);
-            Serial.write(0x20);
-        }
-        for (uint8_t i = 0; i < len + 4; i++) {
-            if (bgapiTXBuffer[i] < 16) Serial.write(0x30);
-            Serial.print(bgapiTXBuffer[i], HEX);
-            Serial.write(0x20);
-        }
-        Serial.println("]");
-    #endif
     if (onBeforeTXCommand) onBeforeTXCommand();
     setBusy(true);
     if (packetMode) uModule -> write(len + 4); // outgoing packet length byte first
