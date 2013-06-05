@@ -1,8 +1,9 @@
 #include "Arduino.h"
 #include <SoftwareSerial.h>
 #include "BGLib.h"
+#include "MemoryFree.h"
 
-#define LED_PIN 13 // Arduino Uno LED
+#define LED_PIN 13
 
 // BLE112 module connections:
 // - BLE P0_2 -> GND (CTS tied to ground to bypass flow control)
@@ -51,15 +52,15 @@ void onBeforeTXCommand() {
     // digitalWrite(BLE_WAKEUP_PIN, HIGH);
 
     // wait for "hardware_io_port_status" event to come through, and parse it (and otherwise ignore it)
-    uint8_t *last;
-    while (1) {
-        ble112.checkActivity();
-        last = ble112.getLastEvent();
-        if (last[0] == 0x07 && last[1] == 0x00) break;
-    }
+    /* uint8_t *last; */
+    /* while (1) { */
+    /*     ble112.checkActivity(); */
+    /*     last = ble112.getLastEvent(); */
+    /*     if (last[0] == 0x07 && last[1] == 0x00) break; */
+    /* } */
 
     // give a bit of a gap between parsing the wake-up event and allowing the command to go out
-    delayMicroseconds(1000);
+    /* delayMicroseconds(1000); */
 }
 
 void onTXCommandComplete() {
@@ -90,6 +91,25 @@ void my_rsp_gap_discover(const ble_msg_gap_discover_rsp_t *msg) {
 void my_rsp_gap_end_procedure(const ble_msg_gap_end_procedure_rsp_t *msg) {
     Serial.print("<--\tgap_end_procedure: { ");
     Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
+    Serial.print("<--\tgap_set_mode: { ");
+    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+void my_rsp_attributes_write(const ble_msg_attributes_write_rsp_t *msg) {
+    Serial.print("<--\tattributes_write: { ");
+    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(" }");
+}
+
+void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
+    Serial.print("<--\tconnection_get_rssi: { ");
+    Serial.print("conn: ");   Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(", rssi: "); Serial.print((uint8)msg -> rssi);
     Serial.println(" }");
 }
 
@@ -130,6 +150,12 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
     Serial.println(" }");
 }
 
+void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
+    Serial.println( "###\tdisconnected" );
+
+    // ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+}
+
 void setup() {
     // initialize status LED
     pinMode(LED_PIN, OUTPUT);
@@ -153,24 +179,33 @@ void setup() {
 
     // set up BGLib response handlers (called almost immediately after sending commands)
     // (these are also technicaly optional)
-    ble112.ble_rsp_system_hello = my_rsp_system_hello;
+    ble112.ble_rsp_system_hello            = my_rsp_system_hello;
     ble112.ble_rsp_gap_set_scan_parameters = my_rsp_gap_set_scan_parameters;
-    ble112.ble_rsp_gap_discover = my_rsp_gap_discover;
-    ble112.ble_rsp_gap_end_procedure = my_rsp_gap_end_procedure;
+    ble112.ble_rsp_gap_discover            = my_rsp_gap_discover;
+    ble112.ble_rsp_gap_end_procedure       = my_rsp_gap_end_procedure;
+    ble112.ble_rsp_gap_set_mode            = my_rsp_gap_set_mode;
+    ble112.ble_rsp_attributes_write        = my_rsp_attributes_write;
+    ble112.ble_rsp_connection_get_rssi     = my_rsp_connection_get_rssi;
 
     // set up BGLib event handlers (called at unknown times)
-    ble112.ble_evt_system_boot = my_evt_system_boot;
-    ble112.ble_evt_gap_scan_response = my_evt_gap_scan_response;
+    ble112.ble_evt_system_boot             = my_evt_system_boot;
+    ble112.ble_evt_gap_scan_response       = my_evt_gap_scan_response;
+    ble112.ble_evt_connection_disconnected = my_evt_connection_disconnected;
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
 }
 
 void loop() {
+    static uint8_t writeCount = 1;
+
     Serial.println("Operations Menu:");
     Serial.println("0) Reset BLE112 module");
     Serial.println("1) Say hello to the BLE112 and wait for response");
     Serial.println("2) Toggle scanning for advertising BLE devices");
+    Serial.println("3) gap set mode(2,2)");
+    Serial.println("4) attributes write");
+    Serial.println("5) get rssi");
     Serial.println("Command?");
     while (1) {
         // keep polling for new data from BLE
@@ -178,12 +213,20 @@ void loop() {
 
         // check for input from the user
         if (Serial.available()) {
+
+            Serial.print("free:");
+            Serial.println( freeMemory() );
+
             uint8_t ch = Serial.read();
+            Serial.print("0x");
+            Serial.println( ch, HEX );
+
             uint8_t status;
             if (ch == '0') {
                 // Reset BLE112 module
                 Serial.println("-->\tsystem_reset: { boot_in_dfu: 0 }");
                 ble112.ble_cmd_system_reset(0);
+
                 while ((status = ble112.checkActivity(1000)));
                 // system_reset doesn't have a response, but this BGLib
                 // implementation allows the system_boot event specially to
@@ -193,6 +236,7 @@ void loop() {
                 // Say hello to the BLE112 and wait for response
                 Serial.println("-->\tsystem_hello");
                 ble112.ble_cmd_system_hello();
+
                 while ((status = ble112.checkActivity(1000)));
                 // response should come back within milliseconds
             }
@@ -210,12 +254,33 @@ void loop() {
                     ble112.ble_cmd_gap_set_scan_parameters(0xC8, 0xC8, 1);
                     while ((status = ble112.checkActivity(1000)));
                     // response should come back within milliseconds
+
                     Serial.println("-->\tgap_discover: { mode: 2 (GENERIC) }");
                     ble112.ble_cmd_gap_discover(BGLIB_GAP_DISCOVER_GENERIC);
                     while ((status = ble112.checkActivity(1000)));
                     // response should come back within milliseconds
                     // scan response events may happen at any time after this
                 }
+            }
+            else if (ch == '3') {
+                Serial.println("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }");
+                ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+                while ((status = ble112.checkActivity(1000)));
+            }
+            else if (ch == '4') {
+                Serial.println("-->\tattributes_write");
+                uint8_t data[] = { writeCount ++ };
+                ble112.ble_cmd_attributes_write( (uint16)0x0014,       // handle
+                                                 (uint8)0,             // offset
+                                                 (uint8)sizeof(data),  // value_len
+                                                 (const uint8*)&data   // value_data
+                                                 );
+                while ((status = ble112.checkActivity(1000)));
+            }
+            else if (ch == '5') {
+                Serial.println("-->\tget_rssi");
+                ble112.ble_cmd_connection_get_rssi( 0x00 );
+                while ((status = ble112.checkActivity(1000)));
             }
         }
     }
