@@ -1,1 +1,2 @@
-.build
+.build/
+src/irkit/build-uno/
