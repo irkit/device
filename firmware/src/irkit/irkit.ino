@@ -165,6 +165,12 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
     // ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
+void my_evt_attclient_indicated(const struct ble_msg_attclient_indicated_evt_t *msg) {
+    Serial.println( P("###\tattclient_indicated") );
+    Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle);
+}
+
 void setup() {
     // initialize status LED
     pinMode(LED_PIN, OUTPUT);
@@ -201,6 +207,7 @@ void setup() {
     ble112.ble_evt_gap_scan_response       = my_evt_gap_scan_response;
     ble112.ble_evt_connection_status       = my_evt_connection_status_evt_t;
     ble112.ble_evt_connection_disconnected = my_evt_connection_disconnected;
+    ble112.ble_evt_attclient_indicated     = my_evt_attclient_indicated;
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
