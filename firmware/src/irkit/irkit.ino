@@ -80,7 +80,10 @@ void my_rsp_gap_end_procedure(const ble_msg_gap_end_procedure_rsp_t *msg) {
 
 void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
     Serial.print(P("<--\tgap_set_mode: { "));
+
+    // 0x020C: Command Disallowed
     Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+
     Serial.println(P(" }"));
 }
 
@@ -201,13 +204,15 @@ void setup() {
 
 void loop() {
     static uint8_t writeCount = 1;
+    static uint8_t lastCharacter = '0';
 
     Serial.println(P("Operations Menu:"));
     Serial.println(P("0) Reset BLE112 module"));
     Serial.println(P("1) Say hello to the BLE112 and wait for response"));
-    Serial.println(P("3) gap set mode(2,2)"));
-    Serial.println(P("4) attributes write"));
-    Serial.println(P("5) get rssi"));
+    Serial.println(P("3) Set gap mode(2,2)"));
+    Serial.println(P("4) Write attributes"));
+    Serial.println(P("5) Get rssi"));
+    Serial.println(P("6) Indicate new value"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -219,12 +224,12 @@ void loop() {
             Serial.print(P("free:"));
             Serial.println( freeMemory() );
 
-            uint8_t ch = Serial.read();
+            uint8_t newCharacter = Serial.read();
             Serial.print(P("0x"));
-            Serial.println( ch, HEX );
+            Serial.println( newCharacter, HEX );
 
             uint8_t status;
-            if (ch == '0') {
+            if (newCharacter == '0') {
                 // Reset BLE112 module
                 Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
                 ble112.ble_cmd_system_reset(0);
@@ -234,7 +239,7 @@ void loop() {
                 // implementation allows the system_boot event specially to
                 // set the P("busy") flag to false for this particular case
             }
-            if (ch == '1') {
+            else if (newCharacter == '1') {
                 // Say hello to the BLE112 and wait for response
                 Serial.println(P("-->\tsystem_hello"));
                 ble112.ble_cmd_system_hello();
@@ -242,14 +247,35 @@ void loop() {
                 while ((status = ble112.checkActivity(1000)));
                 // response should come back within milliseconds
             }
-            else if (ch == '3') {
+            else if (newCharacter == '3') {
                 Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
                 ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
                 while ((status = ble112.checkActivity(1000)));
             }
-            else if (ch == '4') {
+            else if (newCharacter == '4') {
                 Serial.println(P("-->\tattributes_write"));
-                uint8_t data[] = { writeCount ++ };
+
+                uint8_t data[] = {
+                    lastCharacter,
+                    (lastCharacter+1)%256,
+                    (lastCharacter+2 )%256,
+                    (lastCharacter+3 )%256,
+                    (lastCharacter+4 )%256,
+                    (lastCharacter+5 )%256,
+                    (lastCharacter+6 )%256,
+                    (lastCharacter+7 )%256,
+                    (lastCharacter+8 )%256,
+                    (lastCharacter+9 )%256,
+                    (lastCharacter+10)%256,
+                    (lastCharacter+11)%256,
+                    (lastCharacter+12)%256,
+                    (lastCharacter+13)%256,
+                    (lastCharacter+14)%256,
+                    (lastCharacter+15)%256,
+                    (lastCharacter+16)%256,
+                    (lastCharacter+17)%256,
+                    (lastCharacter+18)%256
+                };
                 ble112.ble_cmd_attributes_write( (uint16)0x0014,       // handle
                                                  (uint8)0,             // offset
                                                  (uint8)sizeof(data),  // value_len
@@ -257,11 +283,13 @@ void loop() {
                                                  );
                 while ((status = ble112.checkActivity(1000)));
             }
-            else if (ch == '5') {
+            else if (lastCharacter == '5') {
                 Serial.println(P("-->\tget_rssi"));
-                ble112.ble_cmd_connection_get_rssi( 0x00 );
+                ble112.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
                 while ((status = ble112.checkActivity(1000)));
             }
+
+            lastCharacter = newCharacter;
         }
     }
 }
