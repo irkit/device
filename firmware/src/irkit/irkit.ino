@@ -165,10 +165,53 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
     // ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
+void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
+    Serial.print( P("###\tattributes_status: {") );
+    Serial.print(P("handle: "));  Serial.print((uint16)msg -> handle, HEX);
+    Serial.print(P(", flags: ")); Serial.print((uint8)msg -> flags, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg ) {
+    Serial.print( P("###\tattributes_value: {") );
+    Serial.print(P("conn: "));  Serial.print((uint8)msg -> connection, HEX);
+
+    // 0: attributes_attribute_change_reason_write_request
+    Serial.print(P(", reason: ")); Serial.print((uint8)msg -> reason, HEX);
+    Serial.print(P(", handle: ")); Serial.print((uint16)msg -> handle, HEX);
+    Serial.print(P(", offset: ")); Serial.print((uint16)msg -> offset, HEX);
+    Serial.print(P(", value: "));
+    for (uint8_t i = 0; i < msg -> value.len; i++) {
+        if (msg -> value.data[i] < 16) Serial.write('0');
+        Serial.print(msg -> value.data[i], HEX);
+    }
+    Serial.println(P(" }"));
+}
+
+void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_value_evt_t *msg) {
+    Serial.print( P("###\tattclient_attribute_value: {") );
+    Serial.print(P("conn: "));         Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", atthandle: "));  Serial.print((uint16)msg -> atthandle, HEX);
+    Serial.print(P(", type: "));       Serial.print((uint8)msg -> type, HEX);
+    Serial.print(P(", value: "));
+    for (uint8_t i = 0; i < msg -> value.len; i++) {
+        if (msg -> value.data[i] < 16) Serial.write('0');
+        Serial.print(msg -> value.data[i], HEX);
+    }
+    Serial.println(P(" }"));
+}
+
 void my_evt_attclient_indicated(const struct ble_msg_attclient_indicated_evt_t *msg) {
     Serial.println( P("###\tattclient_indicated") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
-    Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle);
+    Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle, HEX);
+}
+
+void my_evt_attclient_procedure_completed(const struct ble_msg_attclient_procedure_completed_evt_t *msg) {
+    Serial.println( P("###\tattclient_procedure_completed") );
+    Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.print(P(", chrhandle: ")); Serial.print((uint16)msg -> chrhandle, HEX);
 }
 
 void setup() {
@@ -194,20 +237,24 @@ void setup() {
 
     // set up BGLib response handlers (called almost immediately after sending commands)
     // (these are also technicaly optional)
-    ble112.ble_rsp_system_hello            = my_rsp_system_hello;
-    ble112.ble_rsp_gap_set_scan_parameters = my_rsp_gap_set_scan_parameters;
-    ble112.ble_rsp_gap_discover            = my_rsp_gap_discover;
-    ble112.ble_rsp_gap_end_procedure       = my_rsp_gap_end_procedure;
-    ble112.ble_rsp_gap_set_mode            = my_rsp_gap_set_mode;
-    ble112.ble_rsp_attributes_write        = my_rsp_attributes_write;
-    ble112.ble_rsp_connection_get_rssi     = my_rsp_connection_get_rssi;
+    ble112.ble_rsp_system_hello                  = my_rsp_system_hello;
+    ble112.ble_rsp_gap_set_scan_parameters       = my_rsp_gap_set_scan_parameters;
+    ble112.ble_rsp_gap_discover                  = my_rsp_gap_discover;
+    ble112.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
+    ble112.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
+    ble112.ble_rsp_attributes_write              = my_rsp_attributes_write;
+    ble112.ble_rsp_connection_get_rssi           = my_rsp_connection_get_rssi;
 
     // set up BGLib event handlers (called at unknown times)
-    ble112.ble_evt_system_boot             = my_evt_system_boot;
-    ble112.ble_evt_gap_scan_response       = my_evt_gap_scan_response;
-    ble112.ble_evt_connection_status       = my_evt_connection_status_evt_t;
-    ble112.ble_evt_connection_disconnected = my_evt_connection_disconnected;
-    ble112.ble_evt_attclient_indicated     = my_evt_attclient_indicated;
+    ble112.ble_evt_system_boot                   = my_evt_system_boot;
+    ble112.ble_evt_gap_scan_response             = my_evt_gap_scan_response;
+    ble112.ble_evt_connection_status             = my_evt_connection_status_evt_t;
+    ble112.ble_evt_connection_disconnected       = my_evt_connection_disconnected;
+    ble112.ble_evt_attributes_status             = my_evt_attributes_status;
+    ble112.ble_evt_attributes_value              = my_evt_attributes_value;
+    ble112.ble_evt_attclient_attribute_value     = my_evt_attclient_attribute_value;
+    ble112.ble_evt_attclient_indicated           = my_evt_attclient_indicated;
+    ble112.ble_evt_attclient_procedure_completed = my_evt_attclient_procedure_completed;
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
@@ -299,7 +346,7 @@ void loop() {
                 while ((status = ble112.checkActivity(1000)));
             }
             else if (lastCharacter == '3') {
-                Serial.println(P("-->\tget_rssi"));
+                Serial.println(P("-->\tconnection_get_rssi"));
                 ble112.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
                 while ((status = ble112.checkActivity(1000)));
             }
