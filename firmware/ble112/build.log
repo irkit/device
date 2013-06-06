@@ -6,7 +6,7 @@ UART channel:1
  error%     :0.135417
  alternate f:1
 ports:60
-C:/DOCUME~1/mash/LOCALS~1/Temp/qt_temp.Uh2660
+C:/DOCUME~1/mash/LOCALS~1/Temp/qt_temp.Uh3932
 0
 0
 
@@ -15,9 +15,9 @@ RAM Memory
 Core RAM end                    @ 0x00cc5    3269
 Top of RAM                      @ 0x01f00    7936
 RAM left for data               = 0x0123b    4667
-Attribute RAM                   - 0x00028      40
+Attribute RAM                   - 0x001fe     510
 Connections                   1 - 0x00194     404
-RAM for packet buffers      108 - 0x01074    4212
+RAM for packet buffers       96 - 0x00ea0    3744
 
 Flash Memory
 -------------------------------------------------
@@ -28,6 +28,6 @@ Common configuration            - 0x00070     112
 16 bit UUIDs                    - 0x00016      22
 128 bit UUIDs                   - 0x00030      48
 Attribute database              - 0x00084     132
-Constant attributes data        - 0x000c7     199
+Constant attributes data        - 0x0029d     669
 USB descriptor                  - 0x000c6     198
 Flash for PS Store           14 - 0x07000   28672
