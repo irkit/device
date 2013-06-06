@@ -276,6 +276,10 @@ void loop() {
                     (lastCharacter+17)%256,
                     (lastCharacter+18)%256
                 };
+                // handle value:
+                // When the project is compiled with the BGBuild compiler
+                // a text file called attributes.txt is generated.
+                // This files contains the ids and corresponding handle values.
                 ble112.ble_cmd_attributes_write( (uint16)0x0014,       // handle
                                                  (uint8)0,             // offset
                                                  (uint8)sizeof(data),  // value_len
