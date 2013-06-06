@@ -2,6 +2,7 @@
 #include <SoftwareSerial.h>
 #include "BGLib.h"
 #include "MemoryFree.h"
+#include "pgmStrToRAM.h"
 
 #define LED_PIN 13
 
@@ -44,7 +45,7 @@ void onIdle() {
 }
 
 void onTimeout() {
-    Serial.println("!!!\tTimeout occurred!");
+    Serial.println(P("!!!\tTimeout occurred!"));
 }
 
 void onBeforeTXCommand() {
@@ -73,44 +74,44 @@ void onTXCommandComplete() {
 // ================================================================
 
 void my_rsp_system_hello(const ble_msg_system_hello_rsp_t *msg) {
-    Serial.println("<--\tsystem_hello");
+    Serial.println(P("<--\tsystem_hello"));
 }
 
 void my_rsp_gap_set_scan_parameters(const ble_msg_gap_set_scan_parameters_rsp_t *msg) {
-    Serial.print("<--\tgap_set_scan_parameters: { ");
-    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
-    Serial.println(" }");
+    Serial.print(P("<--\tgap_set_scan_parameters: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_rsp_gap_discover(const ble_msg_gap_discover_rsp_t *msg) {
-    Serial.print("<--\tgap_discover: { ");
-    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
-    Serial.println(" }");
+    Serial.print(P("<--\tgap_discover: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_rsp_gap_end_procedure(const ble_msg_gap_end_procedure_rsp_t *msg) {
-    Serial.print("<--\tgap_end_procedure: { ");
-    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
-    Serial.println(" }");
+    Serial.print(P("<--\tgap_end_procedure: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
-    Serial.print("<--\tgap_set_mode: { ");
-    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
-    Serial.println(" }");
+    Serial.print(P("<--\tgap_set_mode: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_rsp_attributes_write(const ble_msg_attributes_write_rsp_t *msg) {
-    Serial.print("<--\tattributes_write: { ");
-    Serial.print("result: "); Serial.print((uint16_t)msg -> result, HEX);
-    Serial.println(" }");
+    Serial.print(P("<--\tattributes_write: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
-    Serial.print("<--\tconnection_get_rssi: { ");
-    Serial.print("conn: ");   Serial.print((uint8)msg -> connection, HEX);
-    Serial.print(", rssi: "); Serial.print((uint8)msg -> rssi);
-    Serial.println(" }");
+    Serial.print(P("<--\tconnection_get_rssi: { "));
+    Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", rssi: ")); Serial.print((uint8)msg -> rssi);
+    Serial.println(P(" }"));
 }
 
 // ================================================================
@@ -118,58 +119,58 @@ void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
 // ================================================================
 
 void my_evt_system_boot(const ble_msg_system_boot_evt_t *msg) {
-    Serial.print("###\tsystem_boot: { ");
-    Serial.print("major: "); Serial.print(msg -> major, HEX);
-    Serial.print(", minor: "); Serial.print(msg -> minor, HEX);
-    Serial.print(", patch: "); Serial.print(msg -> patch, HEX);
-    Serial.print(", build: "); Serial.print(msg -> build, HEX);
-    Serial.print(", ll_version: "); Serial.print(msg -> ll_version, HEX);
-    Serial.print(", protocol_version: "); Serial.print(msg -> protocol_version, HEX);
-    Serial.print(", hw: "); Serial.print(msg -> hw, HEX);
-    Serial.println(" }");
+    Serial.print(P("###\tsystem_boot: { "));
+    Serial.print(P("major: ")); Serial.print(msg -> major, HEX);
+    Serial.print(P(", minor: ")); Serial.print(msg -> minor, HEX);
+    Serial.print(P(", patch: ")); Serial.print(msg -> patch, HEX);
+    Serial.print(P(", build: ")); Serial.print(msg -> build, HEX);
+    Serial.print(P(", ll_version: ")); Serial.print(msg -> ll_version, HEX);
+    Serial.print(P(", protocol_version: ")); Serial.print(msg -> protocol_version, HEX);
+    Serial.print(P(", hw: ")); Serial.print(msg -> hw, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
-    Serial.print("###\tgap_scan_response: { ");
-    Serial.print("rssi: "); Serial.print(msg -> rssi);
-    Serial.print(", packet_type: "); Serial.print((uint8_t)msg -> packet_type, HEX);
-    Serial.print(", sender: ");
-    // this is a "bd_addr" data type, which is a 6-byte uint8_t array
+    Serial.print(P("###\tgap_scan_response: { "));
+    Serial.print(P("rssi: ")); Serial.print(msg -> rssi);
+    Serial.print(P(", packet_type: ")); Serial.print((uint8_t)msg -> packet_type, HEX);
+    Serial.print(P(", sender: "));
+    // this is a bd_addr data type, which is a 6-byte uint8_t array
     for (uint8_t i = 0; i < 6; i++) {
         if (msg -> sender.addr[i] < 16) Serial.write('0');
         Serial.print(msg -> sender.addr[i], HEX);
     }
-    Serial.print(", address_type: "); Serial.print(msg -> address_type, HEX);
-    Serial.print(", bond: "); Serial.print(msg -> bond, HEX);
-    Serial.print(", data: ");
-    // this is a "uint8array" data type, which is a length byte and a uint8_t* pointer
+    Serial.print(P(", address_type: ")); Serial.print(msg -> address_type, HEX);
+    Serial.print(P(", bond: ")); Serial.print(msg -> bond, HEX);
+    Serial.print(P(", data: "));
+    // this is a uint8array data type, which is a length byte and a uint8_t* pointer
     for (uint8_t i = 0; i < msg -> data.len; i++) {
         if (msg -> data.data[i] < 16) Serial.write('0');
         Serial.print(msg -> data.data[i], HEX);
     }
-    Serial.println(" }");
+    Serial.println(P(" }"));
 }
 
 void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
-    Serial.print("###\tconnection_status: { ");
-    Serial.print("conn: ");    Serial.print(msg -> connection, HEX);
-    Serial.print(", flags: "); Serial.print(msg -> flags, HEX);
-    Serial.print(", address: ");
-    // this is a "bd_addr" data type, which is a 6-byte uint8_t array
+    Serial.print(P("###\tconnection_status: { "));
+    Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
+    Serial.print(P(", flags: ")); Serial.print(msg -> flags, HEX);
+    Serial.print(P(", address: "));
+    // this is a bd_addr data type, which is a 6-byte uint8_t array
     for (uint8_t i = 0; i < 6; i++) {
         if (msg -> address.addr[i] < 16) Serial.write('0');
         Serial.print(msg -> address.addr[i], HEX);
     }
-    Serial.print(", address_type: "); Serial.print(msg -> address_type, HEX);
-    Serial.print(", intvl: ");        Serial.print(msg -> conn_interval, HEX);
-    Serial.print(", timeout: ");      Serial.print(msg -> timeout, HEX);
-    Serial.print(", latency: ");      Serial.print(msg -> latency, HEX);
-    Serial.print(", bonding: ");      Serial.print(msg -> bonding, HEX);
-    Serial.println(" }");
+    Serial.print(P(", address_type: ")); Serial.print(msg -> address_type, HEX);
+    Serial.print(P(", intvl: "));        Serial.print(msg -> conn_interval, HEX);
+    Serial.print(P(", timeout: "));      Serial.print(msg -> timeout, HEX);
+    Serial.print(P(", latency: "));      Serial.print(msg -> latency, HEX);
+    Serial.print(P(", bonding: "));      Serial.print(msg -> bonding, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
-    Serial.println( "###\tdisconnected" );
+    Serial.println( P("###\tdisconnected") );
 
     // ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
@@ -183,7 +184,7 @@ void setup() {
     Serial.begin(115200);
 
     // welcome!
-    Serial.println("BLE112 BGAPI Scanner Demo");
+    Serial.println(P("BLE112 BGAPI Scanner Demo"));
 
     // set up internal status handlers
     // (these are technically optional)
@@ -218,14 +219,14 @@ void setup() {
 void loop() {
     static uint8_t writeCount = 1;
 
-    Serial.println("Operations Menu:");
-    Serial.println("0) Reset BLE112 module");
-    Serial.println("1) Say hello to the BLE112 and wait for response");
-    Serial.println("2) Toggle scanning for advertising BLE devices");
-    Serial.println("3) gap set mode(2,2)");
-    Serial.println("4) attributes write");
-    Serial.println("5) get rssi");
-    Serial.println("Command?");
+    Serial.println(P("Operations Menu:"));
+    Serial.println(P("0) Reset BLE112 module"));
+    Serial.println(P("1) Say hello to the BLE112 and wait for response"));
+    Serial.println(P("2) Toggle scanning for advertising BLE devices"));
+    Serial.println(P("3) gap set mode(2,2)"));
+    Serial.println(P("4) attributes write"));
+    Serial.println(P("5) get rssi"));
+    Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
         ble112.checkActivity();
@@ -233,27 +234,27 @@ void loop() {
         // check for input from the user
         if (Serial.available()) {
 
-            Serial.print("free:");
+            Serial.print(P("free:"));
             Serial.println( freeMemory() );
 
             uint8_t ch = Serial.read();
-            Serial.print("0x");
+            Serial.print(P("0x"));
             Serial.println( ch, HEX );
 
             uint8_t status;
             if (ch == '0') {
                 // Reset BLE112 module
-                Serial.println("-->\tsystem_reset: { boot_in_dfu: 0 }");
+                Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
                 ble112.ble_cmd_system_reset(0);
 
                 while ((status = ble112.checkActivity(1000)));
                 // system_reset doesn't have a response, but this BGLib
                 // implementation allows the system_boot event specially to
-                // set the "busy" flag to false for this particular case
+                // set the P("busy") flag to false for this particular case
             }
             if (ch == '1') {
                 // Say hello to the BLE112 and wait for response
-                Serial.println("-->\tsystem_hello");
+                Serial.println(P("-->\tsystem_hello"));
                 ble112.ble_cmd_system_hello();
 
                 while ((status = ble112.checkActivity(1000)));
@@ -263,18 +264,18 @@ void loop() {
                 // Toggle scanning for advertising BLE devices
                 if (isScanActive) {
                     isScanActive = 0;
-                    Serial.println("-->\tgap_end_procedure");
+                    Serial.println(P("-->\tgap_end_procedure"));
                     ble112.ble_cmd_gap_end_procedure();
                     while ((status = ble112.checkActivity(1000)));
                     // response should come back within milliseconds
                 } else {
                     isScanActive = 1;
-                    Serial.println("-->\tgap_set_scan_parameters: { scan_interval: 0xC8, scan_window: 0xC8, active: 1 }");
+                    Serial.println(P("-->\tgap_set_scan_parameters: { scan_interval: 0xC8, scan_window: 0xC8, active: 1 }"));
                     ble112.ble_cmd_gap_set_scan_parameters(0xC8, 0xC8, 1);
                     while ((status = ble112.checkActivity(1000)));
                     // response should come back within milliseconds
 
-                    Serial.println("-->\tgap_discover: { mode: 2 (GENERIC) }");
+                    Serial.println(P("-->\tgap_discover: { mode: 2 (GENERIC) }"));
                     ble112.ble_cmd_gap_discover(BGLIB_GAP_DISCOVER_GENERIC);
                     while ((status = ble112.checkActivity(1000)));
                     // response should come back within milliseconds
@@ -282,12 +283,12 @@ void loop() {
                 }
             }
             else if (ch == '3') {
-                Serial.println("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }");
+                Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
                 ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
                 while ((status = ble112.checkActivity(1000)));
             }
             else if (ch == '4') {
-                Serial.println("-->\tattributes_write");
+                Serial.println(P("-->\tattributes_write"));
                 uint8_t data[] = { writeCount ++ };
                 ble112.ble_cmd_attributes_write( (uint16)0x0014,       // handle
                                                  (uint8)0,             // offset
@@ -297,7 +298,7 @@ void loop() {
                 while ((status = ble112.checkActivity(1000)));
             }
             else if (ch == '5') {
-                Serial.println("-->\tget_rssi");
+                Serial.println(P("-->\tget_rssi"));
                 ble112.ble_cmd_connection_get_rssi( 0x00 );
                 while ((status = ble112.checkActivity(1000)));
             }
