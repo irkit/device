@@ -91,6 +91,20 @@ void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
     Serial.println(P(" }"));
 }
 
+void my_rsp_attributes_read(const struct ble_msg_attributes_read_rsp_t * msg ) {
+    Serial.print(P("<--\tattributes_read: { "));
+    Serial.print(P("handle: "));   Serial.print((uint16_t)msg -> handle, HEX);
+    Serial.print(P(", offset: ")); Serial.print((uint16_t)msg -> offset, HEX);
+
+    // 407: Invalid Offset
+    Serial.print(P(", result: "));
+    for (uint8_t i = 0; i < msg -> value.len; i++) {
+        if (msg -> value.data[i] < 16) Serial.write('0');
+        Serial.print(msg -> value.data[i], HEX);
+    }
+    Serial.println(P(" }"));
+}
+
 void my_rsp_attributes_write(const ble_msg_attributes_write_rsp_t *msg) {
     Serial.print(P("<--\tattributes_write: { "));
     Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
@@ -242,6 +256,7 @@ void setup() {
     ble112.ble_rsp_gap_discover                  = my_rsp_gap_discover;
     ble112.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
     ble112.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
+    ble112.ble_rsp_attributes_read               = my_rsp_attributes_read;
     ble112.ble_rsp_attributes_write              = my_rsp_attributes_write;
     ble112.ble_rsp_connection_get_rssi           = my_rsp_connection_get_rssi;
 
@@ -304,8 +319,8 @@ void loop() {
     Serial.println(P("1) Hello"));
     Serial.println(P("2) Set gap mode(2,2)"));
     Serial.println(P("3) Get rssi"));
-    Serial.println(P("4) Write attributes"));
-    Serial.println(P("5) Prepare write & execute"));
+    Serial.println(P("4) Write attribute"));
+    Serial.println(P("5) Read attribute"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -375,6 +390,33 @@ void loop() {
                                                      sendSize,             // value_len
                                                      (const uint8*)&data[i*20] // value_data
                                                      );
+                    while ((status = ble112.checkActivity(1000)));
+                }
+            }
+            else if (lastCharacter == '5') {
+                // maximum payload: 22bytes
+                // see p26 of Bluetooth_Smart_API_11_11032013.pdf
+                uint8 totalSize = BLE112_MAX_CHARACTERISTIC_VALUE_LENGTH;
+                // Serial.print(P("totalSize:")); Serial.println(totalSize);
+
+                // read can deliver 22Bytes,
+                // but let's use the same number with writes for simplicity
+                for (uint8 i=0; i<(totalSize/20)+1; i++) {
+                    uint8 sendSize = totalSize - (i * 20);
+                    if (sendSize > 20) {
+                        sendSize = 20;
+                    }
+
+                    Serial.println(P("-->\tattributes_read"));
+                    /* Serial.print(P("sendSize:")); Serial.println(sendSize); */
+                    /* Serial.print(P("i:"));        Serial.println(i); */
+
+                    // handle value:
+                    // When the project is compiled with the BGBuild compiler
+                    // a text file called attributes.txt is generated.
+                    // This files contains the ids and corresponding handle values.
+                    ble112.ble_cmd_attributes_read( (uint16)0x0011,       // handle value
+                                                    (uint8)(i*20) );      // offset
                     while ((status = ble112.checkActivity(1000)));
                 }
             }
