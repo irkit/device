@@ -28,8 +28,6 @@ SoftwareSerial ble112uart( 6, 5 ); // RX, TX
 //  - enable packet mode on API protocol since flow control is unavailable
 BGLib ble112((HardwareSerial *)&ble112uart, 0, 1);
 
-uint8_t isScanActive = 0;
-
 // ================================================================
 // INTERNAL BGLIB CLASS CALLBACK FUNCTIONS
 // ================================================================
@@ -49,24 +47,9 @@ void onTimeout() {
 }
 
 void onBeforeTXCommand() {
-    // wake module up (assuming here that digital pin 5 is connected to the BLE wake-up pin)
-    // digitalWrite(BLE_WAKEUP_PIN, HIGH);
-
-    // wait for "hardware_io_port_status" event to come through, and parse it (and otherwise ignore it)
-    /* uint8_t *last; */
-    /* while (1) { */
-    /*     ble112.checkActivity(); */
-    /*     last = ble112.getLastEvent(); */
-    /*     if (last[0] == 0x07 && last[1] == 0x00) break; */
-    /* } */
-
-    // give a bit of a gap between parsing the wake-up event and allowing the command to go out
-    /* delayMicroseconds(1000); */
 }
 
 void onTXCommandComplete() {
-    // allow module to return to sleep (assuming here that digital pin 5 is connected to the BLE wake-up pin)
-    // digitalWrite(BLE_WAKEUP_PIN, LOW);
 }
 
 // ================================================================
@@ -222,7 +205,6 @@ void loop() {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("0) Reset BLE112 module"));
     Serial.println(P("1) Say hello to the BLE112 and wait for response"));
-    Serial.println(P("2) Toggle scanning for advertising BLE devices"));
     Serial.println(P("3) gap set mode(2,2)"));
     Serial.println(P("4) attributes write"));
     Serial.println(P("5) get rssi"));
@@ -259,28 +241,6 @@ void loop() {
 
                 while ((status = ble112.checkActivity(1000)));
                 // response should come back within milliseconds
-            }
-            else if (ch == '2') {
-                // Toggle scanning for advertising BLE devices
-                if (isScanActive) {
-                    isScanActive = 0;
-                    Serial.println(P("-->\tgap_end_procedure"));
-                    ble112.ble_cmd_gap_end_procedure();
-                    while ((status = ble112.checkActivity(1000)));
-                    // response should come back within milliseconds
-                } else {
-                    isScanActive = 1;
-                    Serial.println(P("-->\tgap_set_scan_parameters: { scan_interval: 0xC8, scan_window: 0xC8, active: 1 }"));
-                    ble112.ble_cmd_gap_set_scan_parameters(0xC8, 0xC8, 1);
-                    while ((status = ble112.checkActivity(1000)));
-                    // response should come back within milliseconds
-
-                    Serial.println(P("-->\tgap_discover: { mode: 2 (GENERIC) }"));
-                    ble112.ble_cmd_gap_discover(BGLIB_GAP_DISCOVER_GENERIC);
-                    while ((status = ble112.checkActivity(1000)));
-                    // response should come back within milliseconds
-                    // scan response events may happen at any time after this
-                }
             }
             else if (ch == '3') {
                 Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
