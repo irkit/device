@@ -19,7 +19,7 @@
             <!-- 128: Generic Computer, Generic category -->
             <value type="hex">0080</value>
         </characteristic>
-        
+
     </service>
 
     <!-- 180A: org.bluetooth.service.device_information -->
@@ -50,13 +50,13 @@
         <characteristic uuid="5FC569A0-74A9-4FA4-B8B7-8354C86E45A4" id="c_rx_data">
             <description>RX Data</description>
             <properties write="true" />
-            <value variable_length="true" length="20"></value>
+            <value variable_length="true" length="255"></value>
         </characteristic>
 
         <characteristic uuid="21819AB0-C937-4188-B0DB-B9621E1696CD" id="c_tx_data">
             <description>TX Data</description>
             <properties read="true" notify="true" indicate="true" />
-            <value variable_length="true" length="20"></value>
+            <value variable_length="true" length="255"></value>
         </characteristic>
 
     </service>
