@@ -19,4 +19,7 @@
 #define BLE112_RX  6
 #define BLE112_TX  5
 
+#define IR_IN      8 // PB0 pin12 ICP1 Counter1 (PCINT0/CLKO/ICP1)
+#define IR_OUT     3 // PD3 pin1  OC2B Timer2 (PCINT19/OC2B/INT1)
+
 #endif

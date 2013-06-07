@@ -1,9 +1,10 @@
 #include "Arduino.h"
 #include <SoftwareSerial.h>
 #include "pins.h"
-#include "BLE112.h"
 #include "MemoryFree.h"
 #include "pgmStrToRAM.h"
+#include "BLE112.h"
+#include "IrCtrl.h"
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
@@ -13,6 +14,10 @@ void setup() {
     // initialize status LED
     pinMode(BUSY_LED, OUTPUT);
     digitalWrite(BUSY_LED, LOW);
+
+    pinMode(IR_OUT,   OUTPUT);
+    pinMode(IR_IN,    INPUT);
+    digitalWrite(IR_IN,    HIGH); // pull-up
 
     // USB serial
     Serial.begin(115200);
@@ -24,6 +29,80 @@ void setup() {
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
+
+    IR_initialize();
+}
+
+void ir_recv_loop(void)
+{
+    if(IrCtrl.state!=IR_RECVED){
+        return;
+    }
+
+    uint8_t d, i, l;
+    uint16_t a;
+
+    l = IrCtrl.len;
+    switch (IrCtrl.format) {    /* Which frame arrived? */
+#if IR_USE_NEC
+    case NEC:    /* NEC format data frame */
+        if (l == 32) {    /* Only 32-bit frame is valid */
+            Serial.print("N ");
+            Serial.print(IrCtrl.buff[0], HEX); Serial.print(" ");
+            Serial.print(IrCtrl.buff[1], HEX); Serial.print(" ");
+            Serial.print(IrCtrl.buff[2], HEX); Serial.print(" ");
+            Serial.print(IrCtrl.buff[3], HEX); Serial.println();
+        }
+        break;
+    case NEC|REPT:    /* NEC repeat frame */
+        Serial.println("N repeat");
+        break;
+#endif
+#if IR_USE_AEHA
+    case AEHA:        /* AEHA format data frame */
+        if ((l >= 48) && (l % 8 == 0)) {    /* Only multiple of 8 bit frame is valid */
+            Serial.print("A");
+            l /= 8;
+            for (i = 0; i < l; i++){
+                Serial.print(" ");
+                Serial.print(IrCtrl.buff[i], HEX);
+            }
+            Serial.println();
+        }
+        break;
+    case AEHA|REPT:    /* AEHA format repeat frame */
+        Serial.println("A repeat");
+        break;
+#endif
+#if IR_USE_SONY
+    case SONY:
+        d = IrCtrl.buff[0];
+        a = ((uint16_t)IrCtrl.buff[2] << 9) + ((uint16_t)IrCtrl.buff[1] << 1) + ((d & 0x80) ? 1 : 0);
+        d &= 0x7F;
+        switch (l) {    /* Only 12, 15 or 20 bit frames are valid */
+        case 12:
+            //xprintf(PSTR("S12 %u %u\n"), d, a & 0x1F);
+            Serial.print("S12 ");
+            Serial.print(d, HEX);        Serial.print(" ");
+            Serial.print(a & 0x1F, HEX); Serial.println();
+            break;
+        case 15:
+            //xprintf(PSTR("S15 %u %u\n"), d, a & 0xFF);
+            Serial.print("S15 ");
+            Serial.print(d, HEX);        Serial.print(" ");
+            Serial.print(a & 0xFF, HEX); Serial.println();
+            break;
+        case 20:
+            //xprintf(PSTR("S20 %u %u\n"), d, a & 0x1FFF);
+            Serial.print("S20 ");
+            Serial.print(d, HEX);        Serial.print(" ");
+            Serial.print(a & 0x1FFF, HEX); Serial.println();
+            break;
+        }
+        break;
+#endif
+    }
+    IrCtrl.state = IR_IDLE;        /* Ready to receive next frame */
 }
 
 void loop() {
@@ -82,5 +161,14 @@ void loop() {
                 ble112.readAttribute();
             }
         }
+    }
+
+    ir_recv_loop();
+
+    // AirCon Off -> OK
+    if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\x02\xFD", 7*8) ) {
+    // AirCon On -> OK
+    // if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\xFE\x09\x30\xC1\x04\x50\x00\x00\x00\x28\x93", 16*8) ) {
+        Serial.println( "." );
     }
 }
