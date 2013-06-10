@@ -121,6 +121,9 @@ void loop() {
         // keep polling for new data from BLE
         ble112.loop();
 
+        // check if received
+        ir_recv_loop();
+
         // check for input from the user
         if (Serial.available()) {
 
@@ -163,12 +166,10 @@ void loop() {
         }
     }
 
-    ir_recv_loop();
-
     // AirCon Off -> OK
-    if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\x02\xFD", 7*8) ) {
+    // if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\x02\xFD", 7*8) ) {
     // AirCon On -> OK
     // if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\xFE\x09\x30\xC1\x04\x50\x00\x00\x00\x28\x93", 16*8) ) {
-        Serial.println( "." );
-    }
+    /*     Serial.println( "." ); */
+    /* } */
 }
