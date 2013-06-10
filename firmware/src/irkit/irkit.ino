@@ -47,31 +47,31 @@ void ir_recv_loop(void)
 #if IR_USE_NEC
     case NEC:    /* NEC format data frame */
         if (l == 32) {    /* Only 32-bit frame is valid */
-            Serial.print("N ");
-            Serial.print(IrCtrl.buff[0], HEX); Serial.print(" ");
-            Serial.print(IrCtrl.buff[1], HEX); Serial.print(" ");
-            Serial.print(IrCtrl.buff[2], HEX); Serial.print(" ");
+            Serial.print(P("N "));
+            Serial.print(IrCtrl.buff[0], HEX); Serial.print(P(" "));
+            Serial.print(IrCtrl.buff[1], HEX); Serial.print(P(" "));
+            Serial.print(IrCtrl.buff[2], HEX); Serial.print(P(" "));
             Serial.print(IrCtrl.buff[3], HEX); Serial.println();
         }
         break;
     case NEC|REPT:    /* NEC repeat frame */
-        Serial.println("N repeat");
+        Serial.println(P("N repeat"));
         break;
 #endif
 #if IR_USE_AEHA
     case AEHA:        /* AEHA format data frame */
         if ((l >= 48) && (l % 8 == 0)) {    /* Only multiple of 8 bit frame is valid */
-            Serial.print("A");
+            Serial.print(P("A"));
             l /= 8;
             for (i = 0; i < l; i++){
-                Serial.print(" ");
+                Serial.print(P(" "));
                 Serial.print(IrCtrl.buff[i], HEX);
             }
             Serial.println();
         }
         break;
     case AEHA|REPT:    /* AEHA format repeat frame */
-        Serial.println("A repeat");
+        Serial.println(P("A repeat"));
         break;
 #endif
 #if IR_USE_SONY
@@ -81,21 +81,21 @@ void ir_recv_loop(void)
         d &= 0x7F;
         switch (l) {    /* Only 12, 15 or 20 bit frames are valid */
         case 12:
-            //xprintf(PSTR("S12 %u %u\n"), d, a & 0x1F);
-            Serial.print("S12 ");
-            Serial.print(d, HEX);        Serial.print(" ");
+            //xprintf(PSTR(P("S12 %u %u\n")), d, a & 0x1F);
+            Serial.print(P("S12 "));
+            Serial.print(d, HEX);        Serial.print(P(" "));
             Serial.print(a & 0x1F, HEX); Serial.println();
             break;
         case 15:
-            //xprintf(PSTR("S15 %u %u\n"), d, a & 0xFF);
-            Serial.print("S15 ");
-            Serial.print(d, HEX);        Serial.print(" ");
+            //xprintf(PSTR(P("S15 %u %u\n")), d, a & 0xFF);
+            Serial.print(P("S15 "));
+            Serial.print(d, HEX);        Serial.print(P(" "));
             Serial.print(a & 0xFF, HEX); Serial.println();
             break;
         case 20:
-            //xprintf(PSTR("S20 %u %u\n"), d, a & 0x1FFF);
-            Serial.print("S20 ");
-            Serial.print(d, HEX);        Serial.print(" ");
+            //xprintf(PSTR(P("S20 %u %u\n")), d, a & 0x1FFF);
+            Serial.print(P("S20 "));
+            Serial.print(d, HEX);        Serial.print(P(" "));
             Serial.print(a & 0x1FFF, HEX); Serial.println();
             break;
         }
