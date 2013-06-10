@@ -182,10 +182,10 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
  *  8MHz -> 1000
  */
 // 1000_000_000
-#define T_CLK           (1000000000 / (F_CPU / 8))
+// #define T_CLK           (1000000000 / (F_CPU / 8))
 
 /* Counter clock rate and register width */
-/* #define T_CLK           500 */                    /* Timer tick period [ns] */
+#define T_CLK           500                    /* Timer tick period [ns] */
 /*
 [sample 10MHz]
   T_CLK = 800
