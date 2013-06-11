@@ -518,7 +518,7 @@ void BLE112::setParameters()
 {
     bglib.ble_cmd_sm_set_parameters( (uint8)1, // man-in-the-middle protection required
                                      (uint8)16, // minimum key size in bytes range 7-16
-                                     (uint8)1  // SMP IO Capabilities (Display with Yes/No buttons)
+                                     (uint8)2   // SMP IO Capabilities (Keyboard only)
                                      );
 
     uint8_t status;
