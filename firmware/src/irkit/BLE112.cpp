@@ -129,6 +129,40 @@ void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
     Serial.println(P(" }"));
 }
 
+void my_rsp_sm_encrypt_start(const ble_msg_sm_encrypt_start_rsp_t *msg) {
+    Serial.print(P("<--\tsm_encrypt_start: { "));
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_get_bonds(const ble_msg_sm_get_bonds_rsp_t *msg) {
+    Serial.print(P("<--\tsm_get_bonds: { "));
+    // bonds: num of currently bonded devices
+    Serial.print(P("bonds: "));   Serial.print((uint8)msg -> bonds, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_passkey_entry(const ble_msg_sm_passkey_entry_rsp_t *msg) {
+    Serial.print(P("<--\tsm_passkey_entry: { "));
+    Serial.print(P("result: "));   Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_set_bondable_mode(const ble_msg_sm_set_bondable_mode_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_bondable_mode: {}"));
+}
+
+void my_rsp_sm_set_oob_data(const ble_msg_sm_set_oob_data_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_oob_data: {}"));
+}
+
+void my_rsp_sm_set_parameters(const ble_msg_sm_set_parameters_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_parameters: {}"));
+}
+
+
+
 // ================================================================
 // USER-DEFINED BGLIB EVENT CALLBACKS
 // ================================================================
@@ -227,16 +261,47 @@ void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_v
 }
 
 void my_evt_attclient_indicated(const struct ble_msg_attclient_indicated_evt_t *msg) {
-    Serial.println( P("###\tattclient_indicated") );
+    Serial.println( P("###\tattclient_indicated: {") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_evt_attclient_procedure_completed(const struct ble_msg_attclient_procedure_completed_evt_t *msg) {
-    Serial.println( P("###\tattclient_procedure_completed") );
+    Serial.println( P("###\tattclient_procedure_completed: {") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.print(P(", chrhandle: ")); Serial.print((uint16)msg -> chrhandle, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
+    Serial.println( P("###\tsm_bonding_fail: {") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
+    Serial.println( P("###\tsm_bond_status: {") );
+    Serial.print(P("bond: "));   Serial.print((uint8)msg -> bond, HEX);
+    Serial.print(P(", keysize: ")); Serial.print((uint8)msg -> keysize, HEX);
+    Serial.print(P(", mitm: ")); Serial.print((uint8)msg -> mitm, HEX);
+    Serial.print(P(", keys: ")); Serial.print((uint8)msg -> keys, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_passkey_display(const struct ble_msg_sm_passkey_display_evt_t *msg) {
+    Serial.println( P("###\tsm_passkey_display: {") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.print(P(", passkey: ")); Serial.print((uint32)msg -> passkey, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *msg) {
+    Serial.println( P("###\tsm_passkey_request: {") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.println(P(" }"));
 }
 
 BLE112::BLE112(HardwareSerial *module) :
@@ -267,6 +332,12 @@ void BLE112::setup()
     bglib.ble_rsp_attributes_read               = my_rsp_attributes_read;
     bglib.ble_rsp_attributes_write              = my_rsp_attributes_write;
     bglib.ble_rsp_connection_get_rssi           = my_rsp_connection_get_rssi;
+    bglib.ble_rsp_sm_encrypt_start              = my_rsp_sm_encrypt_start;
+    bglib.ble_rsp_sm_get_bonds                  = my_rsp_sm_get_bonds;
+    bglib.ble_rsp_sm_passkey_entry              = my_rsp_sm_passkey_entry;
+    bglib.ble_rsp_sm_set_bondable_mode          = my_rsp_sm_set_bondable_mode;
+    bglib.ble_rsp_sm_set_oob_data               = my_rsp_sm_set_oob_data;
+    bglib.ble_rsp_sm_set_parameters             = my_rsp_sm_set_parameters;
 
     // set up BGLib event handlers (called at unknown times)
     bglib.ble_evt_system_boot                   = my_evt_system_boot;
@@ -278,6 +349,10 @@ void BLE112::setup()
     bglib.ble_evt_attclient_attribute_value     = my_evt_attclient_attribute_value;
     bglib.ble_evt_attclient_indicated           = my_evt_attclient_indicated;
     bglib.ble_evt_attclient_procedure_completed = my_evt_attclient_procedure_completed;
+    bglib.ble_evt_sm_bonding_fail               = my_evt_sm_bonding_fail;
+    bglib.ble_evt_sm_bond_status                = my_evt_sm_bond_status;
+    bglib.ble_evt_sm_passkey_display            = my_evt_sm_passkey_display;
+    bglib.ble_evt_sm_passkey_request            = my_evt_sm_passkey_request;
 }
 
 void BLE112::loop()
@@ -382,4 +457,60 @@ void BLE112::readAttribute()
         while ((status = bglib.checkActivity(1000)));
     }
 
+}
+
+void BLE112::encryptStart()
+{
+    bglib.ble_cmd_sm_encrypt_start( (uint8)0, // connection handle
+                                    (uint8)1  // create bonding if devices are not already bonded
+                                    );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::getBonds()
+{
+    bglib.ble_cmd_sm_get_bonds();
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::passkeyEntry()
+{
+    bglib.ble_cmd_sm_passkey_entry( (uint8)0,  // connection handle
+                                    (uint32)0  // passkey
+                                    );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setBondableMode()
+{
+    bglib.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setOobData()
+{
+    bglib.ble_cmd_sm_set_oob_data( (uint8)2, // oob_len
+                                   data // oob_data
+                                   );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setParameters()
+{
+    bglib.ble_cmd_sm_set_parameters( (uint8)1, // man-in-the-middle protection required
+                                     (uint8)16, // minimum key size in bytes range 7-16
+                                     (uint8)1  // SMP IO Capabilities (Display with Yes/No buttons)
+                                     );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
 }
