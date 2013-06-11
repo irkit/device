@@ -1,11 +1,12 @@
 /*----------------------------------------------------------------------------/
-/  IR_CTRL - IR remote control module  R0.01                  (C)ChaN, 2008
+/  IR_CTRL - IR remote control module                         (C)ChaN, 2008
 /-----------------------------------------------------------------------------/
 / The IR_CTRL is a generic Transmisson/Reception control module for IR remote
 / control systems. This is a free software and is opened for education,
 / research and development under license policy of following trems.
 /
 /  Copyright (C) 2008, ChaN, all right reserved.
+/  Copyright (C) 2013-, mash, all right reserved.
 /
 / * The IR_CTRL module is a free software and there is no warranty.
 / * You can use, modify and/or redistribute it for personal, non-profit or
@@ -123,7 +124,8 @@ CS21:0 : Clock Select
 #define IR_CAPTURE_TEST()  TCCR1B &   _BV(ICES1)   /* Rx: Check which edge generated the capture interrupt */
 /*
 TCCR1B : Timer/Counter1 Control Register B
-ICES1 : Input Capture Edge Select
+ICES1 : Input Capture Edge Select - This bit selects which edge on the Input Capture pin (ICP1) that is used to trigger a capture event. When the ICES1 bit is written to zero, a falling (negative) edg
+
 */
 #define IR_CAPTURE_RISE()  TCCR1B |=  _BV(ICES1)   /* Rx: Set captureing is triggered on rising edge */
 #define IR_CAPTURE_FALL()  TCCR1B &= ~_BV(ICES1)   /* Rx: Set captureing is triggered on falling edge */
@@ -210,320 +212,138 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 
 volatile IR_STRUCT IrCtrl;
 
-
 /* IR receiving interrupt on either edge of input */
-#if IR_USE_RCVR
 ISR_CAPTURE()
 {
-    static _timer_reg_t last_interrupt, low_width;
-    _timer_reg_t counter, high_width;
-    static uint8_t bit_counter;        /* Bit counter */
-    uint8_t received_bytes, format, data;
+    static _timer_reg_t last_interrupt;
 
-    counter = IR_CAPTURE_REG();
+    _timer_reg_t counter = IR_CAPTURE_REG();
+
+    if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
+        return;
+    }
+    if (IrCtrl.len >= IR_BUFF_SIZE) {
+        return; // TODO clear state?
+    }
 
     if (IR_CAPTURE_TEST()) {
-        /* On stop of burst (rising edge) */
-        IR_CAPTURE_FALL();            /* Next is start of carrier (falling edge on input) */
-        IR_COMPARE_ENABLE(T_TRAIL);   /* Enable trailer timer */
 
-        // TODO does counter overflow?
-        low_width      = counter - last_interrupt;
-        last_interrupt = counter;
+        // Rising edge: on stop of burst
 
-        if (IR_USE_SONY &&
-            IrCtrl.format == SONY &&
-            low_width >= (uint16_t)(T_SONY * 0.8) &&
-            low_width <= (uint16_t)(T_SONY * 2.5))
-        {
-            received_bytes = IrCtrl.phase / 8;
-            if (received_bytes >= sizeof(IrCtrl.buff)) return;
+        _timer_reg_t low_width = counter - last_interrupt;
+        last_interrupt         = counter;
 
-            // save each bit in buff[ received_bytes ] using bit operation
-            data = IrCtrl.buff[ received_bytes ];
-            IrCtrl.buff[ received_bytes ] = (low_width >= (uint16_t)(T_SONY * 1.5))
-                ? data | bit_counter
-                : data & ~bit_counter;
-            if ((bit_counter <<= 1) == 0) bit_counter = 1;
-            IrCtrl.phase++;
-        }
+        IrCtrl.buff[ IrCtrl.len ++ ] = low_width;
+
+        IR_CAPTURE_FALL();
+        IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
+
         return;
     }
 
-    /* On start of burst (falling edge) */
-    IR_CAPTURE_RISE();                        /* Next is stop of carrier (rising edge on input) */
-    IR_COMPARE_DISABLE();                     /* Disable trailer timer */
+    // Falling edge: on start of burst
 
-    high_width     = counter - last_interrupt;
-    last_interrupt = counter;
+    _timer_reg_t high_width = counter - last_interrupt;
+    last_interrupt          = counter;
 
-    if (IrCtrl.state >= IR_RECVED) return;    /* Reject if not ready to receive */
-
-    format = 0;
-
-    // detect leader pattern (on the falling edge of the first customer/data code)
-
-    if (IR_USE_NEC &&
-        low_width >= T_NEC * 13 &&
-        low_width <= T_NEC * 19)
-    {
-        /* Is NEC leader pattern? */
-        if (high_width >= T_NEC * 6 &&
-            high_width <= T_NEC * 10)
-            format = NEC;
-
-        if (high_width >= T_NEC * 3 &&
-            high_width <= T_NEC * 5)
-            format = NEC|REPT;
+    if (IrCtrl.state == IR_IDLE) {
+        IR_state( IR_RECVING );
     }
-    if (IR_USE_AEHA &&
-        low_width >= T_AEHA * 5 &&
-        low_width <= T_AEHA * 12)
-    {
-        /* Is AEHA leader pattern? */
-        if (high_width >= (uint16_t)(T_AEHA * 2.5) &&
-            high_width <= (uint16_t)(T_AEHA * 5.5))
-            format = AEHA;
-
-        if (high_width >= T_AEHA * 5 &&
-            high_width <= T_AEHA * 11)
-            format = AEHA|REPT;
-    }
-    if (IR_USE_SONY &&
-        low_width >= T_SONY * 3 &&
-        low_width <= T_SONY * 5) {
-        /* Is SONY leader pattern? */
-        if (high_width >= (uint16_t)(T_SONY * 0.75) &&
-            high_width <= (uint16_t)(T_SONY * 1.25))
-            format = SONY;
-    }
-    if (format) {    /* A leader pattern is detected */
-        IrCtrl.format = format;
-        IrCtrl.phase  = 0;
-        bit_counter   = 1;
-        IrCtrl.state  = IR_RECVING;
-        return;
+    else { // is IR_RECVING
+        IrCtrl.buff[ IrCtrl.len ++ ] = high_width;
     }
 
-    // detect custom, data pattern
-
-    if (IrCtrl.state == IR_RECVING) {
-        received_bytes = IrCtrl.phase / 8;
-        if (received_bytes >= sizeof(IrCtrl.buff)) return;
-
-        data   = IrCtrl.buff[ received_bytes ];
-        format = IrCtrl.format;
-        if (IR_USE_NEC &&
-            format == NEC &&
-            low_width  <= (uint16_t)(T_NEC * 1.5) &&
-            high_width <= (uint16_t)(T_NEC * 3 * 1.5))
-        {
-            /* Is NEC data mark? */
-            IrCtrl.buff[ received_bytes ] = (high_width >= T_NEC * 2)
-                ? data | bit_counter
-                : data & ~bit_counter;
-            if ((bit_counter <<= 1) == 0) bit_counter = 1;
-            IrCtrl.phase++;
-            return;
-        }
-        if (IR_USE_AEHA &&
-            format == AEHA &&
-            low_width  <= (uint16_t)(T_AEHA * 1.5) &&
-            high_width <= (uint16_t)(T_AEHA * 3 * 1.5))
-        {
-            /* Is AEHA data mark? */
-            IrCtrl.buff[ received_bytes ] = (high_width >= T_AEHA * 2)
-                ? data | bit_counter
-                : data & ~bit_counter;
-            if ((bit_counter <<= 1) == 0) bit_counter = 1;
-            IrCtrl.phase++;
-            return;
-        }
-        if (IR_USE_SONY &&
-            format == SONY &&
-            high_width <= (uint16_t)(T_SONY * 1.5))
-        {
-            /* Is SONY data mark? */
-            return;        /* Nothing to do at start of carrier */
-        }
-    }
-
-    // When an invalid mark width is detected, abort and return idle state
-    // We come here on the very 1st falling edge of the leader code too
-    IrCtrl.state = IR_IDLE;
+    IR_CAPTURE_RISE();
+    IR_COMPARE_DISABLE(); // Disable trailer timer
 }
-#endif /* IR_USE_RCVR */
-
-
 
 /* Transmission timing and Trailer detection */
-
 ISR_COMPARE()
 {
-    uint8_t state = IrCtrl.state;
-
-#if IR_USE_XMIT
-    uint8_t i, data, format = IrCtrl.format;
-    uint16_t width;
-
-    if (state == IR_XMITING) {
-        if (IR_TX_TEST()) {             /* End of mark? */
-            IR_TX_OFF();                /* Stop burst */
-            i = IrCtrl.phase;
-            if (i < IrCtrl.len) {        /* Is there a bit to be sent? */
-                if (IR_USE_SONY && (format & SONY)) {
-                    width = T_SONY;
-                } else {
-                    i /= 8;
-                    data = IrCtrl.buff[i];
-                    if (IR_USE_AEHA && (format & AEHA))
-                        width = (data & 1) ? T_AEHA * 3 : T_AEHA;
-                    else
-                        width = (data & 1) ? T_NEC * 3 : T_NEC;
-                    IrCtrl.buff[i] = data >> 1;
-                }
-                IR_COMPARE_NEXT(width);
-                return;
-            }
-        } else {
-            IR_TX_ON();                    /* Start burst */
-            i = ++IrCtrl.phase / 8;
-            if (IR_USE_SONY && (format & SONY)) {
-                data = IrCtrl.buff[i];
-                width = (data & 1) ? T_SONY * 2 : T_SONY;
-                IrCtrl.buff[i] = data >> 1;
-            } else {
-                width = (format & NEC) ? T_NEC : T_AEHA;
-            }
-            IR_COMPARE_NEXT(width);
+    if (IrCtrl.state == IR_XMITTING) {
+        if ((IrCtrl.txIndex >= IrCtrl.len) ||
+            (IrCtrl.txIndex >= IR_BUFF_SIZE)) {
+            // tx successfully finished
+            IR_state( IR_IDLE );
             return;
         }
-    }
-
-    if (state == IR_XMIT) {
-        IR_TX_OFF();                    /* Stop carrier */
-        switch (format) {                    /* Set next transition time */
-#if IR_USE_SONY
-        case SONY:
-            width = T_SONY;
-            break;
-#endif
-#if IR_USE_AEHA
-        case AEHA:
-            width = IrCtrl.len ? T_AEHA * 4 : T_AEHA * 8;
-            break;
-#endif
-        default:    /* NEC */
-            width = IrCtrl.len ? T_NEC * 8 : T_NEC * 4;
-            break;
+        if (IR_TX_TEST()) {
+            IR_TX_OFF();
         }
-        IR_COMPARE_NEXT(width);
-        IrCtrl.state = IR_XMITING;
-        IrCtrl.phase = 0xFF;
+        else {
+            IR_TX_ON();
+        }
+
+        IR_COMPARE_NEXT( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
         return;
     }
-#endif /* IR_USE_XMIT */
-
-    IR_COMPARE_DISABLE();                    /* Disable compare */
-
-#if IR_USE_RCVR
-#if IR_USE_XMIT
-    IR_CAPTURE_ENABLE();                    /* Re-enable receiving */
-#endif
-    if (state == IR_RECVING) {            /* Trailer detected */
-        IrCtrl.len   = IrCtrl.phase;
-        IrCtrl.state = IR_RECVED;
+    else if (IrCtrl.state == IR_RECVING) { // Trailer detected
+        IR_state( IR_RECVED );
         return;
     }
-#endif
 
-    IrCtrl.state = IR_IDLE;
+    IR_state( IR_IDLE );
 }
 
-
-
-
-/*---------------------------*/
-/* Data Transmission Request */
-/*---------------------------*/
-
-#if IR_USE_XMIT
-int IR_xmit (
-    uint8_t        format,      /* Frame format: NEC, AEHA or SONY */
-    const uint8_t* data,        /* Pointer to the data to be sent */
-    uint8_t        len          /* Data length [bit]. 0 for a repeat frame */
-)
+int IR_xmit ()
 {
-    _timer_reg_t leader_width;
-    uint8_t i;
-
     // TODO errcode
-    if (len / 8 > sizeof(IrCtrl.buff)) return 0; /* Too long data */
-    if (IrCtrl.state != IR_IDLE)       return 0; /* Abort when collision detected */
-
-    switch (format) {
-#if IR_USE_NEC
-    case NEC:    /* NEC frame */
-        if (len != 0 && len != 32) return 0;        /* Must be 32 bit data */
-        leader_width = T_NEC * 16;    /* Leader burst time */
-        IR_TX_38K();
-        break;
-#endif
-#if IR_USE_AEHA
-    case AEHA:    /* AEHA frame */
-        if ((len > 0 && len < 48) || len % 8) return 0;    /* Must be 48 bit or longer data */
-        leader_width = T_AEHA * 8;    /* Leader burst time */
-        IR_TX_38K();
-        break;
-#endif
-#if IR_USE_SONY
-    case SONY:    /* SONY frame */
-        if (len != 12 && len != 15 && len != 20) return 0;    /* Must be 12, 15 or 20 bit data */
-        leader_width = T_SONY * 4;    /* Leader burst time */
-        IR_TX_40K();
-        break;
-#endif
-    default:
+    if ((IrCtrl.len == 0) ||
+        (IrCtrl.len > IR_BUFF_SIZE)) {
         return 0;
     }
+    if (IrCtrl.state != IR_IDLE) {
+        return 0; // Abort when collision detected
+    }
 
-#if IR_USE_RCVR
-    IR_CAPTURE_DISABLE();
-#endif
-    IR_COMPARE_DISABLE();
-    IrCtrl.format = format;
-    IrCtrl.len = (IR_USE_SONY && (format == SONY)) ? len - 1 : len;
-    len = (len + 7) / 8;
-    for (i = 0; i < len; i++) IrCtrl.buff[i] = data[i];
-
-    /* Start transmission sequense */
-    IrCtrl.state = IR_XMIT;
+    IR_state( IR_XMITTING );
+    IR_TX_38K();
+    // IR_TX_40K();
     IR_TX_ON();
-    IR_COMPARE_ENABLE(leader_width);
+    IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
 
     return 1;
 }
-#endif /* IR_USE_XMIT */
 
+void IR_state (uint8_t nextState)
+{
+    switch (nextState) {
+    case IR_IDLE:
+        IR_TX_OFF();
+        IR_COMPARE_DISABLE();
 
-
-/*---------------------------*/
-/* Initialize IR functions   */
-/*---------------------------*/
+        // 1st interrupt when receiving ir must be falling edge
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
+        IrCtrl.len     = 0;
+        IrCtrl.txIndex = 0;
+        for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
+            IrCtrl.buff[i] = 0;
+        }
+        break;
+    case IR_RECVING:
+        IrCtrl.len   = 0;
+        IrCtrl.txIndex = 0;
+        for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
+            IrCtrl.buff[i] = 0;
+        }
+        break;
+    case IR_RECVED:
+        IR_COMPARE_DISABLE();
+        break;
+    case IR_XMITTING:
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
+        IrCtrl.txIndex = 0;
+        break;
+    }
+    IrCtrl.state = nextState;
+}
 
 void IR_initialize (void)
 {
-    /* Initialize timer and port functions for IR communication */
     IR_INIT_TIMER();
-#if IR_USE_XMIT
     IR_INIT_XMIT();
-#endif
 
-    IrCtrl.state = IR_IDLE;
-
-    /* Enable receiving */
-#if IR_USE_RCVR
-    IR_CAPTURE_FALL();
-    IR_CAPTURE_ENABLE();
-#endif
+    IR_state( IR_IDLE );
 }
