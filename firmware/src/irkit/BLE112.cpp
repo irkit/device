@@ -203,7 +203,17 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
 void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
     Serial.print(P("###\tconnection_status: { "));
     Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
-    Serial.print(P(", flags: ")); Serial.print(msg -> flags, HEX);
+
+    // flags
+    // bit 0 connection_connected | This status flag tells the connection
+    //                              exists to a remote device.
+    // bit 1 connection_encrypted | This flag tells the connection is encrypted.
+    // bit 2 connection_completed | Connection completed flag,
+    //                              which is used to tell a new connection has been created.
+    // bit 3 connection_parameters_change | This flag tells that connection parameters
+    // have changed and. It is set when connection parameters have changed
+    // due to a link layer operation.
+    Serial.print(P(", flags: ")); Serial.print(msg -> flags, BIN);
     Serial.print(P(", address: "));
     // this is a bd_addr data type, which is a 6-byte uint8_t array
     for (uint8_t i = 0; i < 6; i++) {
