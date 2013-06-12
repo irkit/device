@@ -220,10 +220,18 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
         if (msg -> address.addr[i] < 16) Serial.write('0');
         Serial.print(msg -> address.addr[i], HEX);
     }
+    // address_type
+    // 0: public address
+    // 1: random address
     Serial.print(P(", address_type: ")); Serial.print(msg -> address_type, HEX);
+    // Current connection interval (units of 1.25ms)
     Serial.print(P(", intvl: "));        Serial.print(msg -> conn_interval, HEX);
+    // Current supervision timeout (units of 10ms)
     Serial.print(P(", timeout: "));      Serial.print(msg -> timeout, HEX);
+    // Slave latency (how many connection intervals the slave may skip)
     Serial.print(P(", latency: "));      Serial.print(msg -> latency, HEX);
+    // bonding handle if there is stored bonding for this device
+    // 0xff otherwise
     Serial.print(P(", bonding: "));      Serial.print(msg -> bonding, HEX);
     Serial.println(P(" }"));
 }
@@ -271,14 +279,14 @@ void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_v
 }
 
 void my_evt_attclient_indicated(const struct ble_msg_attclient_indicated_evt_t *msg) {
-    Serial.println( P("###\tattclient_indicated: {") );
+    Serial.print( P("###\tattclient_indicated: {") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle, HEX);
     Serial.println(P(" }"));
 }
 
 void my_evt_attclient_procedure_completed(const struct ble_msg_attclient_procedure_completed_evt_t *msg) {
-    Serial.println( P("###\tattclient_procedure_completed: {") );
+    Serial.print( P("###\tattclient_procedure_completed: {") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.print(P(", chrhandle: ")); Serial.print((uint16)msg -> chrhandle, HEX);
@@ -286,14 +294,17 @@ void my_evt_attclient_procedure_completed(const struct ble_msg_attclient_procedu
 }
 
 void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
-    Serial.println( P("###\tsm_bonding_fail: {") );
+    Serial.print( P("###\tsm_bonding_fail: {") );
     Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    // Encryption status, describes error that occurred during bonding
+    // 0x0301: Passkey Entry Failed
+    //         The user input of passkey failed, for example, the user cancelled the operation
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.println(P(" }"));
 }
 
 void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
-    Serial.println( P("###\tsm_bond_status: {") );
+    Serial.print( P("###\tsm_bond_status: {") );
     Serial.print(P("bond: "));   Serial.print((uint8)msg -> bond, HEX);
     Serial.print(P(", keysize: ")); Serial.print((uint8)msg -> keysize, HEX);
     Serial.print(P(", mitm: ")); Serial.print((uint8)msg -> mitm, HEX);
@@ -302,14 +313,14 @@ void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
 }
 
 void my_evt_sm_passkey_display(const struct ble_msg_sm_passkey_display_evt_t *msg) {
-    Serial.println( P("###\tsm_passkey_display: {") );
+    Serial.print( P("###\tsm_passkey_display: {") );
     Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
     Serial.print(P(", passkey: ")); Serial.print((uint32)msg -> passkey, HEX);
     Serial.println(P(" }"));
 }
 
 void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *msg) {
-    Serial.println( P("###\tsm_passkey_request: {") );
+    Serial.print( P("###\tsm_passkey_request: {") );
     Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
     Serial.println(P(" }"));
 }
