@@ -71,12 +71,13 @@ void loop() {
     Serial.println(P("3) Get rssi"));
     Serial.println(P("4) Write attribute"));
     Serial.println(P("5) Read attribute"));
-    Serial.println(P("6) Encrypt Start"));
-    Serial.println(P("7) Get Bonds"));
-    Serial.println(P("8) Passkey Entry"));
-    Serial.println(P("9) Set Bondable Mode"));
-    Serial.println(P("a) Set Oob Data"));
-    Serial.println(P("b) Set Parameters"));
+    Serial.println(P("6) Disconnect"));
+    Serial.println(P("a) Encrypt Start"));
+    Serial.println(P("b) Get Bonds"));
+    Serial.println(P("c) Passkey Entry"));
+    Serial.println(P("d) Set Bondable Mode"));
+    Serial.println(P("e) Set Oob Data"));
+    Serial.println(P("f) Set Parameters"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -125,21 +126,24 @@ void loop() {
                 ble112.readAttribute();
             }
             else if (lastCharacter == '6') {
-                ble112.encryptStart();
-            }
-            else if (lastCharacter == '7') {
-                ble112.getBonds();
-            }
-            else if (lastCharacter == '8') {
-                ble112.passkeyEntry();
-            }
-            else if (lastCharacter == '9') {
-                ble112.setBondableMode();
+                ble112.disconnect();
             }
             else if (lastCharacter == 'a') {
-                ble112.setOobData();
+                ble112.encryptStart();
             }
             else if (lastCharacter == 'b') {
+                ble112.getBonds();
+            }
+            else if (lastCharacter == 'c') {
+                ble112.passkeyEntry();
+            }
+            else if (lastCharacter == 'd') {
+                ble112.setBondableMode();
+            }
+            else if (lastCharacter == 'e') {
+                ble112.setOobData();
+            }
+            else if (lastCharacter == 'f') {
                 ble112.setParameters();
             }
         }
