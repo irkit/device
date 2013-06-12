@@ -305,10 +305,15 @@ void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
     Serial.print( P("###\tsm_bonding_fail: { ") );
     Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
     // Encryption status, describes error that occurred during bonding
-    // 0x0301: Passkey Entry Failed
-    //         The user input of passkey failed, for example, the user cancelled the operation
     // 0x0185: Timeout
     //         Command or Procedure failed due to timeout
+    // 0x0301: Passkey Entry Failed
+    //         The user input of passkey failed, for example, the user cancelled the operation
+    // 0x0302: OOB Data is not available
+    //         Out of Band data is not available for authentication
+    // 0x0303: Authentication Requirements
+    //         The pairing procedure cannot be performed as authentication requirements
+    //         cannot be met due to IO capabilities of one or both devices
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.println(P(" }"));
 }
@@ -544,9 +549,10 @@ void BLE112::setOobData()
 
 void BLE112::setParameters()
 {
-    bglib.ble_cmd_sm_set_parameters( (uint8)1, // man-in-the-middle protection required
+    // can't enable man-in-the-middle protection without having any keyboard nor display
+    bglib.ble_cmd_sm_set_parameters( (uint8)0, // man-in-the-middle protection NOT required
                                      (uint8)16, // minimum key size in bytes range 7-16
-                                     (uint8)2   // SMP IO Capabilities (Keyboard only)
+                                     (uint8)3   // SMP IO Capabilities (No input, No output)
                                      );
 
     uint8_t status;
