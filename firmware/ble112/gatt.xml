@@ -51,13 +51,14 @@
             <description>IR Data.
             Unsigned 16bit length, and unsigned 16bit signal data array
             </description>
+            <!-- can't enable authenticated_read nor authenticated_write because we don't have any display nor keyboard -->
             <properties read="true"
                         const="false"
                         write="true"
                         notify="false"
                         indicate="false"
-                        authenticated_read="true"
-                        authenticated_write="true"
+                        authenticated_read="false"
+                        authenticated_write="false"
                         />
             <value variable_length="true" length="1024" type="user"></value>
         </characteristic>
@@ -72,7 +73,7 @@
                         authenticated_read="false"
                         authenticated_write="false"
                         />
-            <value length="1" type="hex">0</value>
+            <value variable_length="false" length="1" type="hex">0</value>
         </characteristic>
 
         <characteristic uuid="CF746376-2FED-40FA-A232-C0BFF843AA94" id="c_ir_control_point">
@@ -87,9 +88,9 @@
                         notify="false"
                         indicate="false"
                         authenticated_read="false"
-                        authenticated_write="true"
+                        authenticated_write="false"
                         />
-            <value length="1" type="hex">0</value>
+            <value variable_length="false" length="1" type="hex">0</value>
         </characteristic>
 
         <characteristic uuid="21819AB0-C937-4188-B0DB-B9621E1696CD" id="c_ir_carrier_frequency">
@@ -99,10 +100,10 @@
                         write="true"
                         notify="false"
                         indicate="false"
-                        authenticated_read="true"
-                        authenticated_write="true"
+                        authenticated_read="false"
+                        authenticated_write="false"
                         />
-            <value length="1" type="hex">26</value>
+            <value variable_length="false" length="1" type="hex">26</value>
         </characteristic>
 
     </service>
