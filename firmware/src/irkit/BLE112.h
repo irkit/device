@@ -21,6 +21,8 @@ class BLE112 {
         void setBondableMode();
         void setOobData();
         void setParameters();
+        void attributesUserReadResponse();
+        void attributesUserWriteResponse();
 
     private:
         // create BGLib object:

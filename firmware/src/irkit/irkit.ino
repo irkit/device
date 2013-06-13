@@ -72,6 +72,8 @@ void loop() {
     Serial.println(P("4) Write attribute"));
     Serial.println(P("5) Read attribute"));
     Serial.println(P("6) Disconnect"));
+    Serial.println(P("7) Attributes user read response"));
+    Serial.println(P("8) Attributes user write response"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
@@ -127,6 +129,12 @@ void loop() {
             }
             else if (lastCharacter == '6') {
                 ble112.disconnect();
+            }
+            else if (lastCharacter == '7') {
+                ble112.attributesUserReadResponse();
+            }
+            else if (lastCharacter == '8') {
+                ble112.attributesUserWriteResponse();
             }
             else if (lastCharacter == 'a') {
                 ble112.encryptStart();
