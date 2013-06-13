@@ -101,24 +101,16 @@ void loop() {
             uint8_t status;
             if (lastCharacter == '0') {
                 // Reset BLE112 module
-                Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
-
                 ble112.reset();
             }
             else if (lastCharacter == '1') {
                 // Say hello to the BLE112 and wait for response
-                Serial.println(P("-->\tsystem_hello"));
-
                 ble112.hello();
             }
             else if (lastCharacter == '2') {
-                Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
-
                 ble112.setMode();
             }
             else if (lastCharacter == '3') {
-                Serial.println(P("-->\tconnection_get_rssi"));
-
                 ble112.getRSSI();
             }
             else if (lastCharacter == '4') {
