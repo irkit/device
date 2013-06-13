@@ -423,6 +423,7 @@ void BLE112::loop()
 
 void BLE112::reset()
 {
+    Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
     bglib.ble_cmd_system_reset(0);
 
     uint8_t status;
@@ -434,6 +435,7 @@ void BLE112::reset()
 
 void BLE112::hello()
 {
+    Serial.println(P("-->\tsystem_hello"));
     bglib.ble_cmd_system_hello();
 
     uint8_t status;
@@ -443,7 +445,13 @@ void BLE112::hello()
 
 void BLE112::setMode()
 {
-    bglib.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
+    // TODO: set discoverable mode to limited,
+    // and after 30sec, set it to general
+    // limited: ad interval 250-500ms, only 30sec
+    // general: ad interval 1.28-2.56s, forever
+    bglib.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE,
+                                BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
@@ -451,6 +459,7 @@ void BLE112::setMode()
 
 void BLE112::getRSSI()
 {
+    Serial.println(P("-->\tconnection_get_rssi"));
     bglib.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
 
     uint8_t status;
