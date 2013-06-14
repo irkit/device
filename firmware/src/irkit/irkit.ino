@@ -29,6 +29,15 @@ void setup() {
     ble112uart.begin(38400);
 
     IR_initialize();
+
+    ble112.setBondableMode();
+    ble112.setParameters();
+
+    // TODO: set discoverable mode to limited,
+    // and after 30sec, set it to general
+    // limited: ad interval 250-500ms, only 30sec
+    // general: ad interval 1.28-2.56s, forever
+    ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 void ir_recv_loop(void)
@@ -77,9 +86,7 @@ void loop() {
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
-    Serial.println(P("d) Set Bondable Mode"));
     Serial.println(P("e) Set Oob Data"));
-    Serial.println(P("f) Set Parameters"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -108,7 +115,7 @@ void loop() {
                 ble112.hello();
             }
             else if (lastCharacter == '2') {
-                ble112.setMode();
+                ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
             }
             else if (lastCharacter == '3') {
                 ble112.getRSSI();
@@ -137,14 +144,8 @@ void loop() {
             else if (lastCharacter == 'c') {
                 ble112.passkeyEntry();
             }
-            else if (lastCharacter == 'd') {
-                ble112.setBondableMode();
-            }
             else if (lastCharacter == 'e') {
                 ble112.setOobData();
-            }
-            else if (lastCharacter == 'f') {
-                ble112.setParameters();
             }
         }
     }

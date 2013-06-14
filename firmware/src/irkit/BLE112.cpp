@@ -8,6 +8,9 @@
 // looks like 254Bytes is the longest length allowed
 #define BLE112_MAX_CHARACTERISTIC_VALUE_LENGTH 254
 
+// I don't like this but..
+extern BLE112 ble112;
+
 const uint8_t data[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -255,7 +258,7 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
     Serial.println( P("###\tdisconnected") );
 
-    // ble112.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
@@ -443,15 +446,14 @@ void BLE112::hello()
     // response should come back within milliseconds
 }
 
-void BLE112::setMode()
+void BLE112::setMode( uint8 discoverable, uint8 connectable )
 {
-    Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
-    // TODO: set discoverable mode to limited,
-    // and after 30sec, set it to general
-    // limited: ad interval 250-500ms, only 30sec
-    // general: ad interval 1.28-2.56s, forever
-    bglib.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE,
-                                BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    Serial.print(P("-->\tgap_set_mode: { "));
+    Serial.print(P("discover: "));  Serial.print(discoverable, HEX);
+    Serial.print(P(", connect: ")); Serial.print(connectable, HEX);
+    Serial.println(P(" }"));
+
+    bglib.ble_cmd_gap_set_mode( discoverable, connectable );
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
