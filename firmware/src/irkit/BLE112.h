@@ -14,6 +14,15 @@ class BLE112 {
         void getRSSI();
         void writeAttribute();
         void readAttribute();
+        void disconnect();
+        void encryptStart();
+        void getBonds();
+        void passkeyEntry();
+        void setBondableMode();
+        void setOobData();
+        void setParameters();
+        void attributesUserReadResponse();
+        void attributesUserWriteResponse();
 
     private:
         // create BGLib object:

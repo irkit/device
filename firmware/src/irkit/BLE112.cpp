@@ -116,9 +116,24 @@ void my_rsp_attributes_read(const struct ble_msg_attributes_read_rsp_t * msg ) {
     Serial.println(P(" }"));
 }
 
+void my_rsp_attributes_user_read_response(const struct ble_msg_attributes_user_read_response_rsp_t * msg ) {
+    Serial.println(P("<--\tattributes_user_read_response: {}"));
+}
+
 void my_rsp_attributes_write(const ble_msg_attributes_write_rsp_t *msg) {
     Serial.print(P("<--\tattributes_write: { "));
     Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_attributes_user_write_response(const struct ble_msg_attributes_user_write_response_rsp_t * msg ) {
+    Serial.println(P("<--\tattributes_user_write_response: {}"));
+}
+
+void my_rsp_connection_disconnect(const struct ble_msg_connection_disconnect_rsp_t *msg) {
+    Serial.print(P("<--\tconnection_disconnect: { "));
+    Serial.print(P("conn: "));     Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", result: ")); Serial.print((uint8)msg -> result,     HEX);
     Serial.println(P(" }"));
 }
 
@@ -128,6 +143,41 @@ void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
     Serial.print(P(", rssi: ")); Serial.print((uint8)msg -> rssi);
     Serial.println(P(" }"));
 }
+
+void my_rsp_sm_encrypt_start(const ble_msg_sm_encrypt_start_rsp_t *msg) {
+    Serial.print(P("<--\tsm_encrypt_start: { "));
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_get_bonds(const ble_msg_sm_get_bonds_rsp_t *msg) {
+    Serial.print(P("<--\tsm_get_bonds: { "));
+    // bonds: num of currently bonded devices
+    Serial.print(P("bonds: "));   Serial.print((uint8)msg -> bonds, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_passkey_entry(const ble_msg_sm_passkey_entry_rsp_t *msg) {
+    Serial.print(P("<--\tsm_passkey_entry: { "));
+    // 0x0181: Device in Wrong State Device is in wrong state to receive command
+    Serial.print(P("result: "));   Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_rsp_sm_set_bondable_mode(const ble_msg_sm_set_bondable_mode_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_bondable_mode: {}"));
+}
+
+void my_rsp_sm_set_oob_data(const ble_msg_sm_set_oob_data_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_oob_data: {}"));
+}
+
+void my_rsp_sm_set_parameters(const ble_msg_sm_set_parameters_rsp_t *msg) {
+    Serial.println(P("<--\tsm_set_parameters: {}"));
+}
+
+
 
 // ================================================================
 // USER-DEFINED BGLIB EVENT CALLBACKS
@@ -169,17 +219,35 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
 void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
     Serial.print(P("###\tconnection_status: { "));
     Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
-    Serial.print(P(", flags: ")); Serial.print(msg -> flags, HEX);
+
+    // flags
+    // bit 0 connection_connected | This status flag tells the connection
+    //                              exists to a remote device.
+    // bit 1 connection_encrypted | This flag tells the connection is encrypted.
+    // bit 2 connection_completed | Connection completed flag,
+    //                              which is used to tell a new connection has been created.
+    // bit 3 connection_parameters_change | This flag tells that connection parameters
+    // have changed and. It is set when connection parameters have changed
+    // due to a link layer operation.
+    Serial.print(P(", flags: ")); Serial.print(msg -> flags, BIN);
     Serial.print(P(", address: "));
     // this is a bd_addr data type, which is a 6-byte uint8_t array
     for (uint8_t i = 0; i < 6; i++) {
         if (msg -> address.addr[i] < 16) Serial.write('0');
         Serial.print(msg -> address.addr[i], HEX);
     }
+    // address_type
+    // 0: public address
+    // 1: random address
     Serial.print(P(", address_type: ")); Serial.print(msg -> address_type, HEX);
+    // Current connection interval (units of 1.25ms)
     Serial.print(P(", intvl: "));        Serial.print(msg -> conn_interval, HEX);
+    // Current supervision timeout (units of 10ms)
     Serial.print(P(", timeout: "));      Serial.print(msg -> timeout, HEX);
+    // Slave latency (how many connection intervals the slave may skip)
     Serial.print(P(", latency: "));      Serial.print(msg -> latency, HEX);
+    // bonding handle if there is stored bonding for this device
+    // 0xff otherwise
     Serial.print(P(", bonding: "));      Serial.print(msg -> bonding, HEX);
     Serial.println(P(" }"));
 }
@@ -191,17 +259,30 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
 }
 
 void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
-    Serial.print( P("###\tattributes_status: {") );
+    Serial.print( P("###\tattributes_status: { ") );
     Serial.print(P("handle: "));  Serial.print((uint16)msg -> handle, HEX);
     Serial.print(P(", flags: ")); Serial.print((uint8)msg -> flags, HEX);
     Serial.println(P(" }"));
 }
 
+void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_read_request_evt_t* msg) {
+    Serial.print( P("###\tattributes_user_read_request: { ") );
+    Serial.print(P("conn: "));  Serial.print((uint8)msg -> connection, HEX);
+    Serial.print(P(", att.handle: ")); Serial.print((uint16)msg -> handle, HEX);
+    Serial.print(P(", offset: ")); Serial.print((uint16)msg -> offset, HEX);
+    Serial.print(P(", maxsize: ")); Serial.print((uint8)msg -> maxsize, HEX);
+    Serial.println(P(" }"));
+}
+
 void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg ) {
-    Serial.print( P("###\tattributes_value: {") );
+    Serial.print( P("###\tattributes_value: { ") );
     Serial.print(P("conn: "));  Serial.print((uint8)msg -> connection, HEX);
 
     // 0: attributes_attribute_change_reason_write_request
+    // 2: attributes_attribute_change_reason_write_request_user
+    //    Value was written by remote end,
+    //    stack is waiting for write response to be sent to other end.
+    //    Use User Write Response to send response.
     Serial.print(P(", reason: ")); Serial.print((uint8)msg -> reason, HEX);
     Serial.print(P(", handle: ")); Serial.print((uint16)msg -> handle, HEX);
     Serial.print(P(", offset: ")); Serial.print((uint16)msg -> offset, HEX);
@@ -214,7 +295,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
 }
 
 void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_value_evt_t *msg) {
-    Serial.print( P("###\tattclient_attribute_value: {") );
+    Serial.print( P("###\tattclient_attribute_value: { ") );
     Serial.print(P("conn: "));         Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", atthandle: "));  Serial.print((uint16)msg -> atthandle, HEX);
     Serial.print(P(", type: "));       Serial.print((uint8)msg -> type, HEX);
@@ -227,16 +308,57 @@ void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_v
 }
 
 void my_evt_attclient_indicated(const struct ble_msg_attclient_indicated_evt_t *msg) {
-    Serial.println( P("###\tattclient_indicated") );
+    Serial.print( P("###\tattclient_indicated: { ") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", attrhandle: ")); Serial.print((uint16)msg -> attrhandle, HEX);
+    Serial.println(P(" }"));
 }
 
 void my_evt_attclient_procedure_completed(const struct ble_msg_attclient_procedure_completed_evt_t *msg) {
-    Serial.println( P("###\tattclient_procedure_completed") );
+    Serial.print( P("###\tattclient_procedure_completed: { ") );
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.print(P(", chrhandle: ")); Serial.print((uint16)msg -> chrhandle, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
+    Serial.print( P("###\tsm_bonding_fail: { ") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    // Encryption status, describes error that occurred during bonding
+    // 0x0185: Timeout
+    //         Command or Procedure failed due to timeout
+    // 0x0301: Passkey Entry Failed
+    //         The user input of passkey failed, for example, the user cancelled the operation
+    // 0x0302: OOB Data is not available
+    //         Out of Band data is not available for authentication
+    // 0x0303: Authentication Requirements
+    //         The pairing procedure cannot be performed as authentication requirements
+    //         cannot be met due to IO capabilities of one or both devices
+    Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
+    Serial.print( P("###\tsm_bond_status: { ") );
+    Serial.print(P("bond: "));   Serial.print((uint8)msg -> bond, HEX);
+    Serial.print(P(", keysize: ")); Serial.print((uint8)msg -> keysize, HEX);
+    Serial.print(P(", mitm: ")); Serial.print((uint8)msg -> mitm, HEX);
+    Serial.print(P(", keys: ")); Serial.print((uint8)msg -> keys, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_passkey_display(const struct ble_msg_sm_passkey_display_evt_t *msg) {
+    Serial.print( P("###\tsm_passkey_display: { ") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.print(P(", passkey: ")); Serial.print((uint32)msg -> passkey, HEX);
+    Serial.println(P(" }"));
+}
+
+void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *msg) {
+    Serial.print( P("###\tsm_passkey_request: { ") );
+    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
+    Serial.println(P(" }"));
 }
 
 BLE112::BLE112(HardwareSerial *module) :
@@ -265,8 +387,17 @@ void BLE112::setup()
     bglib.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
     bglib.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
     bglib.ble_rsp_attributes_read               = my_rsp_attributes_read;
+    bglib.ble_rsp_attributes_user_read_response = my_rsp_attributes_user_read_response;
     bglib.ble_rsp_attributes_write              = my_rsp_attributes_write;
+    bglib.ble_rsp_attributes_user_write_response = my_rsp_attributes_user_write_response;
+    bglib.ble_rsp_connection_disconnect         = my_rsp_connection_disconnect;
     bglib.ble_rsp_connection_get_rssi           = my_rsp_connection_get_rssi;
+    bglib.ble_rsp_sm_encrypt_start              = my_rsp_sm_encrypt_start;
+    bglib.ble_rsp_sm_get_bonds                  = my_rsp_sm_get_bonds;
+    bglib.ble_rsp_sm_passkey_entry              = my_rsp_sm_passkey_entry;
+    bglib.ble_rsp_sm_set_bondable_mode          = my_rsp_sm_set_bondable_mode;
+    bglib.ble_rsp_sm_set_oob_data               = my_rsp_sm_set_oob_data;
+    bglib.ble_rsp_sm_set_parameters             = my_rsp_sm_set_parameters;
 
     // set up BGLib event handlers (called at unknown times)
     bglib.ble_evt_system_boot                   = my_evt_system_boot;
@@ -274,10 +405,15 @@ void BLE112::setup()
     bglib.ble_evt_connection_status             = my_evt_connection_status_evt_t;
     bglib.ble_evt_connection_disconnected       = my_evt_connection_disconnected;
     bglib.ble_evt_attributes_status             = my_evt_attributes_status;
+    bglib.ble_evt_attributes_user_read_request  = my_evt_attributes_user_read_request;
     bglib.ble_evt_attributes_value              = my_evt_attributes_value;
     bglib.ble_evt_attclient_attribute_value     = my_evt_attclient_attribute_value;
     bglib.ble_evt_attclient_indicated           = my_evt_attclient_indicated;
     bglib.ble_evt_attclient_procedure_completed = my_evt_attclient_procedure_completed;
+    bglib.ble_evt_sm_bonding_fail               = my_evt_sm_bonding_fail;
+    bglib.ble_evt_sm_bond_status                = my_evt_sm_bond_status;
+    bglib.ble_evt_sm_passkey_display            = my_evt_sm_passkey_display;
+    bglib.ble_evt_sm_passkey_request            = my_evt_sm_passkey_request;
 }
 
 void BLE112::loop()
@@ -287,6 +423,7 @@ void BLE112::loop()
 
 void BLE112::reset()
 {
+    Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
     bglib.ble_cmd_system_reset(0);
 
     uint8_t status;
@@ -298,6 +435,7 @@ void BLE112::reset()
 
 void BLE112::hello()
 {
+    Serial.println(P("-->\tsystem_hello"));
     bglib.ble_cmd_system_hello();
 
     uint8_t status;
@@ -307,7 +445,13 @@ void BLE112::hello()
 
 void BLE112::setMode()
 {
-    bglib.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
+    // TODO: set discoverable mode to limited,
+    // and after 30sec, set it to general
+    // limited: ad interval 250-500ms, only 30sec
+    // general: ad interval 1.28-2.56s, forever
+    bglib.ble_cmd_gap_set_mode( BGLIB_GAP_GENERAL_DISCOVERABLE,
+                                BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
@@ -315,6 +459,7 @@ void BLE112::setMode()
 
 void BLE112::getRSSI()
 {
+    Serial.println(P("-->\tconnection_get_rssi"));
     bglib.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
 
     uint8_t status;
@@ -381,5 +526,98 @@ void BLE112::readAttribute()
                                         (uint8)(i*20) );      // offset
         while ((status = bglib.checkActivity(1000)));
     }
+}
 
+void BLE112::disconnect() {
+    Serial.println(P("-->\tdisconnect"));
+    bglib.ble_cmd_connection_disconnect( (uint8)0 ); // connection handle
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::encryptStart()
+{
+    Serial.println(P("-->\tsm_encrypt_start"));
+    bglib.ble_cmd_sm_encrypt_start( (uint8)0, // connection handle
+                                    (uint8)1  // create bonding if devices are not already bonded
+                                    );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::getBonds()
+{
+    Serial.println(P("-->\tsm_get_bonds"));
+    bglib.ble_cmd_sm_get_bonds();
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::passkeyEntry()
+{
+    Serial.println(P("-->\tsm_passkey_entry"));
+    bglib.ble_cmd_sm_passkey_entry( (uint8)0,  // connection handle
+                                    (uint32)0  // passkey
+                                    );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setBondableMode()
+{
+    Serial.println(P("-->\tsm_set_bondable_mode"));
+    bglib.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setOobData()
+{
+    Serial.println(P("-->\tsm_set_oob_data"));
+    bglib.ble_cmd_sm_set_oob_data( (uint8)2, // oob_len
+                                   data // oob_data
+                                   );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::setParameters()
+{
+    Serial.println(P("-->\tsm_set_parameters"));
+    // can't enable man-in-the-middle protection without having any keyboard nor display
+    bglib.ble_cmd_sm_set_parameters( (uint8)0, // man-in-the-middle protection NOT required
+                                     (uint8)16, // minimum key size in bytes range 7-16
+                                     (uint8)3   // SMP IO Capabilities (No input, No output)
+                                     );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponse()
+{
+    Serial.println(P("-->\tattributes_user_read_response"));
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0, // connection handle
+                                                 (uint8)0, // att_error
+                                                 (uint8)22, // value_len,
+                                                 data      // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserWriteResponse()
+{
+    Serial.println(P("-->\tattributes_user_write_response"));
+    bglib.ble_cmd_attributes_user_write_response( (uint8)0, // connection handle
+                                                  (uint8)0  // att_error
+                                                  );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
 }
