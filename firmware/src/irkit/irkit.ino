@@ -71,6 +71,15 @@ void loop() {
     Serial.println(P("3) Get rssi"));
     Serial.println(P("4) Write attribute"));
     Serial.println(P("5) Read attribute"));
+    Serial.println(P("6) Disconnect"));
+    Serial.println(P("7) Attributes user read response"));
+    Serial.println(P("8) Attributes user write response"));
+    Serial.println(P("a) Encrypt Start"));
+    Serial.println(P("b) Get Bonds"));
+    Serial.println(P("c) Passkey Entry"));
+    Serial.println(P("d) Set Bondable Mode"));
+    Serial.println(P("e) Set Oob Data"));
+    Serial.println(P("f) Set Parameters"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -92,24 +101,16 @@ void loop() {
             uint8_t status;
             if (lastCharacter == '0') {
                 // Reset BLE112 module
-                Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
-
                 ble112.reset();
             }
             else if (lastCharacter == '1') {
                 // Say hello to the BLE112 and wait for response
-                Serial.println(P("-->\tsystem_hello"));
-
                 ble112.hello();
             }
             else if (lastCharacter == '2') {
-                Serial.println(P("-->\tgap_set_mode: { discover: 0x2, connect: 0x2 }"));
-
                 ble112.setMode();
             }
             else if (lastCharacter == '3') {
-                Serial.println(P("-->\tconnection_get_rssi"));
-
                 ble112.getRSSI();
             }
             else if (lastCharacter == '4') {
@@ -117,6 +118,33 @@ void loop() {
             }
             else if (lastCharacter == '5') {
                 ble112.readAttribute();
+            }
+            else if (lastCharacter == '6') {
+                ble112.disconnect();
+            }
+            else if (lastCharacter == '7') {
+                ble112.attributesUserReadResponse();
+            }
+            else if (lastCharacter == '8') {
+                ble112.attributesUserWriteResponse();
+            }
+            else if (lastCharacter == 'a') {
+                ble112.encryptStart();
+            }
+            else if (lastCharacter == 'b') {
+                ble112.getBonds();
+            }
+            else if (lastCharacter == 'c') {
+                ble112.passkeyEntry();
+            }
+            else if (lastCharacter == 'd') {
+                ble112.setBondableMode();
+            }
+            else if (lastCharacter == 'e') {
+                ble112.setOobData();
+            }
+            else if (lastCharacter == 'f') {
+                ble112.setParameters();
             }
         }
     }
