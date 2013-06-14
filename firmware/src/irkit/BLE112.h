@@ -10,7 +10,7 @@ class BLE112 {
         void loop();
         void reset();
         void hello();
-        void setMode();
+        void setMode(uint8, uint8);
         void getRSSI();
         void writeAttribute();
         void readAttribute();
