@@ -2,6 +2,7 @@
 #include "pins.h"
 #include "BLE112.h"
 #include "pgmStrToRAM.h"
+#include "AuthSwitch.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -10,6 +11,7 @@
 
 // I don't like this but..
 extern BLE112 ble112;
+extern AuthSwitch auth;
 
 const uint8_t data[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -220,6 +222,11 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
 }
 
 void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
+    if ( (msg->bonding != INVALID_BOND_HANDLE) &&
+         (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
+        auth.setCurrentBondHandle(msg->bonding);
+    }
+
     Serial.print(P("###\tconnection_status: { "));
     Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
 
