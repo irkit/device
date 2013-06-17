@@ -95,6 +95,7 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("e) Set Oob Data"));
+    Serial.println(P("z) Clear Switch Auth saved data"));
     Serial.println(P("Command?"));
     while (1) {
         // keep polling for new data from BLE
@@ -157,6 +158,10 @@ void loop() {
             }
             else if (lastCharacter == 'e') {
                 ble112.setOobData();
+            }
+            else if (lastCharacter == 'z') {
+                Serial.println(P("cleared switch auth data"));
+                auth.clear();
             }
         }
     }

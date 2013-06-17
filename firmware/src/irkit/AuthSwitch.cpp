@@ -1,5 +1,6 @@
 #include "AuthSwitch.h"
 #include <avr/eeprom.h>
+#include "pgmStrToRAM.h"
 
 //
 // DESCRIPTION:
@@ -62,6 +63,8 @@ void AuthSwitch::authorize(void)
     authData.authorized[ authData.count ++ ] = currentBondHandle;
 
     save();
+
+    Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(currentBondHandle);
 }
 
 void AuthSwitch::setCurrentBondHandle(uint8 bond)
@@ -71,8 +74,8 @@ void AuthSwitch::setCurrentBondHandle(uint8 bond)
 
 void AuthSwitch::loop(void)
 {
-    uint8_t val = digitalRead( pin );
-    if ( (val == ON) && (currentBondHandle != INVALID_BOND_HANDLE) ) {
+    if ( (ON == digitalRead(pin)) &&
+         (currentBondHandle != INVALID_BOND_HANDLE) ) {
         authorize();
     }
 }
