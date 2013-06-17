@@ -73,7 +73,7 @@
                         authenticated_read="false"
                         authenticated_write="false"
                         />
-            <value variable_length="false" length="1" type="hex">0</value>
+            <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
         <characteristic uuid="CF746376-2FED-40FA-A232-C0BFF843AA94" id="c_ir_control_point">
@@ -90,7 +90,7 @@
                         authenticated_read="false"
                         authenticated_write="false"
                         />
-            <value variable_length="false" length="1" type="hex">0</value>
+            <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
         <characteristic uuid="21819AB0-C937-4188-B0DB-B9621E1696CD" id="c_ir_carrier_frequency">
@@ -103,7 +103,20 @@
                         authenticated_read="false"
                         authenticated_write="false"
                         />
-            <value variable_length="false" length="1" type="hex">26</value>
+            <value variable_length="false" length="1" type="user">26</value>
+        </characteristic>
+
+        <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_ir_auth_status">
+            <description>IR Authentication Status</description>
+            <properties read="true"
+                        const="false"
+                        write="false"
+                        notify="false"
+                        indicate="true"
+                        authenticated_read="false"
+                        authenticated_write="false"
+                        />
+            <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
     </service>
