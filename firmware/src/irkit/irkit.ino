@@ -5,20 +5,28 @@
 #include "pgmStrToRAM.h"
 #include "BLE112.h"
 #include "IrCtrl.h"
+#include "AuthSwitch.h"
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart );
+AuthSwitch auth( AUTH_SWITCH );
 
 void setup() {
-    pinMode(BUSY_LED,      OUTPUT);
-    digitalWrite(BUSY_LED, LOW);
+    pinMode(BUSY_LED,         OUTPUT);
+    digitalWrite(BUSY_LED,    LOW);
 
-    pinMode(IR_OUT,        OUTPUT);
+    pinMode(IR_OUT,           OUTPUT);
 
     // pull-up
-    pinMode(IR_IN,         INPUT);
-    digitalWrite(IR_IN,    HIGH);
+    pinMode(IR_IN,            INPUT);
+    digitalWrite(IR_IN,       HIGH);
+
+    // pull-up
+    pinMode(AUTH_SWITCH,      INPUT);
+    digitalWrite(AUTH_SWITCH, HIGH);
+
+    auth.setup();
 
     // USB serial
     Serial.begin(115200);
@@ -94,6 +102,9 @@ void loop() {
 
         // check if received
         ir_recv_loop();
+
+        // check for auth switch pressed
+        auth.loop();
 
         // check for input from the user
         if (Serial.available()) {
