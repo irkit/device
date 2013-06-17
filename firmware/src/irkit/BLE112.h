@@ -25,6 +25,7 @@ class BLE112 {
         void startAdvertising();
         void getRSSI();
         void writeAttribute();
+        void writeAttributeAuthenticationStatus(bool);
         void readAttribute();
         void disconnect();
         void encryptStart();
