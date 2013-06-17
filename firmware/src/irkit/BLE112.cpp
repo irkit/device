@@ -182,6 +182,11 @@ void my_rsp_sm_set_parameters(const ble_msg_sm_set_parameters_rsp_t *msg) {
     Serial.println(P("<--\tsm_set_parameters: {}"));
 }
 
+void my_rsp_sm_delete_bonding(const ble_msg_sm_delete_bonding_rsp_t *msg) {
+    Serial.print(P("<--\tsm_delete_bonding: { "));
+    Serial.print(P("result: ")); Serial.print((uint16)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
 
 
 // ================================================================
@@ -222,11 +227,6 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
 }
 
 void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
-    if ( (msg->bonding != INVALID_BOND_HANDLE) &&
-         (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
-        auth.setCurrentBondHandle(msg->bonding);
-    }
-
     Serial.print(P("###\tconnection_status: { "));
     Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
 
@@ -260,6 +260,18 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
     // 0xff otherwise
     Serial.print(P(", bonding: "));      Serial.print(msg -> bonding, HEX);
     Serial.println(P(" }"));
+
+    if (msg->bonding == INVALID_BOND_HANDLE) {
+        // DON'T DO THIS, fails because of timing?
+        // we'll encrypt after client read authentication attribute
+        // auto enrypt
+        // this shows bonding dialog on iOS
+        // ble112.encryptStart();
+    }
+    else if ( (msg->bonding != INVALID_BOND_HANDLE) &&
+         (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
+        auth.setCurrentBondHandle(msg->bonding);
+    }
 }
 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
@@ -267,7 +279,7 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
 
     auth.setCurrentBondHandle(INVALID_BOND_HANDLE);
 
-    ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    ble112.startAdvertising();
 }
 
 void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
@@ -296,7 +308,13 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     // case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
     //     break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
-        ble112.attributesUserReadResponseAuthorized( auth.isAuthorized() );
+        {
+            bool authorized = auth.isAuthorized();
+            ble112.attributesUserReadResponseAuthorized( authorized );
+            if ( ! authorized ) {
+                ble112.nextCommand = NEXT_COMMAND_ID_ENCRYPT_START;
+            }
+        }
         break;
     default:
         Serial.println(P("unknown attribute !"));
@@ -358,6 +376,8 @@ void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
     // Encryption status, describes error that occurred during bonding
     // 0x0185: Timeout
     //         Command or Procedure failed due to timeout
+    // 0x0186: Not Connected
+    //         Connection handle passed is to command is not a valid handle
     // 0x0301: Passkey Entry Failed
     //         The user input of passkey failed, for example, the user cancelled the operation
     // 0x0302: OOB Data is not available
@@ -365,6 +385,10 @@ void my_evt_sm_bonding_fail(const struct ble_msg_sm_bonding_fail_evt_t *msg) {
     // 0x0303: Authentication Requirements
     //         The pairing procedure cannot be performed as authentication requirements
     //         cannot be met due to IO capabilities of one or both devices
+    // 0x0305: Pairing Not Supported
+    //         Pairing is not supported by the device
+    // 0x0308: Unspecified Reason
+    //         Pairing failed due to an unspecified reason
     Serial.print(P(", result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.println(P(" }"));
 }
@@ -392,7 +416,8 @@ void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *ms
 }
 
 BLE112::BLE112(HardwareSerial *module) :
-    bglib(module, 0, 1)
+    bglib(module, 0, 1),
+    nextCommand(0xFF)
 {
 
 }
@@ -428,6 +453,7 @@ void BLE112::setup()
     bglib.ble_rsp_sm_set_bondable_mode          = my_rsp_sm_set_bondable_mode;
     bglib.ble_rsp_sm_set_oob_data               = my_rsp_sm_set_oob_data;
     bglib.ble_rsp_sm_set_parameters             = my_rsp_sm_set_parameters;
+    bglib.ble_rsp_sm_delete_bonding             = my_rsp_sm_delete_bonding;
 
     // set up BGLib event handlers (called at unknown times)
     bglib.ble_evt_system_boot                   = my_evt_system_boot;
@@ -449,6 +475,15 @@ void BLE112::setup()
 void BLE112::loop()
 {
     bglib.checkActivity();
+
+    switch (nextCommand) {
+    case NEXT_COMMAND_ID_ENCRYPT_START:
+        encryptStart();
+        break;
+    case NEXT_COMMAND_ID_EMPTY:
+        break;
+    }
+    nextCommand = NEXT_COMMAND_ID_EMPTY;
 }
 
 void BLE112::reset()
@@ -471,6 +506,18 @@ void BLE112::hello()
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
     // response should come back within milliseconds
+}
+
+void BLE112::startAdvertising()
+{
+    setBondableMode();
+    setParameters();
+
+    // TODO: set discoverable mode to limited,
+    // and after 30sec, set it to general
+    // limited: ad interval 250-500ms, only 30sec
+    // general: ad interval 1.28-2.56s, forever
+    setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 void BLE112::setMode( uint8 discoverable, uint8 connectable )
@@ -623,6 +670,15 @@ void BLE112::setParameters()
                                      (uint8)16, // minimum key size in bytes range 7-16
                                      (uint8)3   // SMP IO Capabilities (No input, No output)
                                      );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::deleteBonding(uint8 connectionHandle)
+{
+    Serial.println(P("-->\tsm_delete_bonding"));
+    bglib.ble_cmd_sm_delete_bonding( connectionHandle );
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));

@@ -38,14 +38,7 @@ void setup() {
 
     IR_initialize();
 
-    ble112.setBondableMode();
-    ble112.setParameters();
-
-    // TODO: set discoverable mode to limited,
-    // and after 30sec, set it to general
-    // limited: ad interval 250-500ms, only 30sec
-    // general: ad interval 1.28-2.56s, forever
-    ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    ble112.startAdvertising();
 }
 
 void ir_recv_loop(void)
@@ -84,7 +77,7 @@ void loop() {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("0) Reset BLE112 module"));
     Serial.println(P("1) Hello"));
-    Serial.println(P("2) Set gap mode(2,2)"));
+    Serial.println(P("2) Start Advertising"));
     Serial.println(P("3) Get rssi"));
     Serial.println(P("4) Write attribute"));
     Serial.println(P("5) Read attribute"));
@@ -95,6 +88,7 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("e) Set Oob Data"));
+    Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
     Serial.println(P("Command?"));
     while (1) {
@@ -127,7 +121,7 @@ void loop() {
                 ble112.hello();
             }
             else if (lastCharacter == '2') {
-                ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+                ble112.startAdvertising();
             }
             else if (lastCharacter == '3') {
                 ble112.getRSSI();
@@ -158,6 +152,9 @@ void loop() {
             }
             else if (lastCharacter == 'e') {
                 ble112.setOobData();
+            }
+            else if (lastCharacter == 'y') {
+                ble112.deleteBonding(0);
             }
             else if (lastCharacter == 'z') {
                 Serial.println(P("cleared switch auth data"));
