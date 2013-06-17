@@ -3,6 +3,13 @@
 
 #include "BGLib.h"
 
+// imported from firmware/ble112/attributes.txt
+#define ATTRIBUTE_HANDLE_IR_DATA              17
+#define ATTRIBUTE_HANDLE_IR_UNREAD_STATUS     20
+#define ATTRIBUTE_HANDLE_IR_CONTROL_POINT     24
+#define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 27
+#define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       30
+
 class BLE112 {
     public:
         BLE112(HardwareSerial *module);
@@ -22,6 +29,7 @@ class BLE112 {
         void setOobData();
         void setParameters();
         void attributesUserReadResponse();
+        void attributesUserReadResponseAuthorized(bool);
         void attributesUserWriteResponse();
 
     private:
