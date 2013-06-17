@@ -265,6 +265,8 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
     Serial.println( P("###\tdisconnected") );
 
+    auth.setCurrentBondHandle(INVALID_BOND_HANDLE);
+
     ble112.setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
@@ -282,6 +284,24 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     Serial.print(P(", offset: ")); Serial.print((uint16)msg -> offset, HEX);
     Serial.print(P(", maxsize: ")); Serial.print((uint8)msg -> maxsize, HEX);
     Serial.println(P(" }"));
+
+    switch (msg->handle) {
+    // TODO
+    // case ATTRIBUTE_HANDLE_IR_DATA:
+    //     break;
+    // case ATTRIBUTE_HANDLE_IR_UNREAD_STATUS:
+    //     break;
+    // case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
+    //     break;
+    // case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
+    //     break;
+    case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
+        ble112.attributesUserReadResponseAuthorized( auth.isAuthorized() );
+        break;
+    default:
+        Serial.println(P("unknown attribute !"));
+        break;
+    }
 }
 
 void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg ) {
@@ -615,6 +635,20 @@ void BLE112::attributesUserReadResponse()
                                                  (uint8)0, // att_error
                                                  (uint8)22, // value_len,
                                                  data      // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponseAuthorized(bool authorized)
+{
+    Serial.print(P("-->\tattributes_user_read_response authorized: "));
+    Serial.println(authorized, BIN);
+
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+                                                 (uint8)0,   // att_error
+                                                 (uint8)1,   // value_len,
+                                                 (uint8*)&authorized // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
