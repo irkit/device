@@ -574,6 +574,20 @@ void BLE112::writeAttribute()
 
 }
 
+void BLE112::writeAttributeAuthenticationStatus(bool authenticated)
+{
+    Serial.print(P("-->\tattributes_write auth status: "));
+    Serial.println(authenticated, BIN);
+
+    bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_AUTH_STATUS, // handle value
+                                    0,                                       // offset
+                                    1,                                       // value_len
+                                    (const uint8*)&authenticated             // value_data
+                                    );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
 void BLE112::readAttribute()
 {
     uint8_t status;

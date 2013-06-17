@@ -12,6 +12,13 @@ SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart );
 AuthSwitch auth( AUTH_SWITCH );
 
+void authorized()
+{
+    Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(auth.currentBondHandle);
+    // ble112 will indicate iOS central device
+    ble112.writeAttributeAuthenticationStatus(1);
+}
+
 void setup() {
     pinMode(BUSY_LED,         OUTPUT);
     digitalWrite(BUSY_LED,    LOW);
@@ -27,6 +34,7 @@ void setup() {
     digitalWrite(AUTH_SWITCH, HIGH);
 
     auth.setup();
+    auth.callback = authorized;
 
     // USB serial
     Serial.begin(115200);

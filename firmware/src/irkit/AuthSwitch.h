@@ -6,6 +6,10 @@
 class AuthSwitch {
     public:
         AuthSwitch(int);
+        void (*callback)(void);
+        // bonding handle if there is stored bonding for this device 0xff otherwise
+        uint8 currentBondHandle;
+
         void setup();
         bool isAuthorized();
         bool isFull();
@@ -17,9 +21,6 @@ class AuthSwitch {
 
     private:
         int pin;
-
-        // bonding handle if there is stored bonding for this device 0xff otherwise
-        uint8 currentBondHandle;
 };
 
 #define INVALID_BOND_HANDLE 0xFF

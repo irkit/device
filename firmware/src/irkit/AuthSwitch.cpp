@@ -26,7 +26,8 @@ struct
 
 AuthSwitch::AuthSwitch(int pin_) :
     pin(pin_),
-    currentBondHandle(INVALID_BOND_HANDLE)
+    currentBondHandle(INVALID_BOND_HANDLE),
+    callback(0)
 {
 
 }
@@ -64,7 +65,9 @@ void AuthSwitch::authorize(void)
 
     save();
 
-    Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(currentBondHandle);
+    if ( callback ) {
+        callback();
+    }
 }
 
 void AuthSwitch::setCurrentBondHandle(uint8 bond)
