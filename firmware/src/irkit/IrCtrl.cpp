@@ -21,6 +21,31 @@
 #include "IrCtrl.h"
 
 /*----------------------------------------------------------------------------/
+/ How this works (RX)
+/-----------------------------------------------------------------------------/
+/ When a change of the logic level occurs on Input Capture pin (ICP1)
+/ and this edge conforms to Input Capture Edge Select (TCCR1B[ICES1]),
+/ the 16bit value of the counter (TCNT1) is written to Input Capture Register (ICR1).
+/ If Input Capture interrupt is enabled (ICIE1=1), ISR_CAPTURE() runs.
+/ In ISR_CAPTURE(), we save interval of ICR1 since last edge
+/ and toggle ICES1 to capture next edge
+/ until the trailer (idle time without any edges) is detected.
+/ see p119 of datasheet
+/-----------------------------------------------------------------------------/
+/ How this works (TX)
+/-----------------------------------------------------------------------------/
+/ We use Timer/Counter2's Fast PWM mode to generate IR carrier frequency(38kHz)
+/ on Output Compare pin (OC2B).
+/ 38kHz is determined by dividing our clock(16MHz) by 8 to make 2MHz, and counting 52 cycles.
+/ Output Compare Register (OCR2A) is set to 52.
+/ Provide an array of "Number of 2MHz cycles" in IrCtrl.buff .
+/ Each entry of the array is set into Timer/Counter1's Output Compare Register (OCR1A),
+/ which triggers an interrupt and run ISR_COMPARE() when compare matches.
+/ In ISR_COMPARE(), we toggle ON/OFF of IR transmission (write 0/1 into TCCR2A[COM2B1])
+/ and continue til the end of IrCtrl.buff .
+/----------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------/
 / Platform dependent definitions
 /----------------------------------------------------------------------------*/
 /* Define interrupt service functions */
@@ -40,12 +65,14 @@
     0bxxxxx110 = clk/1024
 
     0bxxxxx010 = clk/   8 : 16MHz / 8 = 2MHz
-    0b10000000 = Input Capture Noise Canceler: Active
+    0b1xxxxxxx = Input Capture Noise Canceler: Active
                  Setting this bit (to one) activates the Input Capture Noise Canceler.
                  When the noise canceler is activated, the input from the Input Capture pin (ICP1)
                  is filtered. The filter function requires four successive equal valued samples of
                  the ICP1 pin for changing its output. The Input Capture is therefore delayed by
                  four Oscillator cycles when the noise canceler is enabled.
+    0bx0xxxxxx = Input Capture Edge Select
+                 Toggle to detect rising/falling edge of ICP1 pin.
 
   TCCR1A : Timer/Counter1 Control Register B
     0b00000000 = Normal port operation
@@ -57,27 +84,10 @@
     TCCR2A = _BV(WGM21)|_BV(WGM20); \
     TCCR2B = _BV(WGM22)|0b010
 /*
-[sample(mega48 10MHz)]
-  OCR2B  = 10
-  TCCR2A = _BV(WGM21)|_BV(WGM20)
-  TCCR2B = _BV(WGM22)|0b010
-  IR_TX_38K() OCR2A = 32
-  IR_TX_40K() OCR2A = 30
 
-  WGM2[111] = fast PWM
-  0b010     = clk/8
-  Counting BOTTOM to TOP(=OCR2A), At BOTTOM set 1, At OCR2B set 0.
-  Width of 1 is OCR2B=10, fixed.
-  Width of 0 is OCR2A-OCR2B. Freq is defined by OCR2A.
+ Counting from BOTTOM to TOP(=OCR2A), At BOTTOM set 1, At OCR2B set 0.
 
-   10MHz/8 = 1.25MHz
-  OCR2A=33 : 1.25MHz/(33+1) =  36.76KHz
-  OCR2A=32 : 1.25MHz/(32+1) =  37.87KHz * 38K
-  OCR2A=31 : 1.25MHz/(31+1) =  39.06KHz
-  OCR2A=30 : 1.25MHz/(30+1) =  40.32KHz * 40K
-  OCR2A=29 : 1.25MHz/(29+1) =  41.66KHz
-
-[Arduino2009+mega328 16MHz]
+[mega328 16MHz]
   16MHz/8  = 2.00MHz
   OCR2A=53 : 2.00MHz/(53+1) =  37.03KHz
   OCR2A=52 : 2.00MHz/(52+1) =  37.73KHz * 38K
@@ -99,16 +109,13 @@ we use ATmega328P-AU
 #define _BV(bit) (1 << (bit))
 
 TCCR2A : Timer/Counter Control Register A
-WGM20, WGM21 both 1 :
+WGM20, WGM21, WGM22 all 1 :
   Timer/Counter Mode of Operation : Fast PWM - p148
-  TOP                             : 0xFF
+  TOP                             : OCRA
   Update of OCRx at               : BOTTOM
-  TOV Flag Set on                 : MAX (0xFF)
+  TOV Flag Set on                 : TOP
 
 TCCR2B : Timer/Counter Control Register B
-WGM22 : Waveform Geenration Mode
-  0 : Normal Port Operation, OC2A Disconnected
-  1 : Toggle OC2A on Copmare Match
 
 CS21:0 : Clock Select
   0b010 : clk(T2S) / 8
@@ -143,7 +150,7 @@ ICES1 : Input Capture Edge Select
 /*
 TIFR1 : Timer/Counter1 Interrupt Flag Register
 ICF1 : Timer/Counter1, Input Capture Flag
-  ICF1 can be cleared by writing a loginc one to its bit location
+  ICF1 can be cleared by writing a logic one to its bit location
 TOV1 : Timer/Counter1, Overflow Flag # TODO
 
 TIMSK1 : Timer/Counter1 Interrupt Mask Register
@@ -153,7 +160,6 @@ ICIE1 : Timer/Counter1, Input Capture Interrupt Enable
   the Timer/Counter1 Input Capture interrupt is enabled.
   The corresponding Interrupt Vector (see “Interrupts” on page 57) is executed when the ICF1 Flag,
   located in TIFR1, is set.
-
  */
 
 #define IR_CAPTURE_REG()   ICR1                    /* Rx: Returns the value in capture register */
@@ -163,7 +169,7 @@ ICR1 : Input Capture Register
 #define IR_CAPTURE_DISABLE()   TIMSK1 &= ~_BV(ICIE1)   /* Tx && Rx: Disable captureing interrupt */
 
 /*
-can we read TCNT1(16-bit register) at once?
+TODO: can we read TCNT1(16-bit register) at once?
 see p.114
  */
 #define IR_COMPARE_ENABLE(n)  OCR1A = TCNT1 + (n); TIFR1 = _BV(OCF1A); TIMSK1 |= _BV(OCIE1A) /* Enable compare interrupt n count after now */
@@ -179,32 +185,16 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 #define IR_COMPARE_DISABLE()   TIMSK1 &= ~_BV(OCIE1A)  /* Disable compare interrupt */
 #define IR_COMPARE_NEXT(n) OCR1A += (n)            /* Tx: Increase compare register by n count */
 
-/*
- * 16MHz -> 500
- *  8MHz -> 1000
- */
-// 1000_000_000
-// #define T_CLK           (1000000000 / (F_CPU / 8))
-
 /* Counter clock rate and register width */
 #define T_CLK           500                    /* Timer tick period [ns] */
 /*
-[sample 10MHz]
-  T_CLK = 800
-  1s = 1000ms = 1000000us = 1000000000ns
-  1M = 1000K  = 1000000
-  10MHz   => 1000000000ns/ 10000000    = 100ns
-  10MHz/8 => 1000000000ns/(10000000/8) = 800ns
 [Arduino 16MHz]
   16MHz/8 => 1000000000ns/(16000000/8) = 500ns
-*/
+ */
 #define _timer_reg_t          uint16_t                /* Integer type of timer register */
 /*---------------------------------------------------------------------------*/
 
-/* IR control timings */
-#define T_NEC   (562000/T_CLK)        /* Base time for NEC format (T=562us) */
-#define T_AEHA  (425000/T_CLK)        /* Base time for AEHA format (T=425us) */
-#define T_SONY  (600000/T_CLK)        /* Base time for SONY format (T=600us) */
+// 6_000_000 [ns] = 6[ms]
 #define T_TRAIL (6000000/T_CLK)        /* Trailer detection time (6ms) */
 
 
