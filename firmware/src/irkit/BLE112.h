@@ -26,6 +26,7 @@ class BLE112 {
         void getRSSI();
         void writeAttribute();
         void writeAttributeAuthenticationStatus(bool);
+        void writeAttributeUnreadStatus(bool);
         void readAttribute();
         void disconnect();
         void encryptStart();
