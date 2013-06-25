@@ -51,19 +51,6 @@ void setup() {
 
 void ir_recv_loop(void)
 {
-    /* static uint16_t counter = 0; */
-    /* if ( counter ++ == 0 ) { */
-    /*     Serial.print(P("state:")); Serial.println(IrCtrl.state, HEX); */
-    /*     Serial.print(P("len:"));   Serial.println(IrCtrl.len, HEX); */
-    /*     Serial.print(P("txIndex:")); Serial.println(IrCtrl.txIndex, HEX); */
-    /*     Serial.print(P("buff:")); */
-    /*     for (uint16_t i=0; i<IrCtrl.len; i++) { */
-    /*         Serial.print(P(" ")); */
-    /*         Serial.print(IrCtrl.buff[i], HEX); */
-    /*     } */
-    /*     Serial.println(); */
-    /* } */
-
     if (IrCtrl.state != IR_RECVED){
         return;
     }
@@ -74,6 +61,8 @@ void ir_recv_loop(void)
         Serial.print(P(" "));
     }
     Serial.println();
+
+    // write "IR Unread Status" to 1
 
     IR_state( IR_IDLE ); /* Ready to receive next frame */
 }
@@ -87,7 +76,6 @@ void loop() {
     Serial.println(P("1) Hello"));
     Serial.println(P("2) Start Advertising"));
     Serial.println(P("3) Get rssi"));
-    Serial.println(P("4) Write attribute"));
     Serial.println(P("5) Read attribute"));
     Serial.println(P("6) Disconnect"));
     Serial.println(P("7) Attributes user read response"));
@@ -96,6 +84,7 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("e) Set Oob Data"));
+    Serial.println(P("f) Write Unread Status: 1"));
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
     Serial.println(P("Command?"));
@@ -134,9 +123,6 @@ void loop() {
             else if (lastCharacter == '3') {
                 ble112.getRSSI();
             }
-            else if (lastCharacter == '4') {
-                ble112.writeAttribute();
-            }
             else if (lastCharacter == '5') {
                 ble112.readAttribute();
             }
@@ -160,6 +146,9 @@ void loop() {
             }
             else if (lastCharacter == 'e') {
                 ble112.setOobData();
+            }
+            else if (lastCharacter == 'f') {
+                ble112.writeAttributeUnreadStatus( 1 );
             }
             else if (lastCharacter == 'y') {
                 ble112.deleteBonding(0);

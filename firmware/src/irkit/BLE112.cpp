@@ -588,6 +588,22 @@ void BLE112::writeAttributeAuthenticationStatus(bool authenticated)
     while ((status = bglib.checkActivity(1000)));
 }
 
+// BLE112 sends, and iOS device receives a notification
+// even if unread value doesnt change
+void BLE112::writeAttributeUnreadStatus(bool unread)
+{
+    Serial.print(P("-->\tattributes_write unread status: "));
+    Serial.println(unread, BIN);
+
+    bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_UNREAD_STATUS, // handle value
+                                    0,                                         // offset
+                                    1,                                         // value_len
+                                    (const uint8*)&unread                      // value_data
+                                    );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
 void BLE112::readAttribute()
 {
     uint8_t status;
