@@ -51,9 +51,10 @@ void setup() {
 
 void ir_recv_loop(void)
 {
-    if (IrCtrl.state != IR_RECVED){
+    if (IrCtrl.state != IR_RECVED) {
         return;
     }
+    IR_state( IR_RECVED_IDLE );
 
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
     for (uint16_t i=0; i<IrCtrl.len; i++) {
@@ -63,8 +64,7 @@ void ir_recv_loop(void)
     Serial.println();
 
     // write "IR Unread Status" to 1
-
-    IR_state( IR_IDLE ); /* Ready to receive next frame */
+    ble112.writeAttributeUnreadStatus( 1 );
 }
 
 void loop() {
