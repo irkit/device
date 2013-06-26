@@ -65,7 +65,7 @@
 
         <characteristic uuid="841B6310-CC62-4976-9C83-EB875AF7E007" id="c_ir_unread_status">
             <description>IR Unread Status</description>
-            <properties read="false"
+            <properties read="true"
                         const="false"
                         write="false"
                         notify="true"
