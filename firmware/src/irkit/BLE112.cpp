@@ -287,6 +287,9 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
 void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
     Serial.print( P("###\tattributes_status: { ") );
     Serial.print(P("handle: "));  Serial.print((uint16)msg -> handle, HEX);
+    // flags:
+    // 1: Notifications are enabled
+    // 2: Indications are enabled
     Serial.print(P(", flags: ")); Serial.print((uint8)msg -> flags, HEX);
     Serial.println(P(" }"));
 }
@@ -312,6 +315,11 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 // TODO
                 break;
             }
+            if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
+                // must be idle
+                // TODO error response
+                break;
+            }
             uint8 value_len = msg->maxsize;
             if ( IrCtrl.len * 2 < msg->offset + (uint16_t)value_len ) {
                 // last partial
@@ -325,11 +333,20 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    );
         }
         break;
-    // TODO
-    // case ATTRIBUTE_HANDLE_IR_UNREAD_STATUS:
-    //     break;
+    case ATTRIBUTE_HANDLE_IR_UNREAD_STATUS:
+        {
+            bool unread = 0;
+            if ( (IrCtrl.len > 0) &&
+                 ((IrCtrl.state == IR_IDLE) || (IrCtrl.state == IR_RECVED_IDLE)) ) {
+                unread = 1;
+            }
+            ble112.attributesUserReadResponseUnread( unread );
+        }
+        break;
     // case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
     //     break;
+
+    // TODO
     // case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
     //     break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
@@ -773,6 +790,20 @@ void BLE112::attributesUserReadResponseAuthorized(bool authorized)
                                                  (uint8)0,   // att_error
                                                  (uint8)1,   // value_len,
                                                  (uint8*)&authorized // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponseUnread(bool unread)
+{
+    Serial.print(P("-->\tattributes_user_read_response unread: "));
+    Serial.println(unread, BIN);
+
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+                                                 (uint8)0,   // att_error
+                                                 (uint8)1,   // value_len,
+                                                 (uint8*)&unread // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));

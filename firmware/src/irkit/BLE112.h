@@ -37,6 +37,7 @@ class BLE112 {
         void attributesUserReadResponse();
         void attributesUserReadResponseData(uint8, uint8, uint8*);
         void attributesUserReadResponseAuthorized(bool);
+        void attributesUserReadResponseUnread(bool);
         void attributesUserWriteResponse();
 
     private:
