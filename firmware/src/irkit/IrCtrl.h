@@ -21,9 +21,9 @@
 // buff size must be at least 259 to store 16byte of ir data
 #define IR_BUFF_SIZE    260
 typedef struct _irstruct {
-    uint8_t state;      // Communication state
-    uint16_t len;       // Size of buff used
-    uint16_t txIndex;   // 0 < txIndex < len
+    uint8_t state;               // Communication state
+    uint16_t len;                // Size of buff used
+    uint16_t txIndex;            // 0 < txIndex < len
     uint16_t buff[IR_BUFF_SIZE]; // Data buffer 16Byte x 8bit/Byte x 2(HIGH and LOW) x uint16_t
 } IR_STRUCT;
 
@@ -32,10 +32,11 @@ extern
 volatile IR_STRUCT IrCtrl;
 
 /* IR control state (state) */
-#define IR_IDLE     0    /* In idle state, ready to receive/transmit */
-#define IR_RECVING  1    /* An IR frame is being received */
-#define IR_RECVED   2    /* An IR frame has been received and data is valid */
-#define IR_XMITTING 3    /* IR transmission is in progress */
+#define IR_IDLE        0    /* In idle state, ready to receive/transmit */
+#define IR_RECVING     1    /* An IR frame is being received */
+#define IR_RECVED      2    /* An IR frame has been received and data is valid */
+#define IR_XMITTING    3    /* IR transmission is in progress */
+#define IR_RECVED_IDLE 4    /* Received IR frame is on memory til next receive and transmit */
 
 /* Prototypes */
 void IR_initialize (void);

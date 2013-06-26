@@ -209,6 +209,9 @@ ISR_CAPTURE()
 
     _timer_reg_t counter = IR_CAPTURE_REG();
 
+    if (IrCtrl.state == IR_RECVED_IDLE) {
+        IR_state( IR_IDLE );
+    }
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
         return;
     }
@@ -288,7 +291,7 @@ int IR_xmit ()
 
     IR_state( IR_XMITTING );
     IR_TX_38K();
-    // IR_TX_40K();
+    // IR_TX_40K(); // TODO support other ir carrier frequency
     IR_TX_ON();
     IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
 
@@ -305,6 +308,7 @@ void IR_state (uint8_t nextState)
         // 1st interrupt when receiving ir must be falling edge
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
+
         IrCtrl.len     = 0;
         IrCtrl.txIndex = 0;
         for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
@@ -312,7 +316,7 @@ void IR_state (uint8_t nextState)
         }
         break;
     case IR_RECVING:
-        IrCtrl.len   = 0;
+        IrCtrl.len     = 0;
         IrCtrl.txIndex = 0;
         for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
@@ -320,6 +324,10 @@ void IR_state (uint8_t nextState)
         break;
     case IR_RECVED:
         IR_COMPARE_DISABLE();
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
+        break;
+    case IR_RECVED_IDLE:
         break;
     case IR_XMITTING:
         IR_CAPTURE_DISABLE();

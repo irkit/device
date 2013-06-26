@@ -3,6 +3,7 @@
 #include "BLE112.h"
 #include "pgmStrToRAM.h"
 #include "AuthSwitch.h"
+#include "IrCtrl.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -12,6 +13,7 @@
 // I don't like this but..
 extern BLE112 ble112;
 extern AuthSwitch auth;
+extern volatile IR_STRUCT IrCtrl;
 
 const uint8_t data[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -298,9 +300,32 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     Serial.println(P(" }"));
 
     switch (msg->handle) {
+    case ATTRIBUTE_HANDLE_IR_DATA:
+        {
+            bool authorized = auth.isAuthorized();
+            if ( ! authorized ) {
+                // TODO
+                break;
+            }
+            if ( IrCtrl.len * 2 <= msg->offset ) {
+                // range error
+                // TODO
+                break;
+            }
+            uint8 value_len = msg->maxsize;
+            if ( IrCtrl.len * 2 < msg->offset + (uint16_t)value_len ) {
+                // last partial
+                value_len = IrCtrl.len * 2 - msg->offset;
+            }
+            uint8* buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
+
+            ble112.attributesUserReadResponseData( 0, // att_error
+                                                   value_len, // value_len
+                                                   buffWithOffset // value_data
+                                                   );
+        }
+        break;
     // TODO
-    // case ATTRIBUTE_HANDLE_IR_DATA:
-    //     break;
     // case ATTRIBUTE_HANDLE_IR_UNREAD_STATUS:
     //     break;
     // case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
@@ -721,6 +746,19 @@ void BLE112::attributesUserReadResponse()
                                                  (uint8)0, // att_error
                                                  (uint8)22, // value_len,
                                                  data      // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, uint8* value_data)
+{
+    Serial.println(P("-->\tattributes_user_read_response irdata"));
+
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+                                                 (uint8)att_error,   // att_error
+                                                 (uint8)value_len,   // value_len,
+                                                 (uint8*)value_data // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
