@@ -78,9 +78,8 @@
 
         <characteristic uuid="CF746376-2FED-40FA-A232-C0BFF843AA94" id="c_ir_control_point">
             <description>IR Control Point.
-            0: Clear IR data.
-            1: Send IR data.
-            2-255: Reserved for future use.
+            0: Send IR data.
+            1-255: Reserved for future use.
             </description>
             <properties read="false"
                         const="false"
