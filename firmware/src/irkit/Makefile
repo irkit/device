@@ -11,4 +11,5 @@ include ~/proj/Arduino-Makefile/arduino-mk/Arduino.mk
 
 .PHONY: check-syntax
 check-syntax:
+	etags *.{c,h,cpp}
 	$(CC) -x c++ $(CPPFLAGS) $(CXXFLAGS) -Wall -fsyntax-only $(CHK_SOURCES)
