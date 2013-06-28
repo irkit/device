@@ -285,7 +285,7 @@ int IR_xmit ()
         (IrCtrl.len > IR_BUFF_SIZE)) {
         return 0;
     }
-    if (IrCtrl.state != IR_IDLE) {
+    if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
         return 0; // Abort when collision detected
     }
 

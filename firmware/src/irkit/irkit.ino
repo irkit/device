@@ -78,13 +78,13 @@ void loop() {
     Serial.println(P("3) Get rssi"));
     Serial.println(P("5) Read attribute"));
     Serial.println(P("6) Disconnect"));
-    Serial.println(P("7) Attributes user read response"));
-    Serial.println(P("8) Attributes user write response"));
+    Serial.println(P("7) User Read Response"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("e) Set Oob Data"));
     Serial.println(P("f) Write Unread Status: 1"));
+    Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
     Serial.println(P("Command?"));
@@ -132,9 +132,6 @@ void loop() {
             else if (lastCharacter == '7') {
                 ble112.attributesUserReadResponse();
             }
-            else if (lastCharacter == '8') {
-                ble112.attributesUserWriteResponse();
-            }
             else if (lastCharacter == 'a') {
                 ble112.encryptStart();
             }
@@ -149,6 +146,14 @@ void loop() {
             }
             else if (lastCharacter == 'f') {
                 ble112.writeAttributeUnreadStatus( 1 );
+            }
+            else if (lastCharacter == 'x') {
+                Serial.print(P("IrCtrl.len:")); Serial.println(IrCtrl.len,HEX);
+                for (uint16_t i=0; i<IrCtrl.len; i++) {
+                    Serial.print(IrCtrl.buff[i], HEX);
+                    Serial.print(P(" "));
+                }
+                Serial.println();
             }
             else if (lastCharacter == 'y') {
                 ble112.deleteBonding(0);

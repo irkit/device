@@ -4,6 +4,7 @@
 #include "pgmStrToRAM.h"
 #include "AuthSwitch.h"
 #include "IrCtrl.h"
+#include "MemoryFree.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -14,6 +15,7 @@
 extern BLE112 ble112;
 extern AuthSwitch auth;
 extern volatile IR_STRUCT IrCtrl;
+extern void IR_xmit();
 
 const uint8_t data[] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -310,14 +312,14 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 // TODO
                 break;
             }
-            if ( IrCtrl.len * 2 <= msg->offset ) {
-                // range error
-                // TODO
-                break;
-            }
             if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
                 // must be idle
                 // TODO error response
+                break;
+            }
+            if ( IrCtrl.len * 2 <= msg->offset ) {
+                // range error
+                // TODO
                 break;
             }
             uint8 value_len = msg->maxsize;
@@ -382,6 +384,69 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         Serial.print(msg -> value.data[i], HEX);
     }
     Serial.println(P(" }"));
+    Serial.print(P("free:"));
+    Serial.println( freeMemory() );
+    ble112.nextCommand = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS;
+
+    if (msg->reason != BGLIB_ATTRIBUTES_ATTRIBUTE_CHANGE_REASON_WRITE_REQUEST_USER) {
+        return;
+    }
+    bool authorized = auth.isAuthorized();
+    if ( ! authorized ) {
+        // writes always require authz
+        // TODO respond with error
+        return;
+    }
+    if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
+        // must be idle
+        // TODO error response
+        return;
+    }
+
+    uint8 *buffWithOffset;
+    switch (msg->handle) {
+    case ATTRIBUTE_HANDLE_IR_DATA:
+        {
+            Serial.print(P("free:"));
+            Serial.println( freeMemory() );
+
+            // valid offset and length?
+            if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
+                // overflow
+                // TODO error response
+                Serial.println(P("!overflow!"));
+                return;
+            }
+            // ready to fill IR data
+            if (msg->offset == 0) {
+                IR_state( IR_IDLE ); // clear IrCtrl.buff
+            }
+
+            buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
+            memcpy( buffWithOffset, (const void*)(msg->value.data), msg->value.len );
+            IrCtrl.len = (msg->offset + msg->value.len) / 2;
+        }
+        break;
+    case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
+        {
+            if (msg->value.data[0] != 0) {
+                // unknown control point value
+                // TODO error response
+                return;
+            }
+            if ( IrCtrl.len == 0 ) {
+                // TODO error response
+                return;
+            }
+            IR_xmit();
+            Serial.println(P("sent"));
+        }
+        break;
+    default:
+        // not expected
+        // TODO error response
+        break;
+    }
 }
 
 void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_value_evt_t *msg) {
@@ -520,12 +585,17 @@ void BLE112::loop()
 
     switch (nextCommand) {
     case NEXT_COMMAND_ID_ENCRYPT_START:
+        nextCommand = NEXT_COMMAND_ID_EMPTY;
         encryptStart();
+        break;
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS:
+        nextCommand = NEXT_COMMAND_ID_EMPTY;
+        attributesUserWriteResponse( 0,   // conn_handle
+                                     0 ); // att_error
         break;
     case NEXT_COMMAND_ID_EMPTY:
         break;
     }
-    nextCommand = NEXT_COMMAND_ID_EMPTY;
 }
 
 void BLE112::reset()
@@ -809,11 +879,11 @@ void BLE112::attributesUserReadResponseUnread(bool unread)
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::attributesUserWriteResponse()
+void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
 {
     Serial.println(P("-->\tattributes_user_write_response"));
-    bglib.ble_cmd_attributes_user_write_response( (uint8)0, // connection handle
-                                                  (uint8)0  // att_error
+    bglib.ble_cmd_attributes_user_write_response( conn_handle,
+                                                  att_error
                                                   );
 
     uint8_t status;

@@ -10,8 +10,9 @@
 #define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 27 // 0x1B
 #define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       30 // 0x1E
 
-#define NEXT_COMMAND_ID_ENCRYPT_START         0x01
-#define NEXT_COMMAND_ID_EMPTY                 0xFF
+#define NEXT_COMMAND_ID_ENCRYPT_START               0x01
+#define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS 0x02
+#define NEXT_COMMAND_ID_EMPTY                       0xFF
 
 class BLE112 {
     public:
@@ -38,7 +39,7 @@ class BLE112 {
         void attributesUserReadResponseData(uint8, uint8, uint8*);
         void attributesUserReadResponseAuthorized(bool);
         void attributesUserReadResponseUnread(bool);
-        void attributesUserWriteResponse();
+        void attributesUserWriteResponse(uint8, uint8);
 
     private:
         // create BGLib object:
