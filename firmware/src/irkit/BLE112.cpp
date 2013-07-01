@@ -438,6 +438,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 // TODO error response
                 return;
             }
+            Serial.println(P("will send"));
             IR_xmit();
             Serial.println(P("sent"));
         }
