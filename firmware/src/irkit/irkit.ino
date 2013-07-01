@@ -148,7 +148,8 @@ void loop() {
                 ble112.writeAttributeUnreadStatus( 1 );
             }
             else if (lastCharacter == 'x') {
-                Serial.print(P("IrCtrl.len:")); Serial.println(IrCtrl.len,HEX);
+                Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
+                Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
                 for (uint16_t i=0; i<IrCtrl.len; i++) {
                     Serial.print(IrCtrl.buff[i], HEX);
                     Serial.print(P(" "));
