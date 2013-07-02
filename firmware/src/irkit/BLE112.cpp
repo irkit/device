@@ -102,6 +102,12 @@ void my_rsp_gap_end_procedure(const ble_msg_gap_end_procedure_rsp_t *msg) {
     Serial.println(P(" }"));
 }
 
+void my_rsp_gap_set_adv_data(const ble_msg_gap_set_adv_data_rsp_t *msg) {
+    Serial.print(P("<--\tgap_set_adv_data: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
 void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
     Serial.print(P("<--\tgap_set_mode: { "));
 
@@ -548,6 +554,7 @@ void BLE112::setup()
     bglib.ble_rsp_gap_set_scan_parameters       = my_rsp_gap_set_scan_parameters;
     bglib.ble_rsp_gap_discover                  = my_rsp_gap_discover;
     bglib.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
+    bglib.ble_rsp_gap_set_adv_data              = my_rsp_gap_set_adv_data;
     bglib.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
     bglib.ble_rsp_attributes_read               = my_rsp_attributes_read;
     bglib.ble_rsp_attributes_user_read_response = my_rsp_attributes_user_read_response;
@@ -626,11 +633,34 @@ void BLE112::startAdvertising()
     setBondableMode();
     setParameters();
 
+    // can't initialize uint8array directly....
+    // uint8 data[4] = { 0x03, 0x00, 0x01, 0x02 };
+    // setAdvData( 0, (uint8*)&data[0] );
+
     // TODO: set discoverable mode to limited,
     // and after 30sec, set it to general
     // limited: ad interval 250-500ms, only 30sec
     // general: ad interval 1.28-2.56s, forever
     setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+}
+
+void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
+{
+    Serial.print(P("-->\tgap_set_adv_data: { "));
+    Serial.print(P("set_scanrsp: "));  Serial.print(set_scanrsp, HEX);
+    Serial.print(P(", data: "));
+    uint8array *array = (uint8array*)data;
+    for (uint8_t i = 0; i < array->len; i++) {
+        if (array->data[i] < 16)
+            Serial.write('0');
+        Serial.print(array->data[i], HEX);
+    }
+    Serial.println(P(" }"));
+
+    bglib.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
 }
 
 void BLE112::setMode( uint8 discoverable, uint8 connectable )
