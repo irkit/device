@@ -48,6 +48,7 @@ class BLE112 {
         //  - enable packet mode on API protocol since flow control is unavailable
         BGLib bglib;
 
+        void setAdvData(uint8, uint8*);
         void setMode(uint8, uint8);
         void setBondableMode();
         void setParameters();
