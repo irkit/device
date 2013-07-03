@@ -63,8 +63,11 @@ void ir_recv_loop(void)
     }
     Serial.println();
 
-    // write "IR Unread Status" to 1
-    ble112.writeAttributeUnreadStatus( 1 );
+    // update received count in advertising packet
+    // to let know disconnected central that we have new IR data
+    ble112.incrementReceivedCount();
+    // update adv data
+    ble112.startAdvertising();
 }
 
 void loop() {
@@ -83,7 +86,7 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("e) Set Oob Data"));
-    Serial.println(P("f) Write Unread Status: 1"));
+    Serial.println(P("f) Increment Received Count"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
@@ -145,7 +148,7 @@ void loop() {
                 ble112.setOobData();
             }
             else if (lastCharacter == 'f') {
-                ble112.writeAttributeUnreadStatus( 1 );
+                ble112.incrementReceivedCount();
             }
             else if (lastCharacter == 'x') {
                 Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
