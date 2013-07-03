@@ -9,15 +9,18 @@
         <characteristic uuid="2A00" id="c_device_name">
             <description>Device Name</description>
             <properties read="true" const="true" />
-            <value>BGLib U1A1P 38.4NF</value>
+            <value>IRKit</value>
         </characteristic>
 
         <!-- 2A01: org.bluetooth.characteristic.gap.appearance -->
         <characteristic uuid="2A01" id="c_appearance">
             <description>Appearance</description>
             <properties read="true" const="true" />
-            <!-- 128: Generic Computer, Generic category -->
-            <value type="hex">0080</value>
+            <!--
+                384: Generic Remote Control, Generic category
+                http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
+            -->
+            <value type="hex">0180</value>
         </characteristic>
 
     </service>
@@ -31,14 +34,14 @@
         <characteristic uuid="2A29" id="c_manufacturer_name">
             <description>Manufacturer Name</description>
             <properties read="true" const="true" />
-            <value>SectorFej</value>
+            <value>KAYAC Inc.</value>
         </characteristic>
 
         <!-- 2A24: org.bluetooth.characteristic.model_number_string -->
         <characteristic uuid="2A24" id="c_model_number">
             <description>Model Number</description>
             <properties read="true" const="true" />
-            <value>SF-BGLIB</value>
+            <value>A</value>
         </characteristic>
 
     </service>
@@ -61,19 +64,6 @@
                         authenticated_write="false"
                         />
             <value variable_length="true" length="1024" type="user"></value>
-        </characteristic>
-
-        <characteristic uuid="841B6310-CC62-4976-9C83-EB875AF7E007" id="c_ir_unread_status">
-            <description>IR Unread Status</description>
-            <properties read="true"
-                        const="false"
-                        write="false"
-                        notify="true"
-                        indicate="false"
-                        authenticated_read="false"
-                        authenticated_write="false"
-                        />
-            <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
         <characteristic uuid="CF746376-2FED-40FA-A232-C0BFF843AA94" id="c_ir_control_point">

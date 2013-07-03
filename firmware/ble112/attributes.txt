@@ -3,7 +3,6 @@ c_appearance 6
 c_manufacturer_name 10
 c_model_number 13
 c_ir_data 17
-c_ir_unread_status 20
-c_ir_control_point 24
-c_ir_carrier_frequency 27
-c_ir_auth_status 30
+c_ir_control_point 20
+c_ir_carrier_frequency 23
+c_ir_auth_status 26
