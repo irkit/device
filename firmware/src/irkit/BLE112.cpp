@@ -634,14 +634,27 @@ void BLE112::startAdvertising()
     setParameters();
 
     // can't initialize uint8array directly....
-    // uint8 data[4] = { 0x03, 0x00, 0x01, 0x02 };
-    // setAdvData( 0, (uint8*)&data[0] );
+    uint8 data[27] = {
+        // length
+        0x1A,
+        // AD Format: Flags
+        0x02, 0x01, 0x06,
+        // AD Format: 128bit Service UUID
+        0x11, 0x07, 0xE4, 0xBA, 0x94, 0xC3,
+                    0xC9, 0xB7, 0xCD, 0xB0,
+                    0x9B, 0x48, 0x7A, 0x43,
+                    0x8A, 0xE5, 0x5A, 0x19,
+        // AD Format: Manufacturer Specific Data
+        0x04, 0xFF, 0x01, 0x02, 0x03
+    };
+    setAdvData( 0, (uint8*)&data[0] );
 
     // TODO: set discoverable mode to limited,
     // and after 30sec, set it to general
     // limited: ad interval 250-500ms, only 30sec
     // general: ad interval 1.28-2.56s, forever
-    setMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    // BGLIB_GAP_GENERAL_DISCOVERABLE
+    setMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
