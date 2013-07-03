@@ -26,7 +26,6 @@ class BLE112 {
         void getRSSI();
         void writeAttribute();
         void writeAttributeAuthenticationStatus(bool);
-        void writeAttributeUnreadStatus(bool);
         void readAttribute();
         void disconnect();
         void encryptStart();
@@ -37,8 +36,8 @@ class BLE112 {
         void attributesUserReadResponse();
         void attributesUserReadResponseData(uint8, uint8, uint8*);
         void attributesUserReadResponseAuthorized(bool);
-        void attributesUserReadResponseUnread(bool);
         void attributesUserWriteResponse(uint8, uint8);
+        void incrementReceivedCount();
 
     private:
         // create BGLib object:
@@ -46,6 +45,7 @@ class BLE112 {
         //  - use nothing for passthrough comms (0 = null pointer)
         //  - enable packet mode on API protocol since flow control is unavailable
         BGLib bglib;
+        uint8 _receivedCount;
 
         void setAdvData(uint8, uint8*);
         void setMode(uint8, uint8);

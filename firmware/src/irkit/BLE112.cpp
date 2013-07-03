@@ -341,16 +341,6 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    );
         }
         break;
-    case ATTRIBUTE_HANDLE_IR_UNREAD_STATUS:
-        {
-            bool unread = 0;
-            if ( (IrCtrl.len > 0) &&
-                 ((IrCtrl.state == IR_IDLE) || (IrCtrl.state == IR_RECVED_IDLE)) ) {
-                unread = 1;
-            }
-            ble112.attributesUserReadResponseUnread( unread );
-        }
-        break;
     // case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
     //     break;
 
@@ -531,7 +521,8 @@ void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *ms
 
 BLE112::BLE112(HardwareSerial *module) :
     bglib(module, 0, 1),
-    nextCommand(0xFF)
+    nextCommand(0xFF),
+    _receivedCount(0)
 {
 
 }
@@ -636,7 +627,7 @@ void BLE112::startAdvertising()
     // can't initialize uint8array directly....
     uint8 data[27] = {
         // length
-        0x1A,
+        0x18,
         // AD Format: Flags
         0x02, 0x01, 0x06,
         // AD Format: 128bit Service UUID
@@ -645,7 +636,7 @@ void BLE112::startAdvertising()
                     0x9B, 0x48, 0x7A, 0x43,
                     0x8A, 0xE5, 0x5A, 0x19,
         // AD Format: Manufacturer Specific Data
-        0x04, 0xFF, 0x01, 0x02, 0x03
+        0x02, 0xFF, _receivedCount
     };
     setAdvData( 0, (uint8*)&data[0] );
 
@@ -739,22 +730,6 @@ void BLE112::writeAttributeAuthenticationStatus(bool authenticated)
                                     0,                                       // offset
                                     1,                                       // value_len
                                     (const uint8*)&authenticated             // value_data
-                                    );
-    uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
-}
-
-// BLE112 sends, and iOS device receives a notification
-// even if unread value doesnt change
-void BLE112::writeAttributeUnreadStatus(bool unread)
-{
-    Serial.print(P("-->\tattributes_write unread status: "));
-    Serial.println(unread, BIN);
-
-    bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_UNREAD_STATUS, // handle value
-                                    0,                                         // offset
-                                    1,                                         // value_len
-                                    (const uint8*)&unread                      // value_data
                                     );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
@@ -909,20 +884,6 @@ void BLE112::attributesUserReadResponseAuthorized(bool authorized)
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::attributesUserReadResponseUnread(bool unread)
-{
-    Serial.print(P("-->\tattributes_user_read_response unread: "));
-    Serial.println(unread, BIN);
-
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
-                                                 (uint8)0,   // att_error
-                                                 (uint8)1,   // value_len,
-                                                 (uint8*)&unread // value_data
-                                                 );
-    uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
-}
-
 void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
 {
     Serial.println(P("-->\tattributes_user_write_response"));
@@ -932,4 +893,14 @@ void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::incrementReceivedCount()
+{
+    if ( _receivedCount == 0xFF ) {
+        _receivedCount = 0;
+    }
+    else {
+        _receivedCount ++;
+    }
 }
