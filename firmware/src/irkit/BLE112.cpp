@@ -194,6 +194,7 @@ void my_rsp_sm_set_parameters(const ble_msg_sm_set_parameters_rsp_t *msg) {
 
 void my_rsp_sm_delete_bonding(const ble_msg_sm_delete_bonding_rsp_t *msg) {
     Serial.print(P("<--\tsm_delete_bonding: { "));
+    // 0x0180: Invalid Parameter - Command contained invalid parameter
     Serial.print(P("result: ")); Serial.print((uint16)msg -> result, HEX);
     Serial.println(P(" }"));
 }
@@ -273,7 +274,7 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
 
     if (msg->bonding == INVALID_BOND_HANDLE) {
         // DON'T DO THIS, fails because of timing?
-        // we'll encrypt after client read authentication attribute
+        // we'll encrypt after client read authorization attribute
         // auto enrypt
         // this shows bonding dialog on iOS
         // ble112.encryptStart();
@@ -721,15 +722,15 @@ void BLE112::writeAttribute()
 
 }
 
-void BLE112::writeAttributeAuthenticationStatus(bool authenticated)
+void BLE112::writeAttributeAuthorizationStatus(bool authorized)
 {
     Serial.print(P("-->\tattributes_write auth status: "));
-    Serial.println(authenticated, BIN);
+    Serial.println(authorized, BIN);
 
     bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_AUTH_STATUS, // handle value
                                     0,                                       // offset
                                     1,                                       // value_len
-                                    (const uint8*)&authenticated             // value_data
+                                    (const uint8*)&authorized                // value_data
                                     );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));

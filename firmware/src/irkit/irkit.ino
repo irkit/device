@@ -16,7 +16,7 @@ void authorized()
 {
     Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(auth.currentBondHandle);
     // ble112 will indicate iOS central device
-    ble112.writeAttributeAuthenticationStatus(1);
+    ble112.writeAttributeAuthorizationStatus(1);
 }
 
 void setup() {
