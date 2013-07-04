@@ -96,7 +96,7 @@
         </characteristic>
 
         <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_ir_auth_status">
-            <description>IR Authentication Status</description>
+            <description>IR Authorization Status</description>
             <properties read="true"
                         const="false"
                         write="false"
