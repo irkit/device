@@ -150,6 +150,9 @@ void loop() {
             else if (lastCharacter == 'f') {
                 ble112.incrementReceivedCount();
             }
+            else if (lastCharacter == 'g') {
+                ble112.writeAttributeUnreadStatus( 1 );
+            }
             else if (lastCharacter == 'x') {
                 Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
                 Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
