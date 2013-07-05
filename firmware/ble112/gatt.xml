@@ -66,6 +66,19 @@
             <value variable_length="true" length="1024" type="user"></value>
         </characteristic>
 
+        <characteristic uuid="841B6310-CC62-4976-9C83-EB875AF7E007" id="c_ir_unread_status">
+            <description>IR Unread Status</description>
+            <properties read="false"
+                        const="false"
+                        write="false"
+                        notify="true"
+                        indicate="false"
+                        authenticated_read="false"
+                        authenticated_write="false"
+                        />
+            <value variable_length="false" length="1">0</value>
+        </characteristic>
+
         <characteristic uuid="CF746376-2FED-40FA-A232-C0BFF843AA94" id="c_ir_control_point">
             <description>IR Control Point.
             0: Send IR data.

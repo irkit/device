@@ -5,9 +5,10 @@
 
 // imported from firmware/ble112/attributes.txt
 #define ATTRIBUTE_HANDLE_IR_DATA              17 // 0x11
-#define ATTRIBUTE_HANDLE_IR_CONTROL_POINT     20 // 0x14
-#define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 23 // 0x17
-#define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       26 // 0x1A
+#define ATTRIBUTE_HANDLE_IR_UNREAD_STATUS     20 // 0x14
+#define ATTRIBUTE_HANDLE_IR_CONTROL_POINT     24 // 0x18
+#define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 27 // 0x1B
+#define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       30 // 0x1E
 
 #define NEXT_COMMAND_ID_ENCRYPT_START               0x01
 #define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS 0x02
@@ -26,6 +27,7 @@ class BLE112 {
         void getRSSI();
         void writeAttribute();
         void writeAttributeAuthorizationStatus(bool);
+        void writeAttributeUnreadStatus(bool);
         void readAttribute();
         void disconnect();
         void encryptStart();
