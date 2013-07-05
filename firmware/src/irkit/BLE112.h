@@ -48,9 +48,10 @@ class BLE112 {
         uint8 _receivedCount;
 
         void setAdvData(uint8, uint8*);
-        void setMode(uint8, uint8);
-        void setBondableMode();
-        void setParameters();
+        void gapSetMode(uint8, uint8);
+        void gapSetAdvParameters(uint16, uint16, uint8);
+        void smSetBondableMode();
+        void smSetParameters();
 };
 
 #endif

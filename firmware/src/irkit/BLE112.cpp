@@ -117,6 +117,12 @@ void my_rsp_gap_set_mode(const ble_msg_gap_set_mode_rsp_t *msg) {
     Serial.println(P(" }"));
 }
 
+void my_rsp_gap_set_adv_parameters(const ble_msg_gap_set_adv_parameters_rsp_t *msg) {
+    Serial.print(P("<--\tgap_set_parameters: { "));
+    Serial.print(P("result: ")); Serial.print((uint16_t)msg -> result, HEX);
+    Serial.println(P(" }"));
+}
+
 void my_rsp_attributes_read(const struct ble_msg_attributes_read_rsp_t * msg ) {
     Serial.print(P("<--\tattributes_read: { "));
     Serial.print(P("handle: "));   Serial.print((uint16_t)msg -> handle, HEX);
@@ -548,6 +554,7 @@ void BLE112::setup()
     bglib.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
     bglib.ble_rsp_gap_set_adv_data              = my_rsp_gap_set_adv_data;
     bglib.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
+    bglib.ble_rsp_gap_set_adv_parameters        = my_rsp_gap_set_adv_parameters;
     bglib.ble_rsp_attributes_read               = my_rsp_attributes_read;
     bglib.ble_rsp_attributes_user_read_response = my_rsp_attributes_user_read_response;
     bglib.ble_rsp_attributes_write              = my_rsp_attributes_write;
@@ -622,8 +629,8 @@ void BLE112::hello()
 
 void BLE112::startAdvertising()
 {
-    setBondableMode();
-    setParameters();
+    smSetBondableMode();
+    smSetParameters();
 
     // can't initialize uint8array directly....
     uint8 data[27] = {
@@ -640,13 +647,25 @@ void BLE112::startAdvertising()
         0x02, 0xFF, _receivedCount
     };
     setAdvData( 0, (uint8*)&data[0] );
+    // adv_interval_min default: 0x200 = 320ms
+    // adv_interval_max default: 0x200 = 320ms
+    // adv_channels     default: ?
+    // https://developer.apple.com/hardwaredrivers/BluetoothDesignGuidelines.pdf
+    // To be discovered by the Apple product, the Bluetooth accessory should first use the recommended advertising interval of 20 ms for at least 30 seconds. If it is not discovered within the initial 30 seconds, the accessory may choose to save battery power and increase its advertising interval. Apple recommends using one of the following longer intervals to increase chances of discovery by the Apple product:
+    // *  645 ms
+    // *  768 ms
+    // *  961 ms
+    // * 1065 ms
+    // * 1294 ms
+    // 20ms -> 0x20
+    gapSetAdvParameters( 0x20, 0x40, 0x07 );
 
     // TODO: set discoverable mode to limited,
     // and after 30sec, set it to general
     // limited: ad interval 250-500ms, only 30sec
     // general: ad interval 1.28-2.56s, forever
     // BGLIB_GAP_GENERAL_DISCOVERABLE
-    setMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    gapSetMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
@@ -668,7 +687,7 @@ void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::setMode( uint8 discoverable, uint8 connectable )
+void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
 {
     Serial.print(P("-->\tgap_set_mode: { "));
     Serial.print(P("discover: "));  Serial.print(discoverable, HEX);
@@ -676,6 +695,20 @@ void BLE112::setMode( uint8 discoverable, uint8 connectable )
     Serial.println(P(" }"));
 
     bglib.ble_cmd_gap_set_mode( discoverable, connectable );
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::gapSetAdvParameters( uint16 interval_min, uint16 interval_max, uint8 channels )
+{
+    Serial.print(P("-->\tgap_set_adv_parameters: { "));
+    Serial.print(P("interval_min: "));  Serial.print(interval_min, HEX);
+    Serial.print(P(", interval_max: ")); Serial.print(interval_max, HEX);
+    Serial.print(P(", channels: ")); Serial.print(channels, HEX);
+    Serial.println(P(" }"));
+
+    bglib.ble_cmd_gap_set_adv_parameters( interval_min, interval_max, channels );
 
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
@@ -804,7 +837,7 @@ void BLE112::passkeyEntry()
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::setBondableMode()
+void BLE112::smSetBondableMode()
 {
     Serial.println(P("-->\tsm_set_bondable_mode"));
     bglib.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
@@ -824,7 +857,7 @@ void BLE112::setOobData()
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::setParameters()
+void BLE112::smSetParameters()
 {
     Serial.println(P("-->\tsm_set_parameters"));
     // can't enable man-in-the-middle protection without having any keyboard nor display
