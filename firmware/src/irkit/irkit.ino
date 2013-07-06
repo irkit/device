@@ -81,11 +81,9 @@ void loop() {
     Serial.println(P("3) Get rssi"));
     Serial.println(P("5) Read attribute"));
     Serial.println(P("6) Disconnect"));
-    Serial.println(P("7) User Read Response"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
-    Serial.println(P("e) Set Oob Data"));
     Serial.println(P("f) Increment Received Count"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
@@ -132,9 +130,6 @@ void loop() {
             else if (lastCharacter == '6') {
                 ble112.disconnect();
             }
-            else if (lastCharacter == '7') {
-                ble112.attributesUserReadResponse();
-            }
             else if (lastCharacter == 'a') {
                 ble112.encryptStart();
             }
@@ -143,9 +138,6 @@ void loop() {
             }
             else if (lastCharacter == 'c') {
                 ble112.passkeyEntry();
-            }
-            else if (lastCharacter == 'e') {
-                ble112.setOobData();
             }
             else if (lastCharacter == 'f') {
                 ble112.incrementReceivedCount();
