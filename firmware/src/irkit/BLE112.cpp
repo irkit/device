@@ -723,38 +723,6 @@ void BLE112::getRSSI()
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::writeAttribute()
-{
-    uint8_t status;
-    // maximum payload: 20bytes
-    // see p26 of Bluetooth_Smart_API_11_11032013.pdf
-    uint8 totalSize = BLE112_MAX_CHARACTERISTIC_VALUE_LENGTH;
-    // Serial.print(P("totalSize:")); Serial.println(totalSize);
-
-    for (uint8 i=0; i<(totalSize/20)+1; i++) {
-        uint8 sendSize = totalSize - (i * 20);
-        if (sendSize > 20) {
-            sendSize = 20;
-        }
-
-        Serial.println(P("-->\tattributes_write"));
-        /* Serial.print(P("sendSize:")); Serial.println(sendSize); */
-        /* Serial.print(P("i:"));        Serial.println(i); */
-
-        // handle value:
-        // When the project is compiled with the BGBuild compiler
-        // a text file called attributes.txt is generated.
-        // This files contains the ids and corresponding handle values.
-        bglib.ble_cmd_attributes_write( (uint16)0x0014,       // handle value
-                                        (uint8)(i*20),        // offset
-                                        sendSize,             // value_len
-                                        (const uint8*)&data[i*20] // value_data
-                                        );
-        while ((status = bglib.checkActivity(1000)));
-    }
-
-}
-
 void BLE112::writeAttributeAuthorizationStatus(bool authorized)
 {
     Serial.print(P("-->\tattributes_write auth status: "));
@@ -860,17 +828,6 @@ void BLE112::smSetBondableMode()
     while ((status = bglib.checkActivity(1000)));
 }
 
-void BLE112::setOobData()
-{
-    Serial.println(P("-->\tsm_set_oob_data"));
-    bglib.ble_cmd_sm_set_oob_data( (uint8)2, // oob_len
-                                   data // oob_data
-                                   );
-
-    uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
-}
-
 void BLE112::smSetParameters()
 {
     Serial.println(P("-->\tsm_set_parameters"));
@@ -889,18 +846,6 @@ void BLE112::deleteBonding(uint8 connectionHandle)
     Serial.println(P("-->\tsm_delete_bonding"));
     bglib.ble_cmd_sm_delete_bonding( connectionHandle );
 
-    uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
-}
-
-void BLE112::attributesUserReadResponse()
-{
-    Serial.println(P("-->\tattributes_user_read_response"));
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0, // connection handle
-                                                 (uint8)0, // att_error
-                                                 (uint8)22, // value_len,
-                                                 data      // value_data
-                                                 );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
 }
