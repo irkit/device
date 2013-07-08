@@ -19,7 +19,7 @@
 
 // Structure of IR function work area
 // buff size must be at least 259 to store 16byte of ir data
-#define IR_BUFF_SIZE    260
+#define IR_BUFF_SIZE    512
 typedef struct _irstruct {
     uint8_t state;               // Communication state
     uint16_t len;                // Size of buff used

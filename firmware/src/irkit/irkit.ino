@@ -16,7 +16,7 @@ void authorized()
 {
     Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(auth.currentBondHandle);
     // ble112 will indicate iOS central device
-    ble112.writeAttributeAuthenticationStatus(1);
+    ble112.writeAttributeAuthorizationStatus(1);
 }
 
 void setup() {
@@ -63,8 +63,11 @@ void ir_recv_loop(void)
     }
     Serial.println();
 
-    // write "IR Unread Status" to 1
-    ble112.writeAttributeUnreadStatus( 1 );
+    // update received count in advertising packet
+    // to let know disconnected central that we have new IR data
+    ble112.incrementReceivedCount();
+    // update adv data
+    ble112.startAdvertising();
 }
 
 void loop() {
@@ -78,12 +81,10 @@ void loop() {
     Serial.println(P("3) Get rssi"));
     Serial.println(P("5) Read attribute"));
     Serial.println(P("6) Disconnect"));
-    Serial.println(P("7) User Read Response"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
-    Serial.println(P("e) Set Oob Data"));
-    Serial.println(P("f) Write Unread Status: 1"));
+    Serial.println(P("f) Increment Received Count"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
@@ -129,9 +130,6 @@ void loop() {
             else if (lastCharacter == '6') {
                 ble112.disconnect();
             }
-            else if (lastCharacter == '7') {
-                ble112.attributesUserReadResponse();
-            }
             else if (lastCharacter == 'a') {
                 ble112.encryptStart();
             }
@@ -141,10 +139,10 @@ void loop() {
             else if (lastCharacter == 'c') {
                 ble112.passkeyEntry();
             }
-            else if (lastCharacter == 'e') {
-                ble112.setOobData();
-            }
             else if (lastCharacter == 'f') {
+                ble112.incrementReceivedCount();
+            }
+            else if (lastCharacter == 'g') {
                 ble112.writeAttributeUnreadStatus( 1 );
             }
             else if (lastCharacter == 'x') {
