@@ -12,11 +12,14 @@ SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
-void authorized()
-{
+void authorized() {
     Serial.print(P("authorized bond: ")); Serial.println(ble112.currentBondHandle);
     // ble112 will indicate iOS central device
     ble112.writeAttributeAuthorizationStatus(1);
+}
+
+void cleared() {
+    Serial.println(P("authorized bond cleared"));
 }
 
 void setup() {
@@ -34,7 +37,8 @@ void setup() {
     digitalWrite(AUTH_SWITCH, HIGH);
 
     authorizedBondHandles.setup();
-    authorizedBondHandles.callback = authorized;
+    authorizedBondHandles.callback      = authorized;
+    authorizedBondHandles.clearCallback = cleared;
 
     // USB serial
     Serial.begin(115200);
@@ -49,8 +53,7 @@ void setup() {
     ble112.startAdvertising();
 }
 
-void ir_recv_loop(void)
-{
+void ir_recv_loop(void) {
     if (IrCtrl.state != IR_RECVED) {
         return;
     }
@@ -88,6 +91,7 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("f) Increment Received Count"));
+    Serial.println(P("w) Dump bonding"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
@@ -148,6 +152,14 @@ void loop() {
             else if (lastCharacter == 'g') {
                 ble112.writeAttributeUnreadStatus( 1 );
             }
+            else if (lastCharacter == 'w') {
+                Serial.print("authorized bond: { ");
+                for (uint8_t i=0; i<authorizedBondHandles.count(); i++) {
+                    Serial.print(authorizedBondHandles.data(i));
+                    Serial.print(" ");
+                }
+                Serial.println("}");
+            }
             else if (lastCharacter == 'x') {
                 Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
                 Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
@@ -167,11 +179,4 @@ void loop() {
             }
         }
     }
-
-    // AirCon Off -> OK
-    // if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\x02\xFD", 7*8) ) {
-    // AirCon On -> OK
-    // if ( IR_xmit(AEHA, (uint8_t*)"\x14\x63\x00\x10\x10\xFE\x09\x30\xC1\x04\x50\x00\x00\x00\x28\x93", 16*8) ) {
-    /*     Serial.println( "." ); */
-    /* } */
 }
