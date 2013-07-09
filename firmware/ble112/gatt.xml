@@ -105,7 +105,8 @@
                         authenticated_read="false"
                         authenticated_write="false"
                         />
-            <value variable_length="false" length="1" type="user">26</value>
+            <!-- must be 38 or 40 -->
+            <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
         <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_ir_auth_status">

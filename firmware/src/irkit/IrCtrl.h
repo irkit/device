@@ -19,10 +19,12 @@
 
 // Structure of IR function work area
 // buff size must be at least 259 to store 16byte of ir data
-#define IR_BUFF_SIZE    512
+#define IR_BUFF_SIZE       512
+#define IR_DEFAULT_CARRIER 38
 typedef struct _irstruct {
     uint8_t state;               // Communication state
     uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
+    uint8_t freq;                // carrier wave freq in kHz
     uint16_t len;                // Size of buff used
     uint16_t txIndex;            // 0 < txIndex < len
     uint16_t buff[IR_BUFF_SIZE]; // Data buffer 16Byte x 8bit/Byte x 2(HIGH and LOW) x uint16_t

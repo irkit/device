@@ -316,8 +316,11 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    );
         }
         break;
-    // case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
-    //     break;
+    case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
+        {
+            ble112.attributesUserReadResponseFrequency( IrCtrl.freq );
+        }
+        break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
         {
             bool authorized = auth.isAuthorized();
@@ -390,6 +393,12 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
             memcpy( buffWithOffset, (const void*)(msg->value.data), msg->value.len );
             IrCtrl.len = (msg->offset + msg->value.len) / 2;
+        }
+        break;
+    case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
+        {
+            uint8_t freq = (uint8_t)(msg->value.data[0]);
+            IrCtrl.freq  = freq;
         }
         break;
     case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
@@ -838,6 +847,20 @@ void BLE112::attributesUserReadResponseAuthorized(bool authorized)
                                                  (uint8)0,   // att_error
                                                  (uint8)1,   // value_len,
                                                  (uint8*)&authorized // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponseFrequency(uint16 freq)
+{
+    Serial.print(P("-->\tattributes_user_read_response freq: "));
+    Serial.println(freq, HEX);
+
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+                                                 (uint8)0,   // att_error
+                                                 (uint8)2,   // value_len,
+                                                 (uint8*)&freq // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));

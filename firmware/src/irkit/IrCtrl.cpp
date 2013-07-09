@@ -312,8 +312,12 @@ int IR_xmit ()
     }
 
     IR_state( IR_XMITTING );
-    IR_TX_38K();
-    // IR_TX_40K(); // TODO support other ir carrier frequency
+    if (IrCtrl.freq == 40) {
+        IR_TX_40K();
+    }
+    else {
+        IR_TX_38K();
+    }
     IR_TX_ON();
     IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
 
@@ -333,6 +337,7 @@ void IR_state (uint8_t nextState)
 
         IrCtrl.len     = 0;
         IrCtrl.txIndex = 0;
+        IrCtrl.freq    = IR_DEFAULT_CARRIER; // reset to 38kHz every time
         for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
