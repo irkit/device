@@ -2,7 +2,7 @@
 #include "pins.h"
 #include "BLE112.h"
 #include "pgmStrToRAM.h"
-#include "AuthSwitch.h"
+#include "SetSwitch.h"
 #include "IrCtrl.h"
 #include "MemoryFree.h"
 
@@ -13,7 +13,7 @@
 
 // I don't like this but..
 extern BLE112 ble112;
-extern AuthSwitch auth;
+extern SetSwitch authorizedBondHandles;
 extern volatile IR_STRUCT IrCtrl;
 extern void IR_xmit();
 
@@ -252,7 +252,7 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
     }
     else if ( (msg->bonding != INVALID_BOND_HANDLE) &&
          (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
-        auth.setCurrentBondHandle(msg->bonding);
+        ble112.currentBondHandle = msg->bonding;
     }
 }
 
@@ -260,8 +260,7 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
     Serial.println( P("###\tdisconnected") );
     Serial.print(P("free:")); Serial.println( freeMemory() );
 
-    auth.setCurrentBondHandle(INVALID_BOND_HANDLE);
-
+    ble112.currentBondHandle = INVALID_BOND_HANDLE;
     ble112.startAdvertising();
 }
 
@@ -287,7 +286,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
-            bool authorized = auth.isAuthorized();
+            bool authorized = authorizedBondHandles.isMember(ble112.currentBondHandle);
             if ( ! authorized ) {
                 Serial.println(P("!!! unauthorized read"));
                 break;
@@ -323,7 +322,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
         break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
         {
-            bool authorized = auth.isAuthorized();
+            bool authorized = authorizedBondHandles.isMember( ble112.currentBondHandle );
             ble112.attributesUserReadResponseAuthorized( authorized );
             if ( ! authorized ) {
                 ble112.nextCommand = NEXT_COMMAND_ID_ENCRYPT_START;
@@ -361,7 +360,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     if (msg->reason != BGLIB_ATTRIBUTES_ATTRIBUTE_CHANGE_REASON_WRITE_REQUEST_USER) {
         return;
     }
-    bool authorized = auth.isAuthorized();
+    bool authorized = authorizedBondHandles.isMember( ble112.currentBondHandle );
     if ( ! authorized ) {
         // writes always require authz
         Serial.println(P("!!! unauthorized write"));
