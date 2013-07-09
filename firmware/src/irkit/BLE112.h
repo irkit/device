@@ -38,6 +38,7 @@ class BLE112 {
         void attributesUserReadResponse();
         void attributesUserReadResponseData(uint8, uint8, uint8*);
         void attributesUserReadResponseAuthorized(bool);
+        void attributesUserReadResponseFrequency(uint16);
         void attributesUserWriteResponse(uint8, uint8);
         void incrementReceivedCount();
 
