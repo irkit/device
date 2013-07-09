@@ -168,11 +168,8 @@ ICR1 : Input Capture Register
  */
 #define IR_CAPTURE_DISABLE()   TIMSK1 &= ~_BV(ICIE1)   /* Tx && Rx: Disable captureing interrupt */
 
-/*
-TODO: can we read TCNT1(16-bit register) at once?
-see p.114
- */
-#define IR_COMPARE_ENABLE(n)  OCR1A = TCNT1 + (n); TIFR1 = _BV(OCF1A); TIMSK1 |= _BV(OCIE1A) /* Enable compare interrupt n count after now */
+// Enable compare interrupt n count after now
+#define IR_COMPARE_ENABLE(n)  OCR1A = TCNT1 + (n); TIFR1 = _BV(OCF1A); TIMSK1 |= _BV(OCIE1A)
 /*
 OCR1A : Output Compare Register 1A
 TCNT1 : Timer/Counter1 direct access, both for read and for write operations,
@@ -194,8 +191,9 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 #define _timer_reg_t          uint16_t                /* Integer type of timer register */
 /*---------------------------------------------------------------------------*/
 
-// 6_000_000 [ns] = 6[ms]
-#define T_TRAIL (6000000/T_CLK)        /* Trailer detection time (6ms) */
+// 6ms is too short
+// 65535 x 500[ns/tick] = 32_767_500[ns] = 32.8[ms]
+#define T_TRAIL 65535
 
 
 /* Working area for IR communication  */
