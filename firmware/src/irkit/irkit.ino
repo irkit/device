@@ -5,16 +5,16 @@
 #include "pgmStrToRAM.h"
 #include "BLE112.h"
 #include "IrCtrl.h"
-#include "AuthSwitch.h"
+#include "SetSwitch.h"
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart );
-AuthSwitch auth( AUTH_SWITCH );
+SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
 void authorized()
 {
-    Serial.print(P("AuthSwitch authorized bond: ")); Serial.println(auth.currentBondHandle);
+    Serial.print(P("authorized bond: ")); Serial.println(ble112.currentBondHandle);
     // ble112 will indicate iOS central device
     ble112.writeAttributeAuthorizationStatus(1);
 }
@@ -33,8 +33,8 @@ void setup() {
     pinMode(AUTH_SWITCH,      INPUT);
     digitalWrite(AUTH_SWITCH, HIGH);
 
-    auth.setup();
-    auth.callback = authorized;
+    authorizedBondHandles.setup();
+    authorizedBondHandles.callback = authorized;
 
     // USB serial
     Serial.begin(115200);
@@ -100,7 +100,7 @@ void loop() {
         ir_recv_loop();
 
         // check for auth switch pressed
-        auth.loop();
+        authorizedBondHandles.loop(ble112.currentBondHandle);
 
         // check for input from the user
         if (Serial.available()) {
@@ -163,7 +163,7 @@ void loop() {
             }
             else if (lastCharacter == 'z') {
                 Serial.println(P("cleared switch auth data"));
-                auth.clear();
+                authorizedBondHandles.clear();
             }
         }
     }

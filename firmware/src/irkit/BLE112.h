@@ -14,10 +14,13 @@
 #define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS 0x02
 #define NEXT_COMMAND_ID_EMPTY                       0xFF
 
+#define INVALID_BOND_HANDLE 0xFF
+
 class BLE112 {
     public:
         BLE112(HardwareSerial *module);
         uint8 nextCommand;
+        uint8 currentBondHandle;
 
         void setup();
         void loop();
