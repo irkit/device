@@ -76,18 +76,19 @@ uint8_t SetSwitch::data(uint8_t index)
 void SetSwitch::loop(uint8_t key)
 {
     uint8_t state = digitalRead(pin);
+    unsigned long now = millis();
     if ( ON == state ) {
-        if ( (lastState == ON) &&
-             (millis() - pressStarted > 10*1000) )
-        {
+        if ( now - pressStarted > 10*1000 ) {
             // long press detected
             // millis() overflows, but who can press the button precisely when 32bit overflows?
             clear();
             if (clearCallback != 0) {
                 clearCallback();
             }
+            pressStarted = now; // prevent from calling clearCallback repeatedly
         }
         else if ( (key != INVALID_KEY) &&
+                  (OFF == lastState) &&
                   ! isMember(key) )
         {
             add(key);
@@ -96,10 +97,9 @@ void SetSwitch::loop(uint8_t key)
                 callback();
             }
         }
-        else if (lastState == OFF)
-        {
-            pressStarted = millis();
-        }
+    }
+    else {
+        pressStarted = now;
     }
     lastState = state;
 }
