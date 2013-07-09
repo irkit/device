@@ -126,9 +126,9 @@ CS21:0 : Clock Select
 #define IR_TX_40K()     OCR2A = 49; TCNT2 = 0   /* Tx: Set IR burst frequency to 40kHz */
 #define IR_TX_ON()      TCCR2A |=  _BV(COM2B1)  /* Tx: Start IR burst */
 #define IR_TX_OFF()     TCCR2A &= ~_BV(COM2B1)  /* Tx: Stop IR burst */
-#define IR_TX_TEST()    TCCR2A &   _BV(COM2B1)  /* Tx: Check if IR is being transmitted or not */
+#define IR_TX_IS_ON()   TCCR2A &   _BV(COM2B1)  /* Tx: Check if IR is being transmitted or not */
 
-#define IR_CAPTURE_TEST()  TCCR1B &   _BV(ICES1)   /* Rx: Check which edge generated the capture interrupt */
+#define IR_CAPTURED_RISING() TCCR1B & _BV(ICES1) /* Rx: Check which edge generated the capture interrupt */
 /*
 TCCR1B : Timer/Counter1 Control Register B
 ICES1 : Input Capture Edge Select - This bit selects which edge on the Input Capture pin (ICP1) that is used to trigger a capture event. When the ICES1 bit is written to zero, a falling (negative) edg
@@ -191,9 +191,11 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 #define _timer_reg_t          uint16_t                /* Integer type of timer register */
 /*---------------------------------------------------------------------------*/
 
-// 6ms is too short
 // 65535 x 500[ns/tick] = 32_767_500[ns] = 32.8[ms]
-#define T_TRAIL 65535
+// is too short,
+// we're gonna wait for 2cycles of silence
+#define T_TRAIL       65535
+#define T_TRAIL_COUNT 2
 
 
 /* Working area for IR communication  */
@@ -217,7 +219,7 @@ ISR_CAPTURE()
         return; // TODO clear state?
     }
 
-    if (IR_CAPTURE_TEST()) {
+    if (IR_CAPTURED_RISING()) {
 
         // Rising edge: on stop of burst
 
@@ -228,6 +230,7 @@ ISR_CAPTURE()
 
         IR_CAPTURE_FALL();
         IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
+        IrCtrl.trailerCount = T_TRAIL_COUNT;
 
         return;
     }
@@ -241,6 +244,10 @@ ISR_CAPTURE()
         IR_state( IR_RECVING );
     }
     else { // is IR_RECVING
+        for (uint8_t trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailerCount; trailer--) {
+            IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
+            IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
+        }
         IrCtrl.buff[ IrCtrl.len ++ ] = high_width;
     }
 
@@ -258,18 +265,35 @@ ISR_COMPARE()
             IR_state( IR_IDLE );
             return;
         }
-        if (IR_TX_TEST()) {
+        uint16_t next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
+        if (IR_TX_IS_ON()) {
+            // toggle
             IR_TX_OFF();
         }
         else {
-            IR_TX_ON();
+            if ( next != 0 ) {
+                // toggle
+                IR_TX_ON();
+            }
+            else {
+                // continue for another uin16_t loop
+                next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
+                IR_TX_OFF();
+            }
         }
 
-        IR_COMPARE_NEXT( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
+        IR_COMPARE_NEXT( next );
         return;
     }
-    else if (IrCtrl.state == IR_RECVING) { // Trailer detected
-        IR_state( IR_RECVED );
+    else if (IrCtrl.state == IR_RECVING) {
+        IrCtrl.trailerCount --;
+        if (IrCtrl.trailerCount == 0) {
+            // Trailer detected
+            IR_state( IR_RECVED );
+        }
+        else {
+            // wait for next compare interrupt
+        }
         return;
     }
 

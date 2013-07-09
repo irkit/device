@@ -151,6 +151,7 @@ void loop() {
             else if (lastCharacter == 'x') {
                 Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
                 Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
+                Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
                 for (uint16_t i=0; i<IrCtrl.len; i++) {
                     Serial.print(IrCtrl.buff[i], HEX);
                     Serial.print(P(" "));
