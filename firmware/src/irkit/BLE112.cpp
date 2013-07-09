@@ -289,19 +289,16 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
         {
             bool authorized = auth.isAuthorized();
             if ( ! authorized ) {
-                // TODO
-                Serial.println(P("!!! un authorized"));
+                Serial.println(P("!!! unauthorized read"));
                 break;
             }
             if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
                 // must be idle
-                // TODO error response
                 Serial.print(P("!!! not idle state: ")); Serial.print(IrCtrl.state, HEX);
                 break;
             }
             if ( IrCtrl.len * 2 < msg->offset ) {
                 // range error
-                // TODO
                 Serial.print(P("!!! range error IrCtrl.len: ")); Serial.println(IrCtrl.len, HEX);
                 break;
             }
@@ -319,10 +316,6 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    );
         }
         break;
-    // case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
-    //     break;
-
-    // TODO
     // case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
     //     break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
@@ -368,12 +361,12 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     bool authorized = auth.isAuthorized();
     if ( ! authorized ) {
         // writes always require authz
-        // TODO respond with error
+        Serial.println(P("!!! unauthorized write"));
         return;
     }
     if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
         // must be idle
-        // TODO error response
+        Serial.print(P("!!! not idle state: ")); Serial.print(IrCtrl.state, HEX);
         return;
     }
 
@@ -386,8 +379,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             // valid offset and length?
             if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
                 // overflow
-                // TODO error response
-                Serial.println(P("!overflow!"));
+                Serial.println(P("!!! write overflow"));
                 return;
             }
             // ready to fill IR data
@@ -403,12 +395,11 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
         {
             if (msg->value.data[0] != 0) {
-                // unknown control point value
-                // TODO error response
+                Serial.println(P("!!! unknown control point value"));
                 return;
             }
             if ( IrCtrl.len == 0 ) {
-                // TODO error response
+                Serial.println(P("!!! invalid data"));
                 return;
             }
             Serial.println(P("will send"));
@@ -418,7 +409,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         break;
     default:
         // not expected
-        // TODO error response
+        Serial.println(P("!!! write to unknown att"));
         break;
     }
 }
