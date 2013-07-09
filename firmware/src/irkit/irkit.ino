@@ -56,6 +56,7 @@ void ir_recv_loop(void)
     }
     IR_state( IR_RECVED_IDLE );
 
+    Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
     for (uint16_t i=0; i<IrCtrl.len; i++) {
         Serial.print(IrCtrl.buff[i], HEX);
@@ -68,6 +69,8 @@ void ir_recv_loop(void)
     ble112.incrementReceivedCount();
     // update adv data
     ble112.startAdvertising();
+
+    Serial.print(P("free:")); Serial.println( freeMemory() );
 }
 
 void loop() {

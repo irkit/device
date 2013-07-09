@@ -258,6 +258,7 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
     Serial.println( P("###\tdisconnected") );
+    Serial.print(P("free:")); Serial.println( freeMemory() );
 
     auth.setCurrentBondHandle(INVALID_BOND_HANDLE);
 
@@ -275,6 +276,7 @@ void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
 }
 
 void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_read_request_evt_t* msg) {
+    Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print( P("###\tattributes_user_read_request: { ") );
     Serial.print(P("conn: "));  Serial.print((uint8)msg -> connection, HEX);
     Serial.print(P(", att.handle: ")); Serial.print((uint16)msg -> handle, HEX);
@@ -288,20 +290,24 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
             bool authorized = auth.isAuthorized();
             if ( ! authorized ) {
                 // TODO
+                Serial.println(P("!!! un authorized"));
                 break;
             }
             if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
                 // must be idle
                 // TODO error response
+                Serial.print(P("!!! not idle state: ")); Serial.print(IrCtrl.state, HEX);
                 break;
             }
-            if ( IrCtrl.len * 2 <= msg->offset ) {
+            if ( IrCtrl.len * 2 < msg->offset ) {
                 // range error
                 // TODO
+                Serial.print(P("!!! range error IrCtrl.len: ")); Serial.println(IrCtrl.len, HEX);
                 break;
             }
             uint8 value_len = msg->maxsize;
-            if ( IrCtrl.len * 2 < msg->offset + (uint16_t)value_len ) {
+            if ( IrCtrl.len * 2 <= msg->offset + (uint16_t)value_len ) {
+                // if IrCtrl.len * 2 == msg->offset, value_len is 0
                 // last partial
                 value_len = IrCtrl.len * 2 - msg->offset;
             }
@@ -375,8 +381,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
-            Serial.print(P("free:"));
-            Serial.println( freeMemory() );
+            Serial.print(P("free:")); Serial.println( freeMemory() );
 
             // valid offset and length?
             if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
@@ -817,12 +822,17 @@ void BLE112::deleteBonding(uint8 connectionHandle)
 
 void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, uint8* value_data)
 {
-    Serial.println(P("-->\tattributes_user_read_response irdata"));
+    Serial.print(P("-->\tattributes_user_read_response irdata: { "));
+    for (uint8 i=0; i<value_len; i++) {
+        if (value_data[i] < 16) Serial.write('0');
+        Serial.print( value_data[i], HEX );
+    }
+    Serial.println(P(" }"));
 
     bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)att_error,   // att_error
                                                  (uint8)value_len,   // value_len,
-                                                 (uint8*)value_data // value_data
+                                                 (uint8*)value_data  // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
