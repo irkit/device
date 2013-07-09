@@ -21,6 +21,8 @@ class SetSwitch {
 
     private:
         int pin;
+        uint8_t lastState; // ON or OFF
+        unsigned long pressStarted; // millis()
 };
 
 #endif

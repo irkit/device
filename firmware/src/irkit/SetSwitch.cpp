@@ -28,7 +28,9 @@ struct
 SetSwitch::SetSwitch(int pin_) :
     pin(pin_),
     callback(NULL),
-    clearCallback(NULL)
+    clearCallback(NULL),
+    lastState(OFF),
+    pressStarted(0)
 {
 
 }
@@ -73,14 +75,33 @@ uint8_t SetSwitch::data(uint8_t index)
 
 void SetSwitch::loop(uint8_t key)
 {
-    if ( ON == digitalRead(pin) ) {
-        if ( (key != INVALID_KEY) &&
-             ! isMember(key) ) {
+    uint8_t state = digitalRead(pin);
+    if ( ON == state ) {
+        if ( (lastState == ON) &&
+             (millis() - pressStarted > 10*1000) )
+        {
+            // long press detected
+            // millis() overflows, but who can press the button precisely when 32bit overflows?
+            clear();
+            if (clearCallback != 0) {
+                clearCallback();
+            }
+        }
+        else if ( (key != INVALID_KEY) &&
+                  ! isMember(key) )
+        {
             add(key);
             save();
-            callback();
+            if ( callback != 0 ) {
+                callback();
+            }
+        }
+        else if (lastState == OFF)
+        {
+            pressStarted = millis();
         }
     }
+    lastState = state;
 }
 
 void SetSwitch::save(void)
@@ -92,7 +113,4 @@ void SetSwitch::clear(void)
 {
     setData.count = 0;
     save();
-    if (clearCallback != 0) {
-        clearCallback();
-    }
 }
