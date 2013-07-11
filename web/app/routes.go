@@ -13,23 +13,20 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 	d := data{r.URL.Path}
 
-	t := Template{"templates/index.template"}
-	t.WriteResponse(w, d)
+	Template{"templates/index.template"}.WriteResponse(w,d)
 }
 
 func one(w http.ResponseWriter, r *http.Request) {
 	dump, _ := httputil.DumpRequest(r, false)
 	log.Println(string(dump))
 
-	type data struct {
+	d := struct {
 		Title string
 		Host  string
-	}
-	d := data{
+	} {
 		"<script>alert('you have been pwned')</script>",
 		r.Host,
 	}
-
 	t := Template{"templates/one.template"}
 	buf, err := t.Render(d)
 	if err != nil {
@@ -42,18 +39,12 @@ func one(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectTo, 302)
 }
 
-func write(w http.ResponseWriter, r *http.Request) {
-	type data struct {
-		Host string
-	}
-	d := data{r.Host}
-
-	t := Template{"templates/write.template"}
-	t.WriteResponse(w, d)
+func writejs(w http.ResponseWriter, r *http.Request) {
+	Template{"templates/writejs.template"}.WriteResponse(w, r)
 }
 
 func init() {
-	http.HandleFunc("/apps/one/write.js", write)
+	http.HandleFunc("/apps/one/write.js", writejs)
 	http.HandleFunc("/apps/one/", one)
 	http.HandleFunc("/", index)
 }
