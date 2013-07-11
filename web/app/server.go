@@ -1,11 +1,9 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"net/http/httputil"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
@@ -42,17 +40,8 @@ func one(w http.ResponseWriter, r *http.Request) {
 	}
 	redirectTo := buf.String()
 	redirectTo  = strings.Replace(redirectTo, "\n", "", -1)
-	// appengine removes location header if we include multibyte
-	// so we replace them with unicode numeric character reference
-	re, err    := regexp.Compile(`[^\x00-\xFF]`)
-	redirectTo  = re.ReplaceAllStringFunc(redirectTo, unicodeReference)
 	redirectTo  = "data:text/html;charset=UTF-8," + redirectTo
 	http.Redirect(w, r, redirectTo, 302)
-}
-
-func unicodeReference(s string) string {
-	runes := []rune(s)
-	return fmt.Sprintf("&#x%X;", runes[0])
 }
 
 func init() {
