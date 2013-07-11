@@ -2,35 +2,40 @@ package app
 
 import (
 	"bytes"
-	"github.com/hoisie/web"
 	"html/template"
-	"io"
+	"log"
+	"net/http"
 )
 
-type Context struct {
-	web.Context
+type Template struct {
+	path string
 }
 
-func (c Context) RenderTemplate(path string, data interface{}) *bytes.Buffer {
+func (t Template) WriteResponse(w http.ResponseWriter, data interface{}) {
+	buf, err := t.Render(data)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(buf.Bytes())
+}
+
+func (t Template) Render(data interface{}) (*bytes.Buffer, error) {
 	buf := new(bytes.Buffer)
 
-	t, err := template.ParseFiles(path)
+	tmpl, err := template.ParseFiles(t.path)
 	if err != nil {
-		c.Server.Logger.Println("err: " + err.Error())
-		c.Abort(500, "Internal Server Error")
-		return buf
+		log.Println("err: " + err.Error())
+		return buf, err
 	}
 
-	err = t.ExecuteTemplate(buf, "T", data)
+	err = tmpl.ExecuteTemplate(buf, "T", data)
 	if err != nil {
-		c.Server.Logger.Println("err: " + err.Error())
-		c.Abort(500, "Internal Server Error")
-		return buf
+		log.Println("err: " + err.Error())
+		return buf, err
 	}
-	return buf
-}
 
-func (c Context) WriteTemplate(path string, data interface{}) {
-	buf := c.RenderTemplate(path, data)
-	io.Copy(c, buf)
+	return buf, nil
 }

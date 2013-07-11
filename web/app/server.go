@@ -1,28 +1,27 @@
 package app
 
 import (
-	"github.com/hoisie/web"
 	"log"
 	"net/http/httputil"
-	"os"
+	"net/http"
 	"strings"
 )
 
 const host = "0.0.0.0:9999"
 
-func index(c *web.Context, val string) {
+func index(w http.ResponseWriter, r *http.Request) {
 	type data struct {
 		Name string
 	}
-	d := data{val}
+	d := data{r.URL.Path}
 
-	context := Context{*c}
-	context.WriteTemplate("templates/index.template", d)
+	t := Template{"templates/index.template"}
+	t.WriteResponse(w, d)
 }
 
-func one(c *web.Context, val string) {
-	dump, _ := httputil.DumpRequest(c.Request, false)
-	c.Server.Logger.Println(string(dump))
+func one(w http.ResponseWriter, r *http.Request) {
+	dump, _ := httputil.DumpRequest(r, false)
+	log.Println(string(dump))
 
 	type data struct {
 		Title string
@@ -33,16 +32,17 @@ func one(c *web.Context, val string) {
 		host,
 	}
 
-	context := Context{*c}
-	buf := context.RenderTemplate("templates/one.template", d)
+	t := Template{"templates/one.template"}
+	buf, err := t.Render(d)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
 	redirectTo := "data:text/html;charset=UTF-8," + strings.Replace(buf.String(), "\n", "", -1)
-	c.Redirect(302, redirectTo)
+	http.Redirect(w, r, redirectTo, 302)
 }
 
-func NewServer() *web.Server {
-	server := web.NewServer()
-	server.Get("/apps/one/(.*)", one)
-	server.Get("/(.*)", index)
-	server.SetLogger(log.New(os.Stdout, "app ", log.Ldate|log.Ltime|log.Lshortfile))
-	return server
+func init() {
+	http.HandleFunc("/apps/one/", one)
+	http.HandleFunc("/", index)
 }
