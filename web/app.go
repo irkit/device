@@ -3,10 +3,10 @@ package main
 import (
 	"github.com/hoisie/web"
 	"github.com/kayac/irkit/web/app"
-	"io"
 	"log"
 	"net/http/httputil"
 	"os"
+	"strings"
 )
 const host = "0.0.0.0:9999"
 
@@ -35,7 +35,8 @@ func one(c *web.Context, val string) {
 
 	context := app.Context{*c}
 	buf := context.RenderTemplate("templates/one.template", d)
-	io.Copy(c,buf)
+	redirectTo := "data:text/html;charset=UTF-8," + strings.Replace( buf.String(), "\n", "", -1 )
+	c.Redirect( 302, redirectTo )
 }
 
 func main() {
