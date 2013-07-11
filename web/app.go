@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/hoisie/web"
-	"html/template"
-	"bytes"
+	"github.com/kayac/irkit/web/app"
 	"fmt"
 	"net/http/httputil"
 )
@@ -13,16 +12,9 @@ func hello(val string) string {
 	return "hello " + val
 }
 
-func one(c *web.Context, val string) string {
+func one(c *web.Context, val string) {
 	dump, _ := httputil.DumpRequest(c.Request,false)
 	fmt.Println(string(dump))
-
-	t, err := template.ParseFiles("templates/one.template")
-	if err != nil {
-		fmt.Println("err: " + err.Error());
-		c.Abort( 500, "Internal Server Error" );
-		return "";
-	}
 
 	type data struct {
 		Title string
@@ -33,10 +25,8 @@ func one(c *web.Context, val string) string {
 		host,
 	}
 
-	buf := new(bytes.Buffer)
-	t.ExecuteTemplate(buf, "T", d)
-
-	return buf.String()
+	context := app.Context{*c}
+	context.RenderTemplate("templates/one.template", d)
 }
 
 func main() {
