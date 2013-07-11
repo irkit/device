@@ -7,8 +7,8 @@
   <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
   <script type="text/javascript">
 if (!window.navigator.standalone) {
-  document.write("<link rel='stylesheet' type='text/css' href='http://getirkit.appspot.com/static/stylesheets/one.css'/>");
-  document.write("<link rel='apple-touch-icon-precomposed' href='http://getirkit.appspot.com/static/images/icon.png' />");
+  document.write("<link rel='stylesheet' type='text/css' href='http://{{.Host}}/static/stylesheets/one.css'/>");
+  document.write("<link rel='apple-touch-icon-precomposed' href='http://{{.Host}}/static/images/icon.png' />");
   window.onload = function() { setTimeout(scrollTo, 300, 0, 1); }
 }
   </script>
@@ -23,7 +23,7 @@ if (!window.navigator.standalone) {
         var script = document.createElement('script');
         script.type = 'text/javascript';
         script.async = true;
-        script.src = 'http://getirkit.appspot.com/static/javascripts/write.js';
+        script.src = 'http://{{.Host}}/apps/one/write.js';
         document.body.insertBefore(script, document.body.firstChild);
     }
     function activate() {

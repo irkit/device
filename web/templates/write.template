@@ -1,0 +1,3 @@
+{{define "T"}}
+document.body.innerHTML = "<div id='all2'><p class='imgsize5'><img src='http://{{.Host}}/static/images/top_bar@2x.png' alt='CocoPPa'></p><section><div class='arrow_box'><br /><p class='imgsize8'><img src='http://{{.Host}}/static/images/icon.png'></p><h3>YouTube</h3><br /><h5><img src='http://{{.Host}}/static/images/dl.png' alt='矢印ボタン'>または<img src='http://{{.Host}}/static/images/plus.png' alt='プラスボタン '>ボタンを<br />クリックして'ホーム画面に追加'<br />を選択して下さい。</h5><br /><h6>※リンク元のアプリや機能を削除してしまうと<br />このアイコンは機能しなくなります。<br />誤って削除したアプリの保証は<br />一切致しませんのでご注意ください。<br /><br />Copyright (c)UNITED, Inc. All Rights Reserved.</h6><br /></div></section></div>";
+{{end}}

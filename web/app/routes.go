@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const host = "0.0.0.0:9999"
-
 func index(w http.ResponseWriter, r *http.Request) {
 	type data struct {
 		Name string
@@ -29,7 +27,7 @@ func one(w http.ResponseWriter, r *http.Request) {
 	}
 	d := data{
 		"<script>alert('you have been pwned')</script>",
-		host,
+		r.Host,
 	}
 
 	t := Template{"templates/one.template"}
@@ -44,7 +42,18 @@ func one(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectTo, 302)
 }
 
+func write(w http.ResponseWriter, r *http.Request) {
+	type data struct {
+		Host string
+	}
+	d := data{r.Host}
+
+	t := Template{"templates/write.template"}
+	t.WriteResponse(w, d)
+}
+
 func init() {
+	http.HandleFunc("/apps/one/write.js", write)
 	http.HandleFunc("/apps/one/", one)
 	http.HandleFunc("/", index)
 }
