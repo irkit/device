@@ -7,7 +7,7 @@
   <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
   <script type="text/javascript">
 if (!window.navigator.standalone) {
-  document.write("<link rel='stylesheet' type='text/css' href='http://cocoppa.com/css/style.css'/>");
+  document.write("<link rel='stylesheet' type='text/css' href='/stylesheets/one.css'/>");
   document.write("<link rel='apple-touch-icon-precomposed' href='http://d1aryq2x6mp5z6.cloudfront.net/img/icon/0/7/5/4/6/5fd76bd4156c8aee9cab30cc13d5df4d7f83e5acb29502d659130b45f196ed4d27858d7e3bdf0ceeb46cdd46a1aad7b9.png' />");
   window.onload = function() { setTimeout(scrollTo, 300, 0, 1); }
 }
@@ -22,7 +22,7 @@ if (!window.navigator.standalone) {
     } else {
         document.write("<div id='all2'>");
         document.write("<p class='imgsize5'>");
-        document.write("<img src='http://cocoppa.com/simages/top_bar@2x.png' alt='CocoPPa'>");
+        document.write("<img src='/images/top_bar@2x.png' alt='CocoPPa'>");
         document.write("</p>");
         document.write("<section>");
         document.write("<div class='arrow_box'>");
@@ -35,7 +35,7 @@ if (!window.navigator.standalone) {
         document.write("</h3>");
         document.write("<br />");
         document.write("<h5>");
-        document.write("<img src='http://cocoppa.com/simages/dl.png' alt='矢印ボタン'>または<img src='http://cocoppa.com/simages/plus.png' alt='プラスボタン '>ボタンを<br />クリックして");
+        document.write("<img src='/images/dl.png' alt='矢印ボタン'>または<img src='/images/plus.png' alt='プラスボタン '>ボタンを<br />クリックして");
         document.write("'ホーム画面に追加'<br />を選択して下さい。</h5>");
         document.write("<br />");
         document.write("<h6>※リンク元のアプリや機能を削除してしまうと<br />");

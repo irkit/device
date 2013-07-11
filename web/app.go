@@ -5,9 +5,9 @@ import (
 	"html/template"
 	"bytes"
 	"fmt"
-	"os"
 	"net/http/httputil"
 )
+const host = "0.0.0.0:9999"
 
 func hello(val string) string {
 	return "hello " + val
@@ -16,21 +16,25 @@ func hello(val string) string {
 func one(c *web.Context, val string) string {
 	dump, _ := httputil.DumpRequest(c.Request,false)
 	fmt.Println(string(dump))
-	fmt.Println("val: " + val)
 
 	t, err := template.ParseFiles("templates/one.template")
 	if err != nil {
 		fmt.Println("err: " + err.Error());
-		os.Exit(1);
+		c.Abort( 500, "Internal Server Error" );
+		return "";
 	}
 
-	type Data struct {
+	type data struct {
 		Title string
+		Host string
 	}
-	data := Data{"<script>alert('you have been pwned')</script>"}
+	d := data{
+		"<script>alert('you have been pwned')</script>",
+		host,
+	}
 
 	buf := new(bytes.Buffer)
-	t.ExecuteTemplate(buf, "T", data)
+	t.ExecuteTemplate(buf, "T", d)
 
 	return buf.String()
 }
@@ -38,5 +42,5 @@ func one(c *web.Context, val string) string {
 func main() {
 	web.Get("/apps/one/(.*)", one)
 	web.Get("/(.*)",          hello)
-	web.Run("0.0.0.0:9999")
+	web.Run(host)
 }

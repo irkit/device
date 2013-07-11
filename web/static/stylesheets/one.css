@@ -1,0 +1,400 @@
+@charset "utf-8";
+/* CSS Document */
+
+/*----------------------
+	デフォルトスタイル
+-----------------------*/
+body,p,h1,h2,h3,h4,h5,h6,
+span,small,strong,
+div,ul,li,
+figure,img,
+header,footer,nav,section{
+    margin:0;
+    padding:0;
+	border:none;
+	outline:none;
+	font-size:1rem;
+	font-weight:normal;
+    text-align:center;
+	color: #000000;
+}
+
+header,footer,nav,section{display:block;}
+
+
+html{
+	font:15px/1.3 "ヒラギノ角ゴ Pro W3";
+	-webkit-text-size-adjust:none;}
+
+li{list-style:none;}
+
+
+body{
+	width:100%;
+	background: #FFFFFF url("/simages/bg.png") no-repeat center top;
+	line-height: 1.25;
+	color: #FFF;
+	font-family: "メイリオ", Meiryo, "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "ＭＳ Ｐゴシック", "Lucida Grande", "Lucida Sans Unicode", Arial, Verdana, sans-serif;
+}
+
+
+/* 全指定
+--------------------*/
+#all{
+	/*border-center:solid 3px #244353;*/
+	width:100%;
+	overflow:hidden;
+　　text-align:center;
+	background: #FFFFFF url("/simages/bg.png") no-repeat center top;
+}
+
+#all2{
+	/*border-center:solid 3px #244353;*/
+	width:100%;
+	overflow:hidden;
+　　text-align:center;
+	background: #FFCCCC /*url("image/bg.jpg")*/ no-repeat center top;
+}
+
+
+
+
+/* セクション
+--------------------*/
+section {
+  padding:0px;
+  margin: 30px 10px 60px;
+  text-align:center;
+}
+
+/* 文字サイズ
+--------------------*/
+h2 {
+color: #FFFFFF;
+font-size: 14px;
+font-weight: bold;
+}
+
+/* 文字サイズ
+--------------------*/
+h3 {
+color: #FFFFFF;
+font-size: 12px;
+}
+
+/* 文字サイズ
+--------------------*/
+h4 {
+color: #FFFFFF;
+font-size: 18px;
+}
+
+/* 文字サイズ
+--------------------*/
+h5 {
+color: #FFFFFF;
+font-size: 18px;
+}
+
+/* 文字サイズ
+--------------------*/
+h6 {
+color: #FFFFFF;
+font-size: 13px;
+}
+
+/* 画像
+--------------------*/
+.imgsize img{
+  width: 100%;
+}
+
+.imgsize2 img{
+  width: 100%;
+}
+
+.imgsize3 img{
+  width: 80%;
+}
+
+.imgsize4 img{
+  width: 60%;
+}
+
+.imgsize5 img{
+  width: 100%;
+}
+
+.imgsize6 img{
+  width: 80%;
+}
+
+.imgsize7 img{
+  width: 10%;
+}
+
+.imgsize8 img{
+  width: 30%;
+}
+
+
+
+
+/* ボタン
+--------------------*/
+.button {
+	display: inline-block;
+	outline: none;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	font: 14px/100% Arial, Helvetica, sans-serif;
+	padding: .5em 2em .55em;
+	text-shadow: 0 1px 1px rgba(0,0,0,.3);
+	-webkit-border-radius: .5em; 
+	-moz-border-radius: .5em;
+	border-radius: .5em;
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.button:hover {
+	text-decoration: none;
+}
+.button:active {
+	position: relative;
+	top: 1px;
+}
+
+
+/* 見出し
+--------------------*/
+h2.gradient01 {
+background: url("/simages/bar.png") left center repeat-x;
+}
+
+
+
+
+/* ボタン
+--------------------*/
+button.css3button {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #ffffff;
+	padding: 10px 20px;
+	background: -moz-linear-gradient(
+		top,
+		#ffbdf5 0%,
+		#ff82b0 25%,
+		#fc77b3);
+	background: -webkit-gradient(
+		linear, left top, left bottom, 
+		from(#ffbdf5),
+		color-stop(0.25, #ff82b0),
+		to(#fc77b3));
+	border-radius: 30px;
+	-moz-border-radius: 30px;
+	-webkit-border-radius: 30px;
+	border: 3px solid #ffffff;
+	-moz-box-shadow:
+		0px 3px 11px rgba(000,000,000,0.5),
+		inset 0px 0px 1px rgba(255,0,72,1);
+	-webkit-box-shadow:
+		0px 3px 11px rgba(000,000,000,0.5),
+		inset 0px 0px 1px rgba(255,0,72,1);
+	text-shadow:
+		0px -1px 0px rgba(000,000,000,0.2),
+		0px 1px 0px rgba(255,255,255,0.3);
+		font-weight: bold;
+}
+
+
+
+
+
+/* ボタン
+--------------------*/
+.demo1 button {  
+background: -moz-linear-gradient(top, #fff, #F1F1F1 1%, #F1F1F1 50%, #DFDFDF 99%, #ccc);  
+background: -webkit-gradient(linear, left top, left bottom, from(#fff), color-stop(0.01, #F1F1F1), color-stop(0.5, #F1F1F1), color-stop(0.99, #DFDFDF), to(#ccc));  
+} 
+
+
+/* 背景ボックス
+--------------------*/
+.arrow_box {
+	position: relative;
+	background: #666666;
+	border: 4px solid #ffffff;
+}
+.arrow_box:after, .arrow_box:before {
+	top: 100%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+.arrow_box:after {
+	border-top-color: #666666;
+	border-width: 30px;
+	left: 50%;
+	margin-left: -30px;
+}
+.arrow_box:before {
+	border-top-color: #ffffff;
+	border-width: 36px;
+	left: 50%;
+	margin-left: -36px;
+}
+
+/*---------- フッター ----------*/
+
+footer {
+	width: 100%;
+	padding: 10px 0 10px 0;
+	color: #333333;
+	text-align: center;
+	border-top: solid 1px;
+	border-top-color: #35180a;
+	background-color: #35180a;
+}
+
+footer p {
+	padding: 10px;
+	color: #FFFFFF;
+}
+
+footer a {
+	color: #FFFFFF !important;
+}
+
+footer a:hover {
+	color: #FFFFFF !important;
+}
+
+footer a:visited {
+	color: #FFFF99;
+}
+
+
+
+#mailConfWrap{
+	width:300px;
+	min-height:400px;
+	margin:40px auto;
+	text-align:center;
+}
+#mailConf{
+	width:300px;
+	background:url("../simages/bg8.jpg");
+	border:solid 3px #ffacb9;
+	position: absolute;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	border-radius: 15px;
+	z-index:500;
+	color:#421616;
+	-moz-box-shadow:
+	2px 2px 2px rgba(15,15,15,0.2);
+	-webkit-box-shadow:
+	2px 2px 2px rgba(15,15,15,0.2);
+	box-shadow:
+	2px 2px 2px rgba(15,15,15,0.2);
+}
+#mailConfMain{
+	position: relative;
+	top:-10px;
+	z-index:400;
+	padding:10px 0 40px 0;
+	text-align:center;
+	background:url("../simages/mailconfbgtop.png") no-repeat top;
+}
+#mailConfText{
+	margin:10px 0;
+	padding:70px 0 10px 0;
+}
+#mailConfReturn{
+	display:block;
+	overflow: hidden;
+	width:161px;
+	height:36px;
+	margin:20px auto;
+	text-shadow: 0 1px #ff655c;
+	background:url("../simages/mailconfreturns.png") top;
+	text-align:center;
+}
+#mailConfReturn a{
+	display:block;
+	width:100%;
+	height:100%;
+	line-height:36px;
+	font-weight:bold;
+	text-decoration: none;
+	color:#fff;
+}
+#mailConfReturn:hover{
+	background-position: 0 -36px;
+}
+
+#topbg{
+	width:100%;
+	overflow:hidden;
+	text-align:center;
+	background:url("/simages/bg_new.jpg");
+	color:#72422e;
+}
+#topbg h2{
+	color:#72422e;
+}
+.text-white{
+	color:#72422e;
+	font-weight:bold;
+	font-size:120%;
+	margin:40px auto 20px auto;
+}
+.pcopen{
+	margin:30px auto;
+}
+.pcopen ul{
+	list-style:none;
+	margin:0 auto;
+}
+.pcopen ul li{
+	margin:5px 0 20px 0;
+}
+.pcopen ul li img{
+	width:70%;
+}
+
+
+
+
+#all-appstore{
+	width:96%;
+	overflow:hidden;
+	margin:15px auto 18px;
+}
+#all-appstore a{
+	width:48%;
+}
+#all-appstore a img{
+	width:100%;
+}
+#all-appstore a.apple{
+	float:left;
+}
+#all-appstore a.google{
+	float:right;
+}
+#all-appstore a:hover{
+	background-position: 0 -53px;
+}
+#all-gp a{
+	width:153px;
+	padding-top:53px;
+	background:url(/simages/pc/lp-gp-btn.png) no-repeat;
+}
