@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/hoisie/web"
 	"github.com/kayac/irkit/web/app"
-	"fmt"
+	"log"
 	"net/http/httputil"
+	"os"
 )
 const host = "0.0.0.0:9999"
 
@@ -14,7 +15,7 @@ func hello(val string) string {
 
 func one(c *web.Context, val string) {
 	dump, _ := httputil.DumpRequest(c.Request,false)
-	fmt.Println(string(dump))
+	c.Server.Logger.Println(string(dump))
 
 	type data struct {
 		Title string
@@ -30,7 +31,9 @@ func one(c *web.Context, val string) {
 }
 
 func main() {
-	web.Get("/apps/one/(.*)", one)
-	web.Get("/(.*)",          hello)
-	web.Run(host)
+	server := web.NewServer()
+	server.Get("/apps/one/(.*)", one)
+	server.Get("/(.*)",          hello)
+	server.SetLogger( log.New(os.Stdout, "app ", log.Ldate|log.Ltime|log.Lshortfile ) )
+	server.Run(host)
 }
