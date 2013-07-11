@@ -44,7 +44,11 @@ func writejs(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
+	http.Handle("/static/", http.FileServer(http.Dir("./")))
 	http.HandleFunc("/apps/one/write.js", writejs)
 	http.HandleFunc("/apps/one/", one)
 	http.HandleFunc("/", index)
+
+	log.Println("start listening on :8080")
+	http.ListenAndServe(":8080", Log(http.DefaultServeMux))
 }
