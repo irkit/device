@@ -5206,7 +5206,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="SJ1" library="jumper" deviceset="SJ" device="" value="0"/>
 <part name="PL-IRM1" library="my" deviceset="PL-IRM2161" device=""/>
 <part name="R15" library="my" deviceset="R" device="" value="200"/>
-<part name="D1" library="my" deviceset="LED" device="-3MM" value="OSIR5113A"/>
+<part name="D1" library="my" deviceset="LED" device="-3MM" value="VSLB3940"/>
 <part name="IC3" library="my" deviceset="FT232RL" device="SSOP"/>
 <part name="P+10" library="supply1" deviceset="+5V" device=""/>
 <part name="GND26" library="supply1" deviceset="GND" device=""/>
@@ -5859,7 +5859,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC2" gate="G$1" pin="P2_2"/>
 <wire x1="175.26" y1="231.14" x2="177.8" y2="231.14" width="0.1524" layer="91"/>
-<label x="160.02" y="231.14" size="1.778" layer="95" xref="yes"/>
+<label x="175.26" y="231.14" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
 <pinref part="CN4" gate="A" pin="3"/>
@@ -5871,7 +5871,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC2" gate="G$1" pin="P2_1"/>
 <wire x1="175.26" y1="228.6" x2="177.8" y2="228.6" width="0.1524" layer="91"/>
-<label x="160.02" y="228.6" size="1.778" layer="95" xref="yes"/>
+<label x="175.26" y="228.6" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 <segment>
 <pinref part="CN4" gate="A" pin="4"/>
@@ -5960,12 +5960,22 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="119.38" y1="200.66" x2="124.46" y2="200.66" width="0.1524" layer="91"/>
 <label x="124.46" y="200.66" size="1.778" layer="95" xref="yes"/>
 </segment>
+<segment>
+<pinref part="PL-IRM1" gate="1" pin="VOUT"/>
+<wire x1="190.5" y1="45.72" x2="200.66" y2="45.72" width="0.1524" layer="91"/>
+<label x="190.5" y="45.72" size="1.778" layer="95" rot="R180" xref="yes"/>
+</segment>
 </net>
 <net name="D3/IROUT" class="0">
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_3(PWM)"/>
 <wire x1="119.38" y1="215.9" x2="124.46" y2="215.9" width="0.1524" layer="91"/>
 <label x="124.46" y="215.9" size="1.778" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="RB1" gate="G$1" pin="2"/>
+<wire x1="114.3" y1="30.48" x2="116.84" y2="30.48" width="0.1524" layer="91"/>
+<label x="99.06" y="30.48" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="RX_LV/BLERX" class="0">
@@ -6027,7 +6037,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_4"/>
 <wire x1="119.38" y1="236.22" x2="124.46" y2="236.22" width="0.1524" layer="91"/>
-<label x="124.46" y="236.22" size="1.778" layer="95"/>
+<label x="124.46" y="236.22" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="A3/TX_HV" class="0">
@@ -6039,14 +6049,14 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_3"/>
 <wire x1="119.38" y1="238.76" x2="124.46" y2="238.76" width="0.1524" layer="91"/>
-<label x="124.46" y="238.76" size="1.778" layer="95"/>
+<label x="124.46" y="238.76" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D6/LED_G" class="0">
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_6(PWM)"/>
 <wire x1="119.38" y1="208.28" x2="124.46" y2="208.28" width="0.1524" layer="91"/>
-<label x="125.984" y="208.28" size="1.778" layer="95"/>
+<label x="124.46" y="208.28" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="R13" gate="G$1" pin="1"/>
@@ -6060,28 +6070,18 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="R12" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="D10/IRIN" class="0">
+<net name="D10" class="0">
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_10(PWM)"/>
 <wire x1="119.38" y1="195.58" x2="124.46" y2="195.58" width="0.1524" layer="91"/>
 <label x="124.46" y="195.58" size="1.778" layer="95" xref="yes"/>
 </segment>
-<segment>
-<pinref part="PL-IRM1" gate="1" pin="VOUT"/>
-<wire x1="190.5" y1="45.72" x2="200.66" y2="45.72" width="0.1524" layer="91"/>
-<label x="177.8" y="45.72" size="1.778" layer="95" xref="yes"/>
-</segment>
 </net>
-<net name="D9/IROUT" class="0">
+<net name="D9" class="0">
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_9(PWM)"/>
 <wire x1="119.38" y1="198.12" x2="124.46" y2="198.12" width="0.1524" layer="91"/>
 <label x="124.46" y="198.12" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<pinref part="RB1" gate="G$1" pin="2"/>
-<wire x1="114.3" y1="30.48" x2="116.84" y2="30.48" width="0.1524" layer="91"/>
-<label x="99.06" y="30.48" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D7/LED_B" class="0">
@@ -6093,7 +6093,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_7"/>
 <wire x1="119.38" y1="205.74" x2="124.46" y2="205.74" width="0.1524" layer="91"/>
-<label x="125.984" y="205.74" size="1.778" layer="95"/>
+<label x="124.46" y="205.74" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D5/LED_R" class="0">
@@ -6105,17 +6105,15 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_5(PWM)"/>
 <wire x1="119.38" y1="210.82" x2="124.46" y2="210.82" width="0.1524" layer="91"/>
-<label x="126.238" y="210.82" size="1.778" layer="95"/>
+<label x="124.46" y="210.82" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="D2_BTN" class="0">
+<net name="D2/BTN" class="0">
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_2"/>
 <wire x1="119.38" y1="218.44" x2="124.46" y2="218.44" width="0.1524" layer="91"/>
-<label x="125.984" y="217.424" size="1.778" layer="95"/>
+<label x="124.46" y="218.44" size="1.778" layer="95" xref="yes"/>
 </segment>
-</net>
-<net name="A2/BTN" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
 <wire x1="50.8" y1="119.38" x2="50.8" y2="116.84" width="0.1524" layer="91"/>
@@ -6130,7 +6128,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_0"/>
 <wire x1="119.38" y1="246.38" x2="124.46" y2="246.38" width="0.1524" layer="91"/>
-<label x="124.46" y="246.38" size="1.778" layer="95"/>
+<label x="124.46" y="246.38" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="CN3" gate="A" pin="2"/>
@@ -6142,7 +6140,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_7"/>
 <wire x1="119.38" y1="228.6" x2="124.46" y2="228.6" width="0.1524" layer="91"/>
-<label x="124.46" y="228.6" size="1.778" layer="95"/>
+<label x="124.46" y="228.6" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="CN3" gate="A" pin="1"/>
@@ -6154,7 +6152,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_2"/>
 <wire x1="119.38" y1="241.3" x2="124.46" y2="241.3" width="0.1524" layer="91"/>
-<label x="124.46" y="241.3" size="1.778" layer="95"/>
+<label x="124.46" y="241.3" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="R7" gate="G$1" pin="2"/>
@@ -6171,7 +6169,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="ANALOG_1"/>
 <wire x1="119.38" y1="243.84" x2="124.46" y2="243.84" width="0.1524" layer="91"/>
-<label x="124.46" y="243.84" size="1.778" layer="95"/>
+<label x="124.46" y="243.84" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 </nets>
