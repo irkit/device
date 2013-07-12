@@ -132,6 +132,18 @@
 <text x="49.5" y="29.3" size="1" layer="25" font="vector" rot="R90">IRKit</text>
 <rectangle x1="46.6" y1="23.6" x2="48.8" y2="31.1" layer="42"/>
 <wire x1="0" y1="50" x2="0" y2="0" width="0" layer="20"/>
+<text x="48.3" y="19.9" size="0.6096" layer="25">D9</text>
+<text x="48.3" y="17.4" size="0.6096" layer="25">A0</text>
+<text x="48.3" y="14.9" size="0.6096" layer="25">A1</text>
+<text x="41.9" y="14.8" size="0.6096" layer="25">A7</text>
+<text x="41.4" y="17.4" size="0.6096" layer="25">GND</text>
+<text x="41.4" y="19.9" size="0.6096" layer="25">D10</text>
+<text x="48.3" y="12.1" size="0.6096" layer="25">!RST</text>
+<text x="48.3" y="9.6" size="0.6096" layer="25">D13</text>
+<text x="48.3" y="7" size="0.6096" layer="25">D12</text>
+<text x="41.4" y="7" size="0.6096" layer="25">Vcc</text>
+<text x="41.4" y="9.6" size="0.6096" layer="25">D11</text>
+<text x="41.4" y="12.1" size="0.6096" layer="25">GND</text>
 </plain>
 <libraries>
 <library name="transistor">
@@ -2571,7 +2583,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="46.9" y="31.4" size="1.016" layer="27" rot="SR270"/>
 </element>
 <element name="CN2" library="pinhead" package="2X03" value="ICSP" x="45.6" y="9.9" smashed="yes" rot="R90">
-<attribute name="NAME" x="42.825" y="8.99" size="0.8128" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="41.025" y="8.89" size="0.8128" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="50.045" y="6.09" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="CN1" library="my" package="USB-MINIB-UX60SC-MB" value="USB-MINIB-UX60SC-MB" x="20" y="49.9" smashed="yes" rot="R180">
@@ -2708,7 +2720,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="1.456" y="28.6705" size="1.27" layer="27" ratio="10" rot="R270"/>
 </element>
 <element name="CN3" library="pinhead" package="2X03" value="PIN_Header" x="45.6" y="17.7" smashed="yes" rot="R270">
-<attribute name="NAME" x="42.725" y="16.69" size="0.8128" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="41.025" y="16.59" size="0.8128" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="41.155" y="21.51" size="1.27" layer="27" rot="R270"/>
 </element>
 </elements>
