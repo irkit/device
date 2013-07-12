@@ -5150,7 +5150,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="GND26" library="supply1" deviceset="GND" device=""/>
 <part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
 <part name="C11" library="my" deviceset="C" device="-2012" value="0.1uF"/>
-<part name="U$1" library="git-revision" deviceset="GIT-REVISION" device="" value="5b47673"/>
+<part name="U$1" library="git-revision" deviceset="GIT-REVISION" device="" value="v1.0"/>
 <part name="STANDOFF3" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
 <part name="C3" library="my" deviceset="C" device="-2012" value="0.1uF"/>
 <part name="C4" library="my" deviceset="C" device="-2012" value="0.1uF"/>
