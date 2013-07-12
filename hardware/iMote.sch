@@ -5096,7 +5096,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 </class>
 </classes>
 <parts>
-<part name="FRAME1" library="frames" deviceset="FRAME_B_L" device="" value="iMote"/>
+<part name="FRAME1" library="frames" deviceset="FRAME_B_L" device="" value="IRKit"/>
 <part name="IC1" library="my" deviceset="ATMEGA168" device="-AU" value="ATmega328P-AU"/>
 <part name="R2" library="my" deviceset="R" device="" value="1K"/>
 <part name="R9" library="my" deviceset="R" device="" value="220"/>
