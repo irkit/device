@@ -52,6 +52,8 @@ class PartSheet
 
       if found != nil
         # update
+        puts "found row[ #{found} ]"
+        worksheet.list[ found ][ "Used" ] = "1"
         csv_row.each do |key,value|
           if key && ! key.empty? && ( worksheet.list[ found ][ key ] != value )
             puts "updating row[ #{found} ][ #{key} ] = #{value}"
@@ -61,6 +63,7 @@ class PartSheet
       else
         # create
         new_row = {}
+        new_row[ "Used" ] = "1"
         csv_row.each do |key,value|
           new_row[ key ] = value if (key && ! key.empty?)
         end
@@ -70,11 +73,9 @@ class PartSheet
 
     end
 
-    if worksheet.dirty?
-      worksheet.save
-    else
-      puts "no changes"
-    end
+    puts "saving..."
+    worksheet.save
+    puts "saved!"
   end
 
 end
