@@ -601,21 +601,8 @@ void BLE112::startAdvertising()
     smSetBondableMode();
     smSetParameters();
 
-    // can't initialize uint8array directly....
-    uint8 data[27] = {
-        // length
-        0x18,
-        // AD Format: Flags
-        0x02, 0x01, 0x06,
-        // AD Format: 128bit Service UUID
-        0x11, 0x07, 0xE4, 0xBA, 0x94, 0xC3,
-                    0xC9, 0xB7, 0xCD, 0xB0,
-                    0x9B, 0x48, 0x7A, 0x43,
-                    0x8A, 0xE5, 0x5A, 0x19,
-        // AD Format: Manufacturer Specific Data
-        0x02, 0xFF, _receivedCount
-    };
-    setAdvData( 0, (uint8*)&data[0] );
+    updateAdvData();
+
     // adv_interval_min default: 0x200 = 320ms
     // adv_interval_max default: 0x200 = 320ms
     // adv_channels     default: ?
@@ -635,6 +622,25 @@ void BLE112::startAdvertising()
     // general: ad interval 1.28-2.56s, forever
     // BGLIB_GAP_GENERAL_DISCOVERABLE
     gapSetMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+}
+
+void BLE112::updateAdvData()
+{
+    // can't initialize uint8array directly....
+    uint8 data[27] = {
+        // length
+        0x18,
+        // AD Format: Flags
+        0x02, 0x01, 0x06,
+        // AD Format: 128bit Service UUID
+        0x11, 0x07, 0xE4, 0xBA, 0x94, 0xC3,
+                    0xC9, 0xB7, 0xCD, 0xB0,
+                    0x9B, 0x48, 0x7A, 0x43,
+                    0x8A, 0xE5, 0x5A, 0x19,
+        // AD Format: Manufacturer Specific Data
+        0x02, 0xFF, _receivedCount
+    };
+    setAdvData( 0, (uint8*)&data[0] );
 }
 
 void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )

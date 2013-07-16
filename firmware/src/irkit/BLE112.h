@@ -44,6 +44,7 @@ class BLE112 {
         void attributesUserReadResponseFrequency(uint16);
         void attributesUserWriteResponse(uint8, uint8);
         void incrementReceivedCount();
+        void updateAdvData();
 
     private:
         // create BGLib object:

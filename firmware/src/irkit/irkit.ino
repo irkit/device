@@ -70,8 +70,7 @@ void ir_recv_loop(void) {
     // update received count in advertising packet
     // to let know disconnected central that we have new IR data
     ble112.incrementReceivedCount();
-    // update adv data
-    ble112.startAdvertising();
+    ble112.updateAdvData();
 
     Serial.print(P("free:")); Serial.println( freeMemory() );
 }
