@@ -60,18 +60,22 @@ void ir_recv_loop(void) {
 
     // can't receive here
 
+    unsigned long now = millis();
+    Serial.print(P("now: ")); Serial.println( now );
+    Serial.print(P("overflowed: ")); Serial.println( IrCtrl.overflowed );
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
 
     // update received count in advertising packet
     // to let know disconnected central that we have new IR data
     ble112.incrementReceivedCount();
-    ble112.updateAdvData();
-
-    Serial.print(P("free:")); Serial.println( freeMemory() );
 
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
+
+    ble112.updateAdvData();
+
+    Serial.print(P("free:")); Serial.println( freeMemory() );
 }
 
 void loop() {
@@ -159,9 +163,10 @@ void loop() {
                 Serial.println("}");
             }
             else if (lastCharacter == 'x') {
-                Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
-                Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
+                Serial.print(P("IrCtrl .state: "));  Serial.print(IrCtrl.state,HEX);
+                Serial.print(P(" .len: "));          Serial.println(IrCtrl.len,HEX);
                 Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
+                Serial.print(P(" .overflowed: "));   Serial.println(IrCtrl.overflowed);
                 for (uint16_t i=0; i<IrCtrl.len; i++) {
                     if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
                     if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }

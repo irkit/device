@@ -293,7 +293,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
             }
             if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
                 // must be idle
-                Serial.print(P("!!! not idle state: ")); Serial.print(IrCtrl.state, HEX);
+                Serial.print(P("!!! not idle state: ")); Serial.println(IrCtrl.state, HEX);
                 break;
             }
             if ( IrCtrl.len * 2 < msg->offset ) {
@@ -368,7 +368,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     }
     if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
         // must be idle
-        Serial.print(P("!!! not idle state: ")); Serial.print(IrCtrl.state, HEX);
+        Serial.print(P("!!! not idle state: ")); Serial.println(IrCtrl.state, HEX);
         return;
     }
 
