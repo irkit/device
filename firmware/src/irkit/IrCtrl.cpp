@@ -193,9 +193,10 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 
 // 65535 x 500[ns/tick] = 32_767_500[ns] = 32.8[ms]
 // is too short,
-// we're gonna wait for 2cycles of silence
+// we're gonna wait for 4cycles of silence
+// 4cycles = 131[ms] > 110[ms] (NEC protocol frame length)
 #define T_TRAIL       65535
-#define T_TRAIL_COUNT 2
+#define T_TRAIL_COUNT 4
 
 
 /* Working area for IR communication  */
@@ -351,10 +352,11 @@ void IR_state (uint8_t nextState)
         break;
     case IR_RECVED:
         IR_COMPARE_DISABLE();
-        IR_CAPTURE_FALL();
-        IR_CAPTURE_ENABLE();
+        IR_CAPTURE_DISABLE();
         break;
     case IR_RECVED_IDLE:
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
         break;
     case IR_XMITTING:
         IR_CAPTURE_DISABLE();

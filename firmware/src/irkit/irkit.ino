@@ -57,15 +57,11 @@ void ir_recv_loop(void) {
     if (IrCtrl.state != IR_RECVED) {
         return;
     }
-    IR_state( IR_RECVED_IDLE );
+
+    // can't receive here
 
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
-    for (uint16_t i=0; i<IrCtrl.len; i++) {
-        Serial.print(IrCtrl.buff[i], HEX);
-        Serial.print(P(" "));
-    }
-    Serial.println();
 
     // update received count in advertising packet
     // to let know disconnected central that we have new IR data
@@ -73,6 +69,9 @@ void ir_recv_loop(void) {
     ble112.updateAdvData();
 
     Serial.print(P("free:")); Serial.println( freeMemory() );
+
+    // start receiving again while leaving received data readable from central
+    IR_state( IR_RECVED_IDLE );
 }
 
 void loop() {
@@ -164,8 +163,12 @@ void loop() {
                 Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
                 Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
                 for (uint16_t i=0; i<IrCtrl.len; i++) {
+                    if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
+                    if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }
+                    if (IrCtrl.buff[i] < 0x0010) { Serial.write('0'); }
                     Serial.print(IrCtrl.buff[i], HEX);
                     Serial.print(P(" "));
+                    if (i % 16 == 15) { Serial.println(); }
                 }
                 Serial.println();
             }
