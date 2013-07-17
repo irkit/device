@@ -19,13 +19,14 @@
 
 class BLE112 {
     public:
-        BLE112(HardwareSerial *module);
+        BLE112(HardwareSerial*, uint8_t);
         uint8 nextCommand;
         uint8 currentBondHandle;
 
         void setup();
         void loop();
-        void reset();
+        void software_reset();
+        void hardware_reset();
         void hello();
         void startAdvertising();
         void getRSSI();
@@ -55,6 +56,7 @@ class BLE112 {
         //  - enable packet mode on API protocol since flow control is unavailable
         BGLib bglib;
         uint8 _receivedCount;
+        uint8_t reset_pin_;
 
         void setAdvData(uint8, uint8*);
         void gapSetMode(uint8, uint8);

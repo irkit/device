@@ -501,12 +501,14 @@ void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *ms
     Serial.println(P(" }"));
 }
 
-BLE112::BLE112(HardwareSerial *module) :
+BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     bglib(module, 0, 1),
     nextCommand(0xFF),
-    _receivedCount(0)
+    _receivedCount(0),
+    reset_pin_(reset_pin)
 {
-
+    pinMode(reset_pin,      OUTPUT);
+    digitalWrite(reset_pin, HIGH);
 }
 
 void BLE112::setup()
@@ -580,7 +582,7 @@ void BLE112::loop()
     }
 }
 
-void BLE112::reset()
+void BLE112::software_reset()
 {
     Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
     bglib.ble_cmd_system_reset(0);
@@ -590,6 +592,21 @@ void BLE112::reset()
     // system_reset doesn't have a response, but this BGLib
     // implementation allows the system_boot event specially to
     // set the P("busy") flag to false for this particular case
+}
+
+void BLE112::hardware_reset()
+{
+    Serial.println(P("-->\thardware_reset {}"));
+
+    // CC2540 RESET_N low duration min: 1us
+    digitalWrite(reset_pin_, LOW);
+    delay( 10 ); // [ms]
+    digitalWrite(reset_pin_, HIGH);
+
+    bglib.setBusy(true); // checkActivity will wait until system boot event occured
+
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
 }
 
 void BLE112::hello()

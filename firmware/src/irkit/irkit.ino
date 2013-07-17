@@ -9,7 +9,7 @@
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
-BLE112 ble112( (HardwareSerial *)&ble112uart );
+BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
 void authorized() {
@@ -36,10 +36,6 @@ void setup() {
     pinMode(AUTH_SWITCH,      INPUT);
     digitalWrite(AUTH_SWITCH, HIGH);
 
-    authorizedBondHandles.setup();
-    authorizedBondHandles.callback      = authorized;
-    authorizedBondHandles.clearCallback = cleared;
-
     // USB serial
     Serial.begin(115200);
 
@@ -47,6 +43,12 @@ void setup() {
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
+
+    ble112.hardware_reset();
+
+    authorizedBondHandles.setup();
+    authorizedBondHandles.callback      = authorized;
+    authorizedBondHandles.clearCallback = cleared;
 
     IR_initialize();
 
@@ -83,7 +85,6 @@ void loop() {
     static uint8_t lastCharacter = '0';
 
     Serial.println(P("Operations Menu:"));
-    Serial.println(P("0) Reset BLE112 module"));
     Serial.println(P("1) Hello"));
     Serial.println(P("2) Start Advertising"));
     Serial.println(P("3) Get rssi"));
@@ -93,6 +94,8 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("f) Increment Received Count"));
+    Serial.println(P("u) Software reset BLE112 module"));
+    Serial.println(P("v) Hardware reset BLE112 module"));
     Serial.println(P("w) Dump bonding"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
@@ -119,11 +122,7 @@ void loop() {
             Serial.println( lastCharacter, HEX );
 
             uint8_t status;
-            if (lastCharacter == '0') {
-                // Reset BLE112 module
-                ble112.reset();
-            }
-            else if (lastCharacter == '1') {
+            if (lastCharacter == '1') {
                 // Say hello to the BLE112 and wait for response
                 ble112.hello();
             }
@@ -153,6 +152,12 @@ void loop() {
             }
             else if (lastCharacter == 'g') {
                 ble112.writeAttributeUnreadStatus( 1 );
+            }
+            else if (lastCharacter == 'u') {
+                ble112.software_reset();
+            }
+            else if (lastCharacter == 'v') {
+                ble112.hardware_reset();
             }
             else if (lastCharacter == 'w') {
                 Serial.print("authorized bond: { ");
