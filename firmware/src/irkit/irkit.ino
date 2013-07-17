@@ -13,7 +13,7 @@ BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
 void authorized() {
-    Serial.print(P("authorized bond: ")); Serial.println(ble112.currentBondHandle);
+    Serial.print(P("authorized bond: ")); Serial.println(ble112.current_bond_handle);
     // ble112 will indicate iOS central device
     ble112.writeAttributeAuthorizationStatus(1);
 }
@@ -44,7 +44,7 @@ void setup() {
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
 
-    ble112.hardware_reset();
+    ble112.hardwareReset();
 
     authorizedBondHandles.setup();
     authorizedBondHandles.callback      = authorized;
@@ -109,7 +109,7 @@ void loop() {
         ir_recv_loop();
 
         // check for auth switch pressed
-        authorizedBondHandles.loop(ble112.currentBondHandle);
+        authorizedBondHandles.loop(ble112.current_bond_handle);
 
         // check for input from the user
         if (Serial.available()) {
@@ -154,10 +154,10 @@ void loop() {
                 ble112.writeAttributeUnreadStatus( 1 );
             }
             else if (lastCharacter == 'u') {
-                ble112.software_reset();
+                ble112.softwareReset();
             }
             else if (lastCharacter == 'v') {
-                ble112.hardware_reset();
+                ble112.hardwareReset();
             }
             else if (lastCharacter == 'w') {
                 Serial.print("authorized bond: { ");

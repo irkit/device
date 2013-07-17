@@ -20,13 +20,13 @@
 class BLE112 {
     public:
         BLE112(HardwareSerial*, uint8_t);
-        uint8 nextCommand;
-        uint8 currentBondHandle;
+        uint8 next_command;
+        uint8 current_bond_handle;
 
         void setup();
         void loop();
-        void software_reset();
-        void hardware_reset();
+        void softwareReset();
+        void hardwareReset();
         void hello();
         void startAdvertising();
         void getRSSI();
@@ -54,8 +54,8 @@ class BLE112 {
         //  - use SoftwareSerial por for module comms
         //  - use nothing for passthrough comms (0 = null pointer)
         //  - enable packet mode on API protocol since flow control is unavailable
-        BGLib bglib;
-        uint8 _receivedCount;
+        BGLib   bglib_;
+        uint8   receivedCount_;
         uint8_t reset_pin_;
 
         void setAdvData(uint8, uint8*);

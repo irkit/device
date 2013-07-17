@@ -253,7 +253,7 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
     }
     else if ( (msg->bonding != INVALID_BOND_HANDLE) &&
          (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
-        ble112.currentBondHandle = msg->bonding;
+        ble112.current_bond_handle = msg->bonding;
     }
 }
 
@@ -261,7 +261,7 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
     Serial.println( P("###\tdisconnected") );
     Serial.print(P("free:")); Serial.println( freeMemory() );
 
-    ble112.currentBondHandle = INVALID_BOND_HANDLE;
+    ble112.current_bond_handle = INVALID_BOND_HANDLE;
     ble112.startAdvertising();
 }
 
@@ -287,7 +287,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
-            bool authorized = authorizedBondHandles.isMember(ble112.currentBondHandle);
+            bool authorized = authorizedBondHandles.isMember(ble112.current_bond_handle);
             if ( ! authorized ) {
                 Serial.println(P("!!! unauthorized read"));
                 break;
@@ -323,10 +323,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
         break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
         {
-            bool authorized = authorizedBondHandles.isMember( ble112.currentBondHandle );
+            bool authorized = authorizedBondHandles.isMember( ble112.current_bond_handle );
             ble112.attributesUserReadResponseAuthorized( authorized );
             if ( ! authorized ) {
-                ble112.nextCommand = NEXT_COMMAND_ID_ENCRYPT_START;
+                ble112.next_command = NEXT_COMMAND_ID_ENCRYPT_START;
             }
         }
         break;
@@ -361,12 +361,12 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     Serial.println(P(" }"));
     Serial.print(P("free:"));
     Serial.println( freeMemory() );
-    ble112.nextCommand = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS;
+    ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS;
 
     if (msg->reason != BGLIB_ATTRIBUTES_ATTRIBUTE_CHANGE_REASON_WRITE_REQUEST_USER) {
         return;
     }
-    bool authorized = authorizedBondHandles.isMember( ble112.currentBondHandle );
+    bool authorized = authorizedBondHandles.isMember( ble112.current_bond_handle );
     if ( ! authorized ) {
         // writes always require authz
         Serial.println(P("!!! unauthorized write"));
@@ -502,9 +502,9 @@ void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *ms
 }
 
 BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
-    bglib(module, 0, 1),
-    nextCommand(0xFF),
-    _receivedCount(0),
+    bglib_(module, 0, 1),
+    next_command(0xFF),
+    receivedCount_(0),
     reset_pin_(reset_pin)
 {
     pinMode(reset_pin,      OUTPUT);
@@ -515,65 +515,65 @@ void BLE112::setup()
 {
     // set up internal status handlers
     // (these are technically optional)
-    bglib.onBusy = onBusy;
-    bglib.onIdle = onIdle;
-    bglib.onTimeout = onTimeout;
+    bglib_.onBusy = onBusy;
+    bglib_.onIdle = onIdle;
+    bglib_.onTimeout = onTimeout;
 
     // ONLY enable these if you are using the <wakeup_pin> parameter in your firmware's hardware.xml file
-    bglib.onBeforeTXCommand = onBeforeTXCommand;
-    bglib.onTXCommandComplete = onTXCommandComplete;
+    bglib_.onBeforeTXCommand = onBeforeTXCommand;
+    bglib_.onTXCommandComplete = onTXCommandComplete;
 
     // set up BGLib response handlers (called almost immediately after sending commands)
     // (these are also technicaly optional)
-    bglib.ble_rsp_system_hello                  = my_rsp_system_hello;
-    bglib.ble_rsp_gap_set_scan_parameters       = my_rsp_gap_set_scan_parameters;
-    bglib.ble_rsp_gap_discover                  = my_rsp_gap_discover;
-    bglib.ble_rsp_gap_end_procedure             = my_rsp_gap_end_procedure;
-    bglib.ble_rsp_gap_set_adv_data              = my_rsp_gap_set_adv_data;
-    bglib.ble_rsp_gap_set_mode                  = my_rsp_gap_set_mode;
-    bglib.ble_rsp_gap_set_adv_parameters        = my_rsp_gap_set_adv_parameters;
-    bglib.ble_rsp_attributes_read               = my_rsp_attributes_read;
-    bglib.ble_rsp_attributes_user_read_response = my_rsp_attributes_user_read_response;
-    bglib.ble_rsp_attributes_write              = my_rsp_attributes_write;
-    bglib.ble_rsp_attributes_user_write_response = my_rsp_attributes_user_write_response;
-    bglib.ble_rsp_connection_disconnect         = my_rsp_connection_disconnect;
-    bglib.ble_rsp_connection_get_rssi           = my_rsp_connection_get_rssi;
-    bglib.ble_rsp_sm_encrypt_start              = my_rsp_sm_encrypt_start;
-    bglib.ble_rsp_sm_get_bonds                  = my_rsp_sm_get_bonds;
-    bglib.ble_rsp_sm_passkey_entry              = my_rsp_sm_passkey_entry;
-    bglib.ble_rsp_sm_set_bondable_mode          = my_rsp_sm_set_bondable_mode;
-    bglib.ble_rsp_sm_set_oob_data               = my_rsp_sm_set_oob_data;
-    bglib.ble_rsp_sm_set_parameters             = my_rsp_sm_set_parameters;
-    bglib.ble_rsp_sm_delete_bonding             = my_rsp_sm_delete_bonding;
+    bglib_.ble_rsp_system_hello                   = my_rsp_system_hello;
+    bglib_.ble_rsp_gap_set_scan_parameters        = my_rsp_gap_set_scan_parameters;
+    bglib_.ble_rsp_gap_discover                   = my_rsp_gap_discover;
+    bglib_.ble_rsp_gap_end_procedure              = my_rsp_gap_end_procedure;
+    bglib_.ble_rsp_gap_set_adv_data               = my_rsp_gap_set_adv_data;
+    bglib_.ble_rsp_gap_set_mode                   = my_rsp_gap_set_mode;
+    bglib_.ble_rsp_gap_set_adv_parameters         = my_rsp_gap_set_adv_parameters;
+    bglib_.ble_rsp_attributes_read                = my_rsp_attributes_read;
+    bglib_.ble_rsp_attributes_user_read_response  = my_rsp_attributes_user_read_response;
+    bglib_.ble_rsp_attributes_write               = my_rsp_attributes_write;
+    bglib_.ble_rsp_attributes_user_write_response = my_rsp_attributes_user_write_response;
+    bglib_.ble_rsp_connection_disconnect          = my_rsp_connection_disconnect;
+    bglib_.ble_rsp_connection_get_rssi            = my_rsp_connection_get_rssi;
+    bglib_.ble_rsp_sm_encrypt_start               = my_rsp_sm_encrypt_start;
+    bglib_.ble_rsp_sm_get_bonds                   = my_rsp_sm_get_bonds;
+    bglib_.ble_rsp_sm_passkey_entry               = my_rsp_sm_passkey_entry;
+    bglib_.ble_rsp_sm_set_bondable_mode           = my_rsp_sm_set_bondable_mode;
+    bglib_.ble_rsp_sm_set_oob_data                = my_rsp_sm_set_oob_data;
+    bglib_.ble_rsp_sm_set_parameters              = my_rsp_sm_set_parameters;
+    bglib_.ble_rsp_sm_delete_bonding              = my_rsp_sm_delete_bonding;
 
     // set up BGLib event handlers (called at unknown times)
-    bglib.ble_evt_system_boot                   = my_evt_system_boot;
-    bglib.ble_evt_gap_scan_response             = my_evt_gap_scan_response;
-    bglib.ble_evt_connection_status             = my_evt_connection_status_evt_t;
-    bglib.ble_evt_connection_disconnected       = my_evt_connection_disconnected;
-    bglib.ble_evt_attributes_status             = my_evt_attributes_status;
-    bglib.ble_evt_attributes_user_read_request  = my_evt_attributes_user_read_request;
-    bglib.ble_evt_attributes_value              = my_evt_attributes_value;
-    bglib.ble_evt_attclient_attribute_value     = my_evt_attclient_attribute_value;
-    bglib.ble_evt_attclient_indicated           = my_evt_attclient_indicated;
-    bglib.ble_evt_attclient_procedure_completed = my_evt_attclient_procedure_completed;
-    bglib.ble_evt_sm_bonding_fail               = my_evt_sm_bonding_fail;
-    bglib.ble_evt_sm_bond_status                = my_evt_sm_bond_status;
-    bglib.ble_evt_sm_passkey_display            = my_evt_sm_passkey_display;
-    bglib.ble_evt_sm_passkey_request            = my_evt_sm_passkey_request;
+    bglib_.ble_evt_system_boot                    = my_evt_system_boot;
+    bglib_.ble_evt_gap_scan_response              = my_evt_gap_scan_response;
+    bglib_.ble_evt_connection_status              = my_evt_connection_status_evt_t;
+    bglib_.ble_evt_connection_disconnected        = my_evt_connection_disconnected;
+    bglib_.ble_evt_attributes_status              = my_evt_attributes_status;
+    bglib_.ble_evt_attributes_user_read_request   = my_evt_attributes_user_read_request;
+    bglib_.ble_evt_attributes_value               = my_evt_attributes_value;
+    bglib_.ble_evt_attclient_attribute_value      = my_evt_attclient_attribute_value;
+    bglib_.ble_evt_attclient_indicated            = my_evt_attclient_indicated;
+    bglib_.ble_evt_attclient_procedure_completed  = my_evt_attclient_procedure_completed;
+    bglib_.ble_evt_sm_bonding_fail                = my_evt_sm_bonding_fail;
+    bglib_.ble_evt_sm_bond_status                 = my_evt_sm_bond_status;
+    bglib_.ble_evt_sm_passkey_display             = my_evt_sm_passkey_display;
+    bglib_.ble_evt_sm_passkey_request             = my_evt_sm_passkey_request;
 }
 
 void BLE112::loop()
 {
-    bglib.checkActivity();
+    bglib_.checkActivity();
 
-    switch (nextCommand) {
+    switch (next_command) {
     case NEXT_COMMAND_ID_ENCRYPT_START:
-        nextCommand = NEXT_COMMAND_ID_EMPTY;
+        next_command = NEXT_COMMAND_ID_EMPTY;
         encryptStart();
         break;
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS:
-        nextCommand = NEXT_COMMAND_ID_EMPTY;
+        next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
                                      0 ); // att_error
         break;
@@ -582,40 +582,40 @@ void BLE112::loop()
     }
 }
 
-void BLE112::software_reset()
+void BLE112::softwareReset()
 {
     Serial.println(P("-->\tsystem_reset: { boot_in_dfu: 0 }"));
-    bglib.ble_cmd_system_reset(0);
+    bglib_.ble_cmd_system_reset(0);
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
     // system_reset doesn't have a response, but this BGLib
     // implementation allows the system_boot event specially to
     // set the P("busy") flag to false for this particular case
 }
 
-void BLE112::hardware_reset()
+void BLE112::hardwareReset()
 {
-    Serial.println(P("-->\thardware_reset {}"));
+    Serial.println(P("-->\thardware_reset: {}"));
 
     // CC2540 RESET_N low duration min: 1us
     digitalWrite(reset_pin_, LOW);
     delay( 10 ); // [ms]
     digitalWrite(reset_pin_, HIGH);
 
-    bglib.setBusy(true); // checkActivity will wait until system boot event occured
+    bglib_.setBusy(true); // checkActivity will wait until system boot event occured
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::hello()
 {
     Serial.println(P("-->\tsystem_hello"));
-    bglib.ble_cmd_system_hello();
+    bglib_.ble_cmd_system_hello();
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
     // response should come back within milliseconds
 }
 
@@ -661,7 +661,7 @@ void BLE112::updateAdvData()
                     0x9B, 0x48, 0x7A, 0x43,
                     0x8A, 0xE5, 0x5A, 0x19,
         // AD Format: Manufacturer Specific Data
-        0x02, 0xFF, _receivedCount
+        0x02, 0xFF, receivedCount_
     };
     setAdvData( 0, (uint8*)&data[0] );
 }
@@ -679,10 +679,10 @@ void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
     }
     Serial.println(P(" }"));
 
-    bglib.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
+    bglib_.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
@@ -692,10 +692,10 @@ void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
     Serial.print(P(", connect: ")); Serial.print(connectable, HEX);
     Serial.println(P(" }"));
 
-    bglib.ble_cmd_gap_set_mode( discoverable, connectable );
+    bglib_.ble_cmd_gap_set_mode( discoverable, connectable );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::gapSetAdvParameters( uint16 interval_min, uint16 interval_max, uint8 channels )
@@ -706,19 +706,19 @@ void BLE112::gapSetAdvParameters( uint16 interval_min, uint16 interval_max, uint
     Serial.print(P(", channels: ")); Serial.print(channels, HEX);
     Serial.println(P(" }"));
 
-    bglib.ble_cmd_gap_set_adv_parameters( interval_min, interval_max, channels );
+    bglib_.ble_cmd_gap_set_adv_parameters( interval_min, interval_max, channels );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::getRSSI()
 {
     Serial.println(P("-->\tconnection_get_rssi"));
-    bglib.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
+    bglib_.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::writeAttributeAuthorizationStatus(bool authorized)
@@ -726,13 +726,13 @@ void BLE112::writeAttributeAuthorizationStatus(bool authorized)
     Serial.print(P("-->\tattributes_write auth status: "));
     Serial.println(authorized, BIN);
 
-    bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_AUTH_STATUS, // handle value
+    bglib_.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_AUTH_STATUS, // handle value
                                     0,                                       // offset
                                     1,                                       // value_len
                                     (const uint8*)&authorized                // value_data
                                     );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::writeAttributeUnreadStatus(bool unread)
@@ -740,13 +740,13 @@ void BLE112::writeAttributeUnreadStatus(bool unread)
     Serial.print(P("-->\tattributes_write unread status: "));
     Serial.println(unread, BIN);
 
-    bglib.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_UNREAD_STATUS, // handle value
+    bglib_.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_UNREAD_STATUS, // handle value
                                     0,                                       // offset
                                     1,                                       // value_len
                                     (const uint8*)&unread                    // value_data
                                     );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::readAttribute()
@@ -773,79 +773,79 @@ void BLE112::readAttribute()
         // When the project is compiled with the BGBuild compiler
         // a text file called attributes.txt is generated.
         // This files contains the ids and corresponding handle values.
-        bglib.ble_cmd_attributes_read( (uint16)0x0011,       // handle value
+        bglib_.ble_cmd_attributes_read( (uint16)0x0011,       // handle value
                                         (uint8)(i*20) );      // offset
-        while ((status = bglib.checkActivity(1000)));
+        while ((status = bglib_.checkActivity(1000)));
     }
 }
 
 void BLE112::disconnect() {
     Serial.println(P("-->\tdisconnect"));
-    bglib.ble_cmd_connection_disconnect( (uint8)0 ); // connection handle
+    bglib_.ble_cmd_connection_disconnect( (uint8)0 ); // connection handle
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::encryptStart()
 {
     Serial.println(P("-->\tsm_encrypt_start"));
-    bglib.ble_cmd_sm_encrypt_start( (uint8)0, // connection handle
+    bglib_.ble_cmd_sm_encrypt_start( (uint8)0, // connection handle
                                     (uint8)1  // create bonding if devices are not already bonded
                                     );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::getBonds()
 {
     Serial.println(P("-->\tsm_get_bonds"));
-    bglib.ble_cmd_sm_get_bonds();
+    bglib_.ble_cmd_sm_get_bonds();
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::passkeyEntry()
 {
     Serial.println(P("-->\tsm_passkey_entry"));
-    bglib.ble_cmd_sm_passkey_entry( (uint8)0,  // connection handle
+    bglib_.ble_cmd_sm_passkey_entry( (uint8)0,  // connection handle
                                     (uint32)0  // passkey
                                     );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::smSetBondableMode()
 {
     Serial.println(P("-->\tsm_set_bondable_mode"));
-    bglib.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
+    bglib_.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::smSetParameters()
 {
     Serial.println(P("-->\tsm_set_parameters"));
     // can't enable man-in-the-middle protection without having any keyboard nor display
-    bglib.ble_cmd_sm_set_parameters( (uint8)0, // man-in-the-middle protection NOT required
+    bglib_.ble_cmd_sm_set_parameters( (uint8)0, // man-in-the-middle protection NOT required
                                      (uint8)16, // minimum key size in bytes range 7-16
                                      (uint8)3   // SMP IO Capabilities (No input, No output)
                                      );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::deleteBonding(uint8 connectionHandle)
 {
     Serial.println(P("-->\tsm_delete_bonding"));
-    bglib.ble_cmd_sm_delete_bonding( connectionHandle );
+    bglib_.ble_cmd_sm_delete_bonding( connectionHandle );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, uint8* value_data)
@@ -857,13 +857,13 @@ void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, ui
     }
     Serial.println(P(" }"));
 
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+    bglib_.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)att_error,   // att_error
                                                  (uint8)value_len,   // value_len,
                                                  (uint8*)value_data  // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::attributesUserReadResponseAuthorized(bool authorized)
@@ -871,13 +871,13 @@ void BLE112::attributesUserReadResponseAuthorized(bool authorized)
     Serial.print(P("-->\tattributes_user_read_response authorized: "));
     Serial.println(authorized, BIN);
 
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+    bglib_.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)0,   // att_error
                                                  (uint8)1,   // value_len,
                                                  (uint8*)&authorized // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::attributesUserReadResponseFrequency(uint16 freq)
@@ -885,13 +885,13 @@ void BLE112::attributesUserReadResponseFrequency(uint16 freq)
     Serial.print(P("-->\tattributes_user_read_response freq: "));
     Serial.println(freq, HEX);
 
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+    bglib_.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)0,   // att_error
                                                  (uint8)2,   // value_len,
                                                  (uint8*)&freq // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::attributesUserReadResponseSoftwareVersion()
@@ -899,32 +899,32 @@ void BLE112::attributesUserReadResponseSoftwareVersion()
     Serial.print(P("-->\tattributes_user_read_response software version: "));
     Serial.print(P("version: ")); Serial.println(version);
 
-    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+    bglib_.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)0,   // att_error
                                                  (uint8)strlen(version), // value_len,
                                                  (uint8*)version // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
 {
     Serial.println(P("-->\tattributes_user_write_response"));
-    bglib.ble_cmd_attributes_user_write_response( conn_handle,
+    bglib_.ble_cmd_attributes_user_write_response( conn_handle,
                                                   att_error
                                                   );
 
     uint8_t status;
-    while ((status = bglib.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(1000)));
 }
 
 void BLE112::incrementReceivedCount()
 {
-    if ( _receivedCount == 0xFF ) {
-        _receivedCount = 0;
+    if ( receivedCount_ == 0xFF ) {
+        receivedCount_ = 0;
     }
     else {
-        _receivedCount ++;
+        receivedCount_ ++;
     }
 }
