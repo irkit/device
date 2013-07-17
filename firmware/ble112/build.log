@@ -6,7 +6,7 @@ UART channel:1
  error%     :0.135417
  alternate f:1
 ports:60
-C:/DOCUME~1/mash/LOCALS~1/Temp/qt_temp.Uh1840
+C:/DOCUME~1/mash/LOCALS~1/Temp/qt_temp.Uh2720
 0
 0
 
@@ -25,9 +25,9 @@ Core flash reserved             @ 0x18000   98304
 Top of flash                    @ 0x1f800  129024
 Flash left for data             = 0x07800   30720
 Common configuration            - 0x00070     112
-16 bit UUIDs                    - 0x00016      22
+16 bit UUIDs                    - 0x0001c      28
 128 bit UUIDs                   - 0x00060      96
-Attribute database              - 0x000c0     192
-Constant attributes data        - 0x001d6     470
+Attribute database              - 0x000f6     246
+Constant attributes data        - 0x00208     520
 USB descriptor                  - 0x000c6     198
 Flash for PS Store           14 - 0x07000   28672

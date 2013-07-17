@@ -5,6 +5,7 @@
 #include "SetSwitch.h"
 #include "IrCtrl.h"
 #include "MemoryFree.h"
+#include "version.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -327,6 +328,11 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
             if ( ! authorized ) {
                 ble112.nextCommand = NEXT_COMMAND_ID_ENCRYPT_START;
             }
+        }
+        break;
+    case ATTRIBUTE_HANDLE_SOFTWARE_VERSION:
+        {
+            ble112.attributesUserReadResponseSoftwareVersion();
         }
         break;
     default:
@@ -866,6 +872,20 @@ void BLE112::attributesUserReadResponseFrequency(uint16 freq)
                                                  (uint8)0,   // att_error
                                                  (uint8)2,   // value_len,
                                                  (uint8*)&freq // value_data
+                                                 );
+    uint8_t status;
+    while ((status = bglib.checkActivity(1000)));
+}
+
+void BLE112::attributesUserReadResponseSoftwareVersion()
+{
+    Serial.print(P("-->\tattributes_user_read_response software version: "));
+    Serial.print(P("version: ")); Serial.println(version);
+
+    bglib.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
+                                                 (uint8)0,   // att_error
+                                                 (uint8)strlen(version), // value_len,
+                                                 (uint8*)version // value_data
                                                  );
     uint8_t status;
     while ((status = bglib.checkActivity(1000)));
