@@ -1,3 +1,6 @@
+#ifndef __IRCTRL_H__
+#define __IRCTRL_H__
+
 /*----------------------------------------------------------------------------/
 /  IR_CTRL - IR remote control module                         (C)ChaN, 2008
 /-----------------------------------------------------------------------------/
@@ -46,3 +49,5 @@ volatile IR_STRUCT IrCtrl;
 void IR_initialize (void);
 int IR_xmit (uint8_t, const uint8_t*, uint8_t);
 void IR_state (uint8_t);
+
+#endif

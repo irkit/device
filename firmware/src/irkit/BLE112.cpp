@@ -6,6 +6,7 @@
 #include "IrCtrl.h"
 #include "MemoryFree.h"
 #include "version.h"
+#include "DebugHelper.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -417,6 +418,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 return;
             }
             Serial.println(P("will send"));
+            DumpIR(&IrCtrl);
             IR_xmit();
             Serial.println(P("sent"));
         }

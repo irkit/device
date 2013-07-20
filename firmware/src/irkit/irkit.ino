@@ -6,6 +6,7 @@
 #include "BLE112.h"
 #include "IrCtrl.h"
 #include "SetSwitch.h"
+#include "DebugHelper.h"
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
@@ -168,19 +169,7 @@ void loop() {
                 Serial.println("}");
             }
             else if (lastCharacter == 'x') {
-                Serial.print(P("IrCtrl .state: "));  Serial.print(IrCtrl.state,HEX);
-                Serial.print(P(" .len: "));          Serial.println(IrCtrl.len,HEX);
-                Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
-                Serial.print(P(" .overflowed: "));   Serial.println(IrCtrl.overflowed);
-                for (uint16_t i=0; i<IrCtrl.len; i++) {
-                    if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
-                    if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }
-                    if (IrCtrl.buff[i] < 0x0010) { Serial.write('0'); }
-                    Serial.print(IrCtrl.buff[i], HEX);
-                    Serial.print(P(" "));
-                    if (i % 16 == 15) { Serial.println(); }
-                }
-                Serial.println();
+                DumpIR(&IrCtrl);
             }
             else if (lastCharacter == 'y') {
                 ble112.deleteBonding(0);
