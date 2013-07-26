@@ -6,14 +6,15 @@
 #include "BLE112.h"
 #include "IrCtrl.h"
 #include "SetSwitch.h"
+#include "DebugHelper.h"
 
 // iMote git:8fa00b089894132e3f6906fea1009a4e53ce5834
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
-BLE112 ble112( (HardwareSerial *)&ble112uart );
+BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
 void authorized() {
-    Serial.print(P("authorized bond: ")); Serial.println(ble112.currentBondHandle);
+    Serial.print(P("authorized bond: ")); Serial.println(ble112.current_bond_handle);
     // ble112 will indicate iOS central device
     ble112.writeAttributeAuthorizationStatus(1);
 }
@@ -36,10 +37,6 @@ void setup() {
     pinMode(AUTH_SWITCH,      INPUT);
     digitalWrite(AUTH_SWITCH, HIGH);
 
-    authorizedBondHandles.setup();
-    authorizedBondHandles.callback      = authorized;
-    authorizedBondHandles.clearCallback = cleared;
-
     // USB serial
     Serial.begin(115200);
 
@@ -47,6 +44,12 @@ void setup() {
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
+
+    ble112.hardwareReset();
+
+    authorizedBondHandles.setup();
+    authorizedBondHandles.callback      = authorized;
+    authorizedBondHandles.clearCallback = cleared;
 
     IR_initialize();
 
@@ -57,21 +60,23 @@ void ir_recv_loop(void) {
     if (IrCtrl.state != IR_RECVED) {
         return;
     }
-    IR_state( IR_RECVED_IDLE );
 
+    // can't receive here
+
+    unsigned long now = millis();
+    Serial.print(P("now: ")); Serial.println( now );
+    Serial.print(P("overflowed: ")); Serial.println( IrCtrl.overflowed );
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
-    for (uint16_t i=0; i<IrCtrl.len; i++) {
-        Serial.print(IrCtrl.buff[i], HEX);
-        Serial.print(P(" "));
-    }
-    Serial.println();
 
     // update received count in advertising packet
     // to let know disconnected central that we have new IR data
     ble112.incrementReceivedCount();
-    // update adv data
-    ble112.startAdvertising();
+
+    // start receiving again while leaving received data readable from central
+    IR_state( IR_RECVED_IDLE );
+
+    ble112.updateAdvData();
 
     Serial.print(P("free:")); Serial.println( freeMemory() );
 }
@@ -81,7 +86,6 @@ void loop() {
     static uint8_t lastCharacter = '0';
 
     Serial.println(P("Operations Menu:"));
-    Serial.println(P("0) Reset BLE112 module"));
     Serial.println(P("1) Hello"));
     Serial.println(P("2) Start Advertising"));
     Serial.println(P("3) Get rssi"));
@@ -91,6 +95,8 @@ void loop() {
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
     Serial.println(P("f) Increment Received Count"));
+    Serial.println(P("u) Software reset BLE112 module"));
+    Serial.println(P("v) Hardware reset BLE112 module"));
     Serial.println(P("w) Dump bonding"));
     Serial.println(P("x) Dump IrCtrl.buff"));
     Serial.println(P("y) Delete bonding"));
@@ -104,7 +110,7 @@ void loop() {
         ir_recv_loop();
 
         // check for auth switch pressed
-        authorizedBondHandles.loop(ble112.currentBondHandle);
+        authorizedBondHandles.loop(ble112.current_bond_handle);
 
         // check for input from the user
         if (Serial.available()) {
@@ -117,11 +123,7 @@ void loop() {
             Serial.println( lastCharacter, HEX );
 
             uint8_t status;
-            if (lastCharacter == '0') {
-                // Reset BLE112 module
-                ble112.reset();
-            }
-            else if (lastCharacter == '1') {
+            if (lastCharacter == '1') {
                 // Say hello to the BLE112 and wait for response
                 ble112.hello();
             }
@@ -152,6 +154,12 @@ void loop() {
             else if (lastCharacter == 'g') {
                 ble112.writeAttributeUnreadStatus( 1 );
             }
+            else if (lastCharacter == 'u') {
+                ble112.softwareReset();
+            }
+            else if (lastCharacter == 'v') {
+                ble112.hardwareReset();
+            }
             else if (lastCharacter == 'w') {
                 Serial.print("authorized bond: { ");
                 for (uint8_t i=0; i<authorizedBondHandles.count(); i++) {
@@ -161,14 +169,7 @@ void loop() {
                 Serial.println("}");
             }
             else if (lastCharacter == 'x') {
-                Serial.print(P("IrCtrl .state: ")); Serial.print(IrCtrl.state,HEX);
-                Serial.print(P(" .len: "));         Serial.println(IrCtrl.len,HEX);
-                Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
-                for (uint16_t i=0; i<IrCtrl.len; i++) {
-                    Serial.print(IrCtrl.buff[i], HEX);
-                    Serial.print(P(" "));
-                }
-                Serial.println();
+                DumpIR(&IrCtrl);
             }
             else if (lastCharacter == 'y') {
                 ble112.deleteBonding(0);

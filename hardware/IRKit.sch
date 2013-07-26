@@ -5119,7 +5119,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="LED1" library="my" deviceset="LED" device="-2012" value="5V"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1718"/>
-<part name="RB1" library="my" deviceset="R" device="" value="4.7k"/>
+<part name="RB1" library="my" deviceset="R" device="" value="1.8k"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="P+7" library="supply1" deviceset="+5V" device=""/>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
@@ -5176,7 +5176,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R1" library="my" deviceset="R" device="" value="10K"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="R" device="" value="10k"/>
-<part name="RC" library="my" deviceset="R" device="" value="47"/>
+<part name="RC" library="my" deviceset="R" device="" value="10"/>
 <part name="C12" library="my" deviceset="C" device="-2012" value="0.1uF"/>
 <part name="C2" library="my" deviceset="C" device="-2012" value="22pF"/>
 <part name="C1" library="my" deviceset="C" device="-2012" value="22pF"/>

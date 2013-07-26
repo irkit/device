@@ -18,6 +18,7 @@
 / May 16,'13 R0.    mash added comments, readable macro names
 /----------------------------------------------------------------------------*/
 
+#include <Arduino.h>
 #include "IrCtrl.h"
 
 /*----------------------------------------------------------------------------/
@@ -193,9 +194,13 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 
 // 65535 x 500[ns/tick] = 32_767_500[ns] = 32.8[ms]
 // is too short,
-// we're gonna wait for 2cycles of silence
+// we're gonna wait for 4cycles of silence
+// 4cycles = 131[ms] > 110[ms] (NEC protocol frame length)
 #define T_TRAIL       65535
-#define T_TRAIL_COUNT 2
+#define T_TRAIL_COUNT 4
+
+// clear overflowed state after XXX ms
+#define OVERFLOW_CLEAR_TIMEOUT 1000 // [ms]
 
 
 /* Working area for IR communication  */
@@ -209,6 +214,16 @@ ISR_CAPTURE()
 
     _timer_reg_t counter = IR_CAPTURE_REG();
 
+    unsigned int now = millis();
+
+    if ((IrCtrl.overflowed > 0) &&
+        ((now < IrCtrl.overflowed + OVERFLOW_CLEAR_TIMEOUT) || (now < IrCtrl.overflowed))) {
+        // continue overflowed state if receiving IR data continuously
+        IrCtrl.overflowed = now;
+        return;
+    }
+
+    IrCtrl.overflowed = 0;
     if (IrCtrl.state == IR_RECVED_IDLE) {
         IR_state( IR_IDLE );
     }
@@ -216,21 +231,31 @@ ISR_CAPTURE()
         return;
     }
     if (IrCtrl.len >= IR_BUFF_SIZE) {
-        return; // TODO clear state?
+        // receive buffer overflow
+        // data in buffer might be valid (later data might just be "repeat" data)
+        // so let's successfully finish receiving
+        IR_state( IR_RECVED );
+        IrCtrl.overflowed = millis();
+        return;
     }
 
     if (IR_CAPTURED_RISING()) {
 
         // Rising edge: on stop of burst
 
+        if (IrCtrl.state == IR_IDLE) {
+            // can't happen
+            return;
+        }
+
         _timer_reg_t low_width = counter - last_interrupt;
         last_interrupt         = counter;
 
         IrCtrl.buff[ IrCtrl.len ++ ] = low_width;
+        IrCtrl.trailerCount = T_TRAIL_COUNT;
 
         IR_CAPTURE_FALL();
         IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
-        IrCtrl.trailerCount = T_TRAIL_COUNT;
 
         return;
     }
@@ -247,6 +272,11 @@ ISR_CAPTURE()
         for (uint8_t trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailerCount; trailer--) {
             IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
             IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
+            if (IrCtrl.len >= IR_BUFF_SIZE) {
+                IR_state( IR_RECVED );
+                IrCtrl.overflowed = millis();
+                return;
+            }
         }
         IrCtrl.buff[ IrCtrl.len ++ ] = high_width;
     }
@@ -335,26 +365,30 @@ void IR_state (uint8_t nextState)
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
 
-        IrCtrl.len     = 0;
-        IrCtrl.txIndex = 0;
-        IrCtrl.freq    = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+        IrCtrl.len        = 0;
+        IrCtrl.txIndex    = 0;
+        IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+        IrCtrl.overflowed = 0;
         for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
         break;
     case IR_RECVING:
-        IrCtrl.len     = 0;
-        IrCtrl.txIndex = 0;
+        IrCtrl.len        = 0;
+        IrCtrl.txIndex    = 0;
+        IrCtrl.freq       = IR_DEFAULT_CARRIER; // we only receive 38kHz (our IR receiver device decodes 38kHz)
+        IrCtrl.overflowed = 0;
         for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
         break;
     case IR_RECVED:
         IR_COMPARE_DISABLE();
-        IR_CAPTURE_FALL();
-        IR_CAPTURE_ENABLE();
+        IR_CAPTURE_DISABLE();
         break;
     case IR_RECVED_IDLE:
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
         break;
     case IR_XMITTING:
         IR_CAPTURE_DISABLE();

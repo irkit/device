@@ -44,15 +44,37 @@
             <value>A</value>
         </characteristic>
 
+        <!-- 2A27: org.bluetooth.characteristic.hardware_revision_string -->
+        <characteristic uuid="2A27" id="c_hardware_revision">
+            <description>Hardware Revision</description>
+            <properties read="true" const="true" />
+            <value>1.0</value>
+        </characteristic>
+
+        <!-- 2A26: org.bluetooth.characteristic.firmware_revision_string -->
+        <!-- BLE112 firmware version (BLE112 SDK version, gatt.xml version) -->
+        <characteristic uuid="2A26" id="c_firmware_revision">
+            <description>Firmware Revision</description>
+            <properties read="true" const="true" />
+            <value>1.0</value>
+        </characteristic>
+
+        <!-- 2A28: org.bluetooth.characteristic.software_revision_string -->
+        <!-- AVR software version -->
+        <characteristic uuid="2A28" id="c_software_revision">
+            <description>Software Revision</description>
+            <properties read="true" const="true" />
+            <value variable_length="true" type="user"></value>
+        </characteristic>
+
     </service>
 
-    <!-- custom service for data transmission test -->
     <service uuid="195AE58A-437A-489B-B0CD-B7C9C394BAE4" id="ir_remote_controller" advertise="true">
         <description>Infrared Remote Controller service</description>
 
         <characteristic uuid="5FC569A0-74A9-4FA4-B8B7-8354C86E45A4" id="c_ir_data">
             <description>IR Data.
-            Unsigned 16bit length, and unsigned 16bit signal data array
+            Unsigned 16bit signal data array
             </description>
             <!-- can't enable authenticated_read nor authenticated_write because we don't have any display nor keyboard -->
             <properties read="true"

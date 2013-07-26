@@ -2,8 +2,11 @@ c_device_name 3
 c_appearance 6
 c_manufacturer_name 10
 c_model_number 13
-c_ir_data 17
-c_ir_unread_status 20
-c_ir_control_point 24
-c_ir_carrier_frequency 27
-c_ir_auth_status 30
+c_hardware_revision 16
+c_firmware_revision 19
+c_software_revision 22
+c_ir_data 26
+c_ir_unread_status 29
+c_ir_control_point 33
+c_ir_carrier_frequency 36
+c_ir_auth_status 39

@@ -1,3 +1,6 @@
+#ifndef __IRCTRL_H__
+#define __IRCTRL_H__
+
 /*----------------------------------------------------------------------------/
 /  IR_CTRL - IR remote control module                         (C)ChaN, 2008
 /-----------------------------------------------------------------------------/
@@ -25,6 +28,7 @@ typedef struct _irstruct {
     uint8_t state;               // Communication state
     uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
     uint8_t freq;                // carrier wave freq in kHz
+    unsigned long overflowed;    // Receive buffer overflowed time by millis()
     uint16_t len;                // Size of buff used
     uint16_t txIndex;            // 0 < txIndex < len
     uint16_t buff[IR_BUFF_SIZE]; // Data buffer 16Byte x 8bit/Byte x 2(HIGH and LOW) x uint16_t
@@ -45,3 +49,5 @@ volatile IR_STRUCT IrCtrl;
 void IR_initialize (void);
 int IR_xmit (uint8_t, const uint8_t*, uint8_t);
 void IR_state (uint8_t);
+
+#endif

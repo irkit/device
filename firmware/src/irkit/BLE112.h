@@ -4,11 +4,12 @@
 #include "BGLib.h"
 
 // imported from firmware/ble112/attributes.txt
-#define ATTRIBUTE_HANDLE_IR_DATA              17 // 0x11
-#define ATTRIBUTE_HANDLE_IR_UNREAD_STATUS     20 // 0x14
-#define ATTRIBUTE_HANDLE_IR_CONTROL_POINT     24 // 0x18
-#define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 27 // 0x1B
-#define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       30 // 0x1E
+#define ATTRIBUTE_HANDLE_SOFTWARE_VERSION     22 // 0x16
+#define ATTRIBUTE_HANDLE_IR_DATA              26 // 0x1a
+#define ATTRIBUTE_HANDLE_IR_UNREAD_STATUS     29 // 0x1d
+#define ATTRIBUTE_HANDLE_IR_CONTROL_POINT     33 // 0x21
+#define ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY 36 // 0x24
+#define ATTRIBUTE_HANDLE_IR_AUTH_STATUS       39 // 0x27
 
 #define NEXT_COMMAND_ID_ENCRYPT_START               0x01
 #define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS 0x02
@@ -18,13 +19,14 @@
 
 class BLE112 {
     public:
-        BLE112(HardwareSerial *module);
-        uint8 nextCommand;
-        uint8 currentBondHandle;
+        BLE112(HardwareSerial*, uint8_t);
+        uint8 next_command;
+        uint8 current_bond_handle;
 
         void setup();
         void loop();
-        void reset();
+        void softwareReset();
+        void hardwareReset();
         void hello();
         void startAdvertising();
         void getRSSI();
@@ -42,16 +44,19 @@ class BLE112 {
         void attributesUserReadResponseData(uint8, uint8, uint8*);
         void attributesUserReadResponseAuthorized(bool);
         void attributesUserReadResponseFrequency(uint16);
+        void attributesUserReadResponseSoftwareVersion();
         void attributesUserWriteResponse(uint8, uint8);
         void incrementReceivedCount();
+        void updateAdvData();
 
     private:
         // create BGLib object:
         //  - use SoftwareSerial por for module comms
         //  - use nothing for passthrough comms (0 = null pointer)
         //  - enable packet mode on API protocol since flow control is unavailable
-        BGLib bglib;
-        uint8 _receivedCount;
+        BGLib   bglib_;
+        uint8   receivedCount_;
+        uint8_t reset_pin_;
 
         void setAdvData(uint8, uint8*);
         void gapSetMode(uint8, uint8);
