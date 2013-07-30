@@ -324,8 +324,13 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
         break;
     case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
         {
-            // TODO we can't determine if we're authorized or not
-            // if we aren't bonded yet
+            if (ble112.current_bond_handle == INVALID_BOND_HANDLE) {
+                // we can't determine if we're authorized or not
+                // if we aren't bonded yet
+                // maybe create a notification to tell central we're bonded?
+                Serial.println(P("!!! not bonded yet !!!"));
+                return;
+            }
 
             bool authorized = authorizedBondHandles.isMember( ble112.current_bond_handle );
             ble112.attributesUserReadResponseAuthorized( authorized );
