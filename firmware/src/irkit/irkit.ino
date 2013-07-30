@@ -69,14 +69,10 @@ void ir_recv_loop(void) {
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
 
-    // update received count in advertising packet
-    // to let know disconnected central that we have new IR data
-    ble112.incrementReceivedCount();
-
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
 
-    ble112.updateAdvData();
+    ble112.writeAttributeUnreadStatus( 1 );
 
     Serial.print(P("free:")); Serial.println( freeMemory() );
 }
@@ -94,7 +90,6 @@ void loop() {
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
     Serial.println(P("c) Passkey Entry"));
-    Serial.println(P("f) Increment Received Count"));
     Serial.println(P("u) Software reset BLE112 module"));
     Serial.println(P("v) Hardware reset BLE112 module"));
     Serial.println(P("w) Dump bonding"));
@@ -147,9 +142,6 @@ void loop() {
             }
             else if (lastCharacter == 'c') {
                 ble112.passkeyEntry();
-            }
-            else if (lastCharacter == 'f') {
-                ble112.incrementReceivedCount();
             }
             else if (lastCharacter == 'g') {
                 ble112.writeAttributeUnreadStatus( 1 );

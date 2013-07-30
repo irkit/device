@@ -46,8 +46,6 @@ class BLE112 {
         void attributesUserReadResponseFrequency(uint16);
         void attributesUserReadResponseSoftwareVersion();
         void attributesUserWriteResponse(uint8, uint8);
-        void incrementReceivedCount();
-        void updateAdvData();
 
     private:
         // create BGLib object:
@@ -55,7 +53,6 @@ class BLE112 {
         //  - use nothing for passthrough comms (0 = null pointer)
         //  - enable packet mode on API protocol since flow control is unavailable
         BGLib   bglib_;
-        uint8   receivedCount_;
         uint8_t reset_pin_;
 
         void setAdvData(uint8, uint8*);

@@ -509,7 +509,6 @@ void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *ms
 BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     bglib_(module, 0, 1),
     next_command(0xFF),
-    receivedCount_(0),
     reset_pin_(reset_pin)
 {
     pinMode(reset_pin,      OUTPUT);
@@ -629,8 +628,6 @@ void BLE112::startAdvertising()
     smSetBondableMode();
     smSetParameters();
 
-    updateAdvData();
-
     // adv_interval_min default: 0x200 = 320ms
     // adv_interval_max default: 0x200 = 320ms
     // adv_channels     default: ?
@@ -652,43 +649,44 @@ void BLE112::startAdvertising()
     gapSetMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
-void BLE112::updateAdvData()
-{
-    // can't initialize uint8array directly....
-    uint8 data[27] = {
-        // length
-        0x18,
-        // AD Format: Flags
-        0x02, 0x01, 0x06,
-        // AD Format: 128bit Service UUID
-        0x11, 0x07, 0xE4, 0xBA, 0x94, 0xC3,
-                    0xC9, 0xB7, 0xCD, 0xB0,
-                    0x9B, 0x48, 0x7A, 0x43,
-                    0x8A, 0xE5, 0x5A, 0x19,
-        // AD Format: Manufacturer Specific Data
-        0x02, 0xFF, receivedCount_
-    };
-    setAdvData( 0, (uint8*)&data[0] );
-}
+// this is how to change advertisement data
+// void BLE112::updateAdvData()
+// {
+//     // can't initialize uint8array directly....
+//     uint8 data[27] = {
+//         // length
+//         0x18,
+//         // AD Format: Flags
+//         0x02, 0x01, 0x06,
+//         // AD Format: 128bit Service UUID
+//         0x11, 0x07, 0xE4, 0xBA, 0x94, 0xC3,
+//                     0xC9, 0xB7, 0xCD, 0xB0,
+//                     0x9B, 0x48, 0x7A, 0x43,
+//                     0x8A, 0xE5, 0x5A, 0x19,
+//         // AD Format: Manufacturer Specific Data
+//         0x02, 0xFF, receivedCount_
+//     };
+//     setAdvData( 0, (uint8*)&data[0] );
+// }
 
-void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
-{
-    Serial.print(P("-->\tgap_set_adv_data: { "));
-    Serial.print(P("set_scanrsp: "));  Serial.print(set_scanrsp, HEX);
-    Serial.print(P(", data: "));
-    uint8array *array = (uint8array*)data;
-    for (uint8_t i = 0; i < array->len; i++) {
-        if (array->data[i] < 16)
-            Serial.write('0');
-        Serial.print(array->data[i], HEX);
-    }
-    Serial.println(P(" }"));
+// void BLE112::setAdvData( uint8 set_scanrsp, uint8 *data )
+// {
+//     Serial.print(P("-->\tgap_set_adv_data: { "));
+//     Serial.print(P("set_scanrsp: "));  Serial.print(set_scanrsp, HEX);
+//     Serial.print(P(", data: "));
+//     uint8array *array = (uint8array*)data;
+//     for (uint8_t i = 0; i < array->len; i++) {
+//         if (array->data[i] < 16)
+//             Serial.write('0');
+//         Serial.print(array->data[i], HEX);
+//     }
+//     Serial.println(P(" }"));
 
-    bglib_.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
+//     bglib_.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
 
-    uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
-}
+//     uint8_t status;
+//     while ((status = bglib_.checkActivity(1000)));
+// }
 
 void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
 {
@@ -922,14 +920,4 @@ void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
 
     uint8_t status;
     while ((status = bglib_.checkActivity(1000)));
-}
-
-void BLE112::incrementReceivedCount()
-{
-    if ( receivedCount_ == 0xFF ) {
-        receivedCount_ = 0;
-    }
-    else {
-        receivedCount_ ++;
-    }
 }
