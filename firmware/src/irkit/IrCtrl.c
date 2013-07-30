@@ -269,7 +269,8 @@ ISR_CAPTURE()
         IR_state( IR_RECVING );
     }
     else { // is IR_RECVING
-        for (uint8_t trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailerCount; trailer--) {
+        uint8_t trailer;
+        for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailerCount; trailer--) {
             IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
             IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
             if (IrCtrl.len >= IR_BUFF_SIZE) {
@@ -356,6 +357,7 @@ int IR_xmit ()
 
 void IR_state (uint8_t nextState)
 {
+    uint16_t i;
     switch (nextState) {
     case IR_IDLE:
         IR_TX_OFF();
@@ -369,7 +371,7 @@ void IR_state (uint8_t nextState)
         IrCtrl.txIndex    = 0;
         IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
         IrCtrl.overflowed = 0;
-        for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
+        for (i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
         break;
@@ -378,7 +380,7 @@ void IR_state (uint8_t nextState)
         IrCtrl.txIndex    = 0;
         IrCtrl.freq       = IR_DEFAULT_CARRIER; // we only receive 38kHz (our IR receiver device decodes 38kHz)
         IrCtrl.overflowed = 0;
-        for (uint16_t i=0; i<IR_BUFF_SIZE; i++) {
+        for (i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
         break;

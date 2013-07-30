@@ -5,4 +5,4 @@
 
 void DumpIR(volatile IR_STRUCT *ir);
 
-#endif
+#endif // __DEBUGHELPER_H__

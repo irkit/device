@@ -17,7 +17,7 @@
 extern BLE112 ble112;
 extern SetSwitch authorizedBondHandles;
 extern volatile IR_STRUCT IrCtrl;
-extern void IR_xmit();
+extern int IR_xmit();
 
 // ================================================================
 // INTERNAL BGLIB CLASS CALLBACK FUNCTIONS

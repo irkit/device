@@ -24,6 +24,18 @@
 // buff size must be at least 259 to store 16byte of ir data
 #define IR_BUFF_SIZE       512
 #define IR_DEFAULT_CARRIER 38
+
+/* IR control state (state) */
+#define IR_IDLE        0    /* In idle state, ready to receive/transmit */
+#define IR_RECVING     1    /* An IR frame is being received */
+#define IR_RECVED      2    /* An IR frame has been received and data is valid */
+#define IR_XMITTING    3    /* IR transmission is in progress */
+#define IR_RECVED_IDLE 4    /* Received IR frame is on memory til next receive and transmit */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _irstruct {
     uint8_t state;               // Communication state
     uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
@@ -38,16 +50,13 @@ typedef struct _irstruct {
 extern
 volatile IR_STRUCT IrCtrl;
 
-/* IR control state (state) */
-#define IR_IDLE        0    /* In idle state, ready to receive/transmit */
-#define IR_RECVING     1    /* An IR frame is being received */
-#define IR_RECVED      2    /* An IR frame has been received and data is valid */
-#define IR_XMITTING    3    /* IR transmission is in progress */
-#define IR_RECVED_IDLE 4    /* Received IR frame is on memory til next receive and transmit */
-
 /* Prototypes */
 void IR_initialize (void);
-int IR_xmit (uint8_t, const uint8_t*, uint8_t);
+int IR_xmit (void);
 void IR_state (uint8_t);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif // __IRCTRL_H__
