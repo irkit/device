@@ -1,4 +1,4 @@
 .build/
-src/irkit/build-uno/
-src/irkit/version.c
+src/main/build-uno/
+src/main/version.c
 TAGS
