@@ -15,13 +15,14 @@
 #define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS 0x02
 #define NEXT_COMMAND_ID_EMPTY                       0xFF
 
-#define INVALID_BOND_HANDLE 0xFF
+#define INVALID_BOND_HANDLE    0xFF
 
 class BLE112 {
     public:
         BLE112(HardwareSerial*, uint8_t);
         uint8 next_command;
         uint8 current_bond_handle;
+        bool (*isAuthorizedCallback)(uint8);
 
         void setup();
         void loop();

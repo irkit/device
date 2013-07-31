@@ -11,10 +11,14 @@ SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 
-void authorized() {
-    Serial.print(P("authorized bond: ")); Serial.println(ble112.current_bond_handle);
+void didAuthorized() {
+    Serial.print(P("didAuthorized bond: ")); Serial.println(ble112.current_bond_handle);
     // ble112 will indicate iOS central device
     ble112.writeAttributeAuthorizationStatus(1);
+}
+
+bool isAuthorized(uint8 bond_handle) {
+    return authorizedBondHandles.isMember(bond_handle);
 }
 
 void cleared() {
@@ -57,6 +61,7 @@ void IRKit_setup() {
     digitalWrite(AUTH_SWITCH, HIGH);
 
     ble112.setup();
+    ble112.isAuthorizedCallback = isAuthorized;
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);
@@ -64,7 +69,7 @@ void IRKit_setup() {
     ble112.hardwareReset();
 
     authorizedBondHandles.setup();
-    authorizedBondHandles.callback      = authorized;
+    authorizedBondHandles.callback      = didAuthorized;
     authorizedBondHandles.clearCallback = cleared;
 
     IR_initialize();

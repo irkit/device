@@ -1,8 +1,6 @@
-#include "Arduino.h"
 #include "pins.h"
 #include "BLE112.h"
 #include "pgmStrToRAM.h"
-#include "SetSwitch.h"
 #include "IrCtrl.h"
 #include "MemoryFree.h"
 #include "version.h"
@@ -13,9 +11,8 @@
 // looks like 254Bytes is the longest length allowed
 #define BLE112_MAX_CHARACTERISTIC_VALUE_LENGTH 254
 
-// I don't like this but..
+// TODO remove IrCtrl dependency here
 extern BLE112 ble112;
-extern SetSwitch authorizedBondHandles;
 extern volatile IR_STRUCT IrCtrl;
 extern int IR_xmit();
 
@@ -288,7 +285,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
-            bool authorized = authorizedBondHandles.isMember(ble112.current_bond_handle);
+            bool authorized = ble112.isAuthorizedCallback(ble112.current_bond_handle);
             if ( ! authorized ) {
                 Serial.println(P("!!! unauthorized read"));
                 break;
@@ -332,7 +329,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 return;
             }
 
-            bool authorized = authorizedBondHandles.isMember( ble112.current_bond_handle );
+            bool authorized = ble112.isAuthorizedCallback( ble112.current_bond_handle );
             ble112.attributesUserReadResponseAuthorized( authorized );
             if ( ! authorized ) {
                 ble112.next_command = NEXT_COMMAND_ID_ENCRYPT_START;
@@ -375,7 +372,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     if (msg->reason != BGLIB_ATTRIBUTES_ATTRIBUTE_CHANGE_REASON_WRITE_REQUEST_USER) {
         return;
     }
-    bool authorized = authorizedBondHandles.isMember( ble112.current_bond_handle );
+    bool authorized = ble112.isAuthorizedCallback( ble112.current_bond_handle );
     if ( ! authorized ) {
         // writes always require authz
         Serial.println(P("!!! unauthorized write"));
