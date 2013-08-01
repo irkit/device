@@ -326,6 +326,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 // if we aren't bonded yet
                 // maybe create a notification to tell central we're bonded?
                 Serial.println(P("!!! not bonded yet !!!"));
+                ble112.attributesUserReadResponseAuthorized( 0 );
                 return;
             }
 
