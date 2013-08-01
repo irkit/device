@@ -327,6 +327,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 // maybe create a notification to tell central we're bonded?
                 Serial.println(P("!!! not bonded yet !!!"));
                 ble112.attributesUserReadResponseAuthorized( 0 );
+                ble112.next_command = NEXT_COMMAND_ID_ENCRYPT_START;
                 return;
             }
 
@@ -368,20 +369,23 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     Serial.println(P(" }"));
     Serial.print(P("free:"));
     Serial.println( freeMemory() );
-    ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS;
 
     if (msg->reason != BGLIB_ATTRIBUTES_ATTRIBUTE_CHANGE_REASON_WRITE_REQUEST_USER) {
+        Serial.println(P("!!! unexpected reason"));
+        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
         return;
     }
     bool authorized = ble112.isAuthorizedCallback( ble112.current_bond_handle );
     if ( ! authorized ) {
         // writes always require authz
         Serial.println(P("!!! unauthorized write"));
+        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED;
         return;
     }
     if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
         // must be idle
         Serial.print(P("!!! write_request not idle state: ")); Serial.println(IrCtrl.state, HEX);
+        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_STATE;
         return;
     }
 
@@ -395,6 +399,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
                 // overflow
                 Serial.println(P("!!! write overflow"));
+                ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
             // ready to fill IR data
@@ -417,10 +422,12 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         {
             if (msg->value.data[0] != 0) {
                 Serial.println(P("!!! unknown control point value"));
+                ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
             if ( IrCtrl.len == 0 ) {
                 Serial.println(P("!!! invalid data"));
+                ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
             Serial.println(P("will send"));
@@ -432,8 +439,11 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     default:
         // not expected
         Serial.println(P("!!! write to unknown att"));
-        break;
+        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
+        return;
     }
+
+    ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS;
 }
 
 void my_evt_attclient_attribute_value(const struct ble_msg_attclient_attribute_value_evt_t *msg) {
@@ -583,6 +593,21 @@ void BLE112::loop()
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
                                      0 ); // att_error
+        break;
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED:
+        next_command = NEXT_COMMAND_ID_EMPTY;
+        attributesUserWriteResponse( 0,   // conn_handle
+                                     1 ); // att_error
+        break;
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_STATE:
+        next_command = NEXT_COMMAND_ID_EMPTY;
+        attributesUserWriteResponse( 0,   // conn_handle
+                                     2 ); // att_error
+        break;
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED:
+        next_command = NEXT_COMMAND_ID_EMPTY;
+        attributesUserWriteResponse( 0,   // conn_handle
+                                     3 ); // att_error
         break;
     case NEXT_COMMAND_ID_EMPTY:
         break;
