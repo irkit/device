@@ -695,7 +695,7 @@ void BLE112::startAdvertising()
     // limited: ad interval 250-500ms, only 30sec
     // general: ad interval 1.28-2.56s, forever
     // BGLIB_GAP_GENERAL_DISCOVERABLE
-    gapSetMode( BGLIB_GAP_USER_DATA, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
+    gapSetMode( BGLIB_GAP_GENERAL_DISCOVERABLE, BGLIB_GAP_UNDIRECTED_CONNECTABLE );
 }
 
 // this is how to change advertisement data
