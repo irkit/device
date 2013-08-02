@@ -396,6 +396,7 @@ void IR_state (uint8_t nextState)
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
         IrCtrl.txIndex = 0;
+        IrCtrl.xmitStart = millis();
         break;
     }
     IrCtrl.state = nextState;

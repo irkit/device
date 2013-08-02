@@ -430,10 +430,14 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
-            Serial.println(P("will send"));
-            DumpIR(&IrCtrl);
+            Serial.println(P("will xmit"));
             IR_xmit();
-            Serial.println(P("sent"));
+            DumpIR(&IrCtrl);
+            Serial.println(P("xmitting"));
+
+            // delay response til xmit complete
+            ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS_XMIT;
+            return;
         }
         break;
     default:
@@ -593,6 +597,23 @@ void BLE112::loop()
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
                                      0 ); // att_error
+        break;
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_SUCCESS_XMIT:
+        if (IrCtrl.state == IR_IDLE) {
+            // if xmit finished, respond with success
+            next_command = NEXT_COMMAND_ID_EMPTY;
+            attributesUserWriteResponse( 0,   // conn_handle
+                                         0 ); // att_error
+            Serial.println(P("xmit complete"));
+        }
+        else if ((IrCtrl.state == IR_XMITTING) &&
+                 (millis() - IrCtrl.xmitStart > 1000)) {
+            // have been xmitting for more than ** milliseconds,
+            // might be something wrong, but delay our decision, respond with success
+            next_command = NEXT_COMMAND_ID_EMPTY;
+            attributesUserWriteResponse( 0,   // conn_handle
+                                         0 ); // att_error
+        }
         break;
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED:
         next_command = NEXT_COMMAND_ID_EMPTY;
