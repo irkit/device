@@ -5,11 +5,13 @@
 #include "BLE112.h"
 #include "IrCtrl.h"
 #include "SetSwitch.h"
+#include "FullColorLed.h"
 #include "DebugHelper.h"
 
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
+FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 void didAuthorized() {
     Serial.print(P("didAuthorized bond: ")); Serial.println(ble112.current_bond_handle);
