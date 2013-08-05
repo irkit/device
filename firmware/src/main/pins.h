@@ -13,7 +13,8 @@
 #define BUSY_LED        13
 
 #define FULLCOLOR_LED_R  5 // pin9
-#define FULLCOLOR_LED_G  6 // pin10
-#define FULLCOLOR_LED_B  7 // pin11
+// temporary toggle to fix circuit's wrong wiring
+#define FULLCOLOR_LED_B  6 // pin10
+#define FULLCOLOR_LED_G  7 // pin11
 
 #endif
