@@ -2411,11 +2411,11 @@ UX60SC-MB-5ST
 <rectangle x1="-1.5" y1="2.1" x2="1.5" y2="3.6" layer="39"/>
 <rectangle x1="-2.95" y1="0" x2="2.95" y2="2.1" layer="39"/>
 <smd name="S$1@3" x="-2.702559375" y="5.7531" dx="0.5" dy="1.5" layer="1"/>
-<smd name="S$1" x="-3.64998125" y="4.1529" dx="1.4" dy="4.7" layer="1"/>
-<smd name="S$1@2" x="-4.899659375" y="3.703321875" dx="1.1" dy="3.8" layer="1"/>
+<smd name="S$1" x="-3.64998125" y="4.8529" dx="1.4" dy="3.3" layer="1"/>
+<smd name="S$1@2" x="-4.899659375" y="4.853321875" dx="1.1" dy="3.3" layer="1"/>
 <smd name="S$2@3" x="2.694940625" y="5.750559375" dx="0.5" dy="1.5" layer="1" rot="R180"/>
-<smd name="S$2" x="3.6423625" y="4.150359375" dx="1.4" dy="4.7" layer="1" rot="R180"/>
-<smd name="S$2@2" x="4.892040625" y="3.70078125" dx="1.1" dy="3.8" layer="1" rot="R180"/>
+<smd name="S$2" x="3.6423625" y="4.850359375" dx="1.4" dy="3.3" layer="1" rot="R180"/>
+<smd name="S$2@2" x="4.892040625" y="4.85078125" dx="1.1" dy="3.3" layer="1" rot="R180"/>
 </package>
 <package name="IR-RECEIVER">
 <pad name="2" x="0" y="0" drill="0.8"/>
@@ -5099,7 +5099,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="FRAME1" library="frames" deviceset="FRAME_B_L" device="" value="IRKit"/>
 <part name="IC1" library="my" deviceset="ATMEGA168" device="-AU" value="ATmega328P-AU"/>
 <part name="R2" library="my" deviceset="R" device="" value="1K"/>
-<part name="R9" library="my" deviceset="R" device="" value="220"/>
+<part name="R9" library="my" deviceset="R" device="" value="910"/>
 <part name="Y1" library="my" deviceset="XTAL" device="-HC-49/S" value="16MHz"/>
 <part name="C5" library="my" deviceset="C" device="-2012" value="0.1uF"/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
@@ -5171,8 +5171,8 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R8" library="my" deviceset="R" device="" value="3.3k"/>
 <part name="GND19" library="supply1" deviceset="GND" device=""/>
 <part name="R12" library="my" deviceset="R" device="" value="1.2K"/>
-<part name="R13" library="my" deviceset="R" device="" value="2.4k"/>
-<part name="R14" library="my" deviceset="R" device="" value="1k"/>
+<part name="R13" library="my" deviceset="R" device="" value="1k"/>
+<part name="R14" library="my" deviceset="R" device="" value="2.4k"/>
 <part name="R1" library="my" deviceset="R" device="" value="10K"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="R" device="" value="10k"/>
@@ -6004,18 +6004,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="124.46" y="238.76" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="D6/LED_G" class="0">
-<segment>
-<pinref part="IC1" gate="1" pin="DIGITAL_6(PWM)"/>
-<wire x1="119.38" y1="208.28" x2="124.46" y2="208.28" width="0.1524" layer="91"/>
-<label x="124.46" y="208.28" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<pinref part="R13" gate="G$1" pin="1"/>
-<wire x1="69.85" y1="58.42" x2="69.85" y2="62.23" width="0.1524" layer="91"/>
-<label x="69.85" y="62.23" size="1.778" layer="95" xref="yes"/>
-</segment>
-</net>
 <net name="N$5" class="0">
 <segment>
 <pinref part="LED4" gate="G$1" pin="RED"/>
@@ -6044,18 +6032,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="CN3" gate="A" pin="2"/>
 <wire x1="238.76" y1="129.54" x2="246.38" y2="129.54" width="0.1524" layer="91"/>
 <label x="246.38" y="129.54" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="D7/LED_B" class="0">
-<segment>
-<pinref part="R14" gate="G$1" pin="1"/>
-<wire x1="66.04" y1="67.31" x2="66.04" y2="68.58" width="0.1524" layer="91"/>
-<label x="66.04" y="68.58" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<pinref part="IC1" gate="1" pin="DIGITAL_7"/>
-<wire x1="119.38" y1="205.74" x2="124.46" y2="205.74" width="0.1524" layer="91"/>
-<label x="124.46" y="205.74" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D5/LED_R" class="0">
@@ -6150,6 +6126,30 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC1" gate="1" pin="DIGITAL_4"/>
 <wire x1="119.38" y1="213.36" x2="124.46" y2="213.36" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="D7/LED_G" class="0">
+<segment>
+<pinref part="R14" gate="G$1" pin="1"/>
+<wire x1="66.04" y1="67.31" x2="66.04" y2="68.58" width="0.1524" layer="91"/>
+<label x="66.04" y="68.58" size="1.778" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="IC1" gate="1" pin="DIGITAL_7"/>
+<wire x1="119.38" y1="205.74" x2="124.46" y2="205.74" width="0.1524" layer="91"/>
+<label x="124.46" y="205.74" size="1.778" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="D6/LED_B" class="0">
+<segment>
+<pinref part="R13" gate="G$1" pin="1"/>
+<wire x1="69.85" y1="58.42" x2="69.85" y2="62.23" width="0.1524" layer="91"/>
+<label x="69.85" y="62.23" size="1.778" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="IC1" gate="1" pin="DIGITAL_6(PWM)"/>
+<wire x1="119.38" y1="208.28" x2="124.46" y2="208.28" width="0.1524" layer="91"/>
+<label x="124.46" y="208.28" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 </nets>
