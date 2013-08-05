@@ -3,6 +3,7 @@
 #include "FullColorLed.h"
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+#define LED_BLINK_INTERVAL 1000
 
 void setup() {
     color.SetLedColor( 1, 1, 1 );
@@ -29,6 +30,8 @@ void setup() {
 
 void loop() {
     static uint8_t lastCharacter = '0';
+
+    color.Loop();
 
     // check for input from the user
     if (Serial.available()) {
@@ -58,20 +61,23 @@ void loop() {
         else if (lastCharacter == 'y') {
             color.SetLedColor(1,1,0);
         }
-        else if (lastCharacter == 'g') {
-            color.SetLedColor(0,1,0);
+        else if (lastCharacter == 'R') {
+            color.SetLedColor(1,0,0,LED_BLINK_INTERVAL);
         }
-        else if (lastCharacter == 'b') {
-            color.SetLedColor(0,0,1);
+        else if (lastCharacter == 'G') {
+            color.SetLedColor(0,1,0,LED_BLINK_INTERVAL);
         }
-        else if (lastCharacter == 'c') {
-            color.SetLedColor(0,1,1);
+        else if (lastCharacter == 'B') {
+            color.SetLedColor(0,0,1,LED_BLINK_INTERVAL);
         }
-        else if (lastCharacter == 'm') {
-            color.SetLedColor(1,0,1);
+        else if (lastCharacter == 'C') {
+            color.SetLedColor(0,1,1,LED_BLINK_INTERVAL);
         }
-        else if (lastCharacter == 'y') {
-            color.SetLedColor(1,1,0);
+        else if (lastCharacter == 'M') {
+            color.SetLedColor(1,0,1,LED_BLINK_INTERVAL);
+        }
+        else if (lastCharacter == 'Y') {
+            color.SetLedColor(1,1,0,LED_BLINK_INTERVAL);
         }
     }
 }

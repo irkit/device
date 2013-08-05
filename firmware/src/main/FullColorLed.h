@@ -4,14 +4,22 @@
 class FullColorLed
 {
 public:
-    FullColorLed(int R_pin, int G_pin, int B_pin);
-    void SetLedColor(bool REDColor, bool BLUEColor, bool GREENColor);
+    FullColorLed(int pinR, int pinG, int pinB);
+    void SetLedColor(bool colorR, bool colorG, bool colorB);
+    void SetLedColor(bool colorR, bool colorG, bool colorB, unsigned long cycle);
     void LedOff();
+    void Loop();
 
 private:
-    int REDLEDpin;
-    int GREENLEDpin;
-    int BLUELEDpin;
+    int pinR_;
+    int pinG_;
+    int pinB_;
+    bool colorR_;
+    bool colorG_;
+    bool colorB_;
+    bool blinkOn_;
+    unsigned long nextMillis_;
+    unsigned long cycleMillis_;
 };
 
 #endif // __FULLCOLORLED_H__
