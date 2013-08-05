@@ -52,6 +52,8 @@ void IRKit_setup() {
     pinMode(BUSY_LED,         OUTPUT);
     digitalWrite(BUSY_LED,    LOW);
 
+    color.SetLedColor( 1, 1, 1 );
+
     pinMode(IR_OUT,           OUTPUT);
 
     // pull-up

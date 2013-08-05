@@ -1,4 +1,4 @@
 .build/
-src/main/build-uno/
+**/build-uno/
 src/main/version.c
 TAGS

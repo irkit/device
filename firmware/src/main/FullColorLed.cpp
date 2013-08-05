@@ -1,4 +1,4 @@
-#include "Arduino.h"
+#include <Arduino.h>
 #include "FullColorLed.h"
 
 FullColorLed::FullColorLed(int R_pin, int G_pin, int B_pin) :
@@ -10,6 +10,7 @@ FullColorLed::FullColorLed(int R_pin, int G_pin, int B_pin) :
     pinMode(GREENLEDpin,OUTPUT);
     pinMode(BLUELEDpin, OUTPUT);
 }
+
 void FullColorLed::SetLedColor(bool REDColor, bool BLUEColor, bool GREENColor)
 {
     digitalWrite(REDLEDpin,   REDColor);

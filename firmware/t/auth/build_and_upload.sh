@@ -1,1 +1,0 @@
-../../build_and_upload.sh

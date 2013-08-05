@@ -1,1 +1,1 @@
-../../../src/irkit/SetSwitch.cpp
+../../../src/main/SetSwitch.cpp
