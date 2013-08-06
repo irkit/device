@@ -155,12 +155,14 @@ void IRKit_loop() {
             ble112.hardwareReset();
         }
         else if (lastCharacter == 'w') {
-            Serial.print("authorized bond: { ");
+            Serial.print(P("authorized bond: count: "));
+            Serial.println(authorizedBondHandles.count(), HEX);
+            Serial.print(P("{ "));
             for (uint8_t i=0; i<authorizedBondHandles.count(); i++) {
                 Serial.print(authorizedBondHandles.data(i));
-                Serial.print(" ");
+                Serial.print(P(" "));
             }
-            Serial.println("}");
+            Serial.println(P("}"));
         }
         else if (lastCharacter == 'x') {
             DumpIR(&IrCtrl);
