@@ -19,6 +19,10 @@
 #define NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED   0x12
 #define NEXT_COMMAND_ID_EMPTY                                  0xFF
 
+#define ATT_ERROR_UNAUTHORIZED 0x01
+#define ATT_ERROR_STATE        0x02
+#define ATT_ERROR_UNEXPECTED   0x03
+
 #define INVALID_BOND_HANDLE    0xFF
 
 class BLE112 {

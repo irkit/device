@@ -288,16 +288,28 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
             bool authorized = ble112.isAuthorizedCallback(ble112.current_bond_handle);
             if ( ! authorized ) {
                 Serial.println(P("!!! unauthorized read"));
+                ble112.attributesUserReadResponseData( ATT_ERROR_UNAUTHORIZED, // att_error
+                                                       0, // value_len
+                                                       NULL // value_data
+                                                       );
                 break;
             }
             if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
                 // must be idle
                 Serial.print(P("!!! user_read_request not idle state: ")); Serial.println(IrCtrl.state, HEX);
+                ble112.attributesUserReadResponseData( ATT_ERROR_STATE, // att_error
+                                                       0, // value_len
+                                                       NULL // value_data
+                                                       );
                 break;
             }
             if ( IrCtrl.len * 2 < msg->offset ) {
                 // range error
                 Serial.print(P("!!! range error IrCtrl.len: ")); Serial.println(IrCtrl.len, HEX);
+                ble112.attributesUserReadResponseData( ATT_ERROR_UNEXPECTED, // att_error
+                                                       0, // value_len
+                                                       NULL // value_data
+                                                       );
                 break;
             }
             uint8 value_len = msg->maxsize;
@@ -618,17 +630,17 @@ void BLE112::loop()
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED:
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
-                                     1 ); // att_error
+                                     ATT_ERROR_UNAUTHORIZED ); // att_error
         break;
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_STATE:
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
-                                     2 ); // att_error
+                                     ATT_ERROR_STATE ); // att_error
         break;
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED:
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
-                                     3 ); // att_error
+                                     ATT_ERROR_UNEXPECTED ); // att_error
         break;
     case NEXT_COMMAND_ID_EMPTY:
         break;
