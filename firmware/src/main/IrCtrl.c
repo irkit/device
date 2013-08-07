@@ -6,7 +6,7 @@
 / research and development under license policy of following trems.
 /
 /  Copyright (C) 2008, ChaN, all right reserved.
-/  Copyright (C) 2013-, mash, all right reserved.
+/  Copyright (C) 2013-, Masakazu Ohtsuka (mash), all right reserved.
 /
 / * The IR_CTRL module is a free software and there is no warranty.
 / * You can use, modify and/or redistribute it for personal, non-profit or
@@ -15,7 +15,7 @@
 /
 /-----------------------------------------------------------------------------/
 / Aug 30,'08 R0.01  First release.
-/ May 16,'13 R0.    mash added comments, readable macro names
+/ May 16,'13 R0.    mash heavily modified everything
 /----------------------------------------------------------------------------*/
 
 #include <Arduino.h>
