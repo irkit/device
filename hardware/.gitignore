@@ -2,7 +2,6 @@
 *.s\#*
 *.l\#*
 *.pro
-*.png
 *.log
 *.zip
 .DS_Store
