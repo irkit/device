@@ -17,7 +17,7 @@ To be done..
 
 Basically, it's a [Arduino Pro](http://arduino.cc/en/Main/ArduinoBoardPro) fork with following modifications:
 
-* added [BLE112](http://www.bluegiga.com/BLE112_Bluetooth_Smart_module) ([BlueGiga](http://www.bluegiga.com/)'s Bluetooth Low Energy module.
+* added [BLE112](http://www.bluegiga.com/BLE112_Bluetooth_Smart_module) ( [BlueGiga](http://www.bluegiga.com/) 's Bluetooth Low Energy module ).
 * added infrared receiver and LED
 
 <img src="https://raw.github.com/irkit/device/master/hardware/schematic.png" />
