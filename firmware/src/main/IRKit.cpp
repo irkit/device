@@ -89,9 +89,10 @@ void ir_recv_loop(void) {
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
 
-    ble112.writeAttributeUnreadStatus( 1 );
-
-    Serial.print(P("free:")); Serial.println( freeMemory() );
+    if (ble112.current_bond_handle != INVALID_BOND_HANDLE) {
+        // notify only when connected & authorized
+        ble112.writeAttributeUnreadStatus( 1 );
+    }
 }
 
 void IRKit_setup() {

@@ -534,7 +534,8 @@ BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     beforeIRCallback(0),
     afterIRCallback(0),
     beforeBTCallback(0),
-    afterBTCallback(0)
+    afterBTCallback(0),
+    current_bond_handle(INVALID_BOND_HANDLE)
 {
     pinMode(reset_pin,      OUTPUT);
     digitalWrite(reset_pin, HIGH);
