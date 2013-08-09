@@ -300,10 +300,12 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 break;
             }
             uint8 value_len = msg->maxsize;
+            bool is_last_slice = 0;
             if ( IrCtrl.len * 2 <= msg->offset + (uint16_t)value_len ) {
                 // if IrCtrl.len * 2 == msg->offset, value_len is 0
                 // last partial
                 value_len = IrCtrl.len * 2 - msg->offset;
+                is_last_slice = 1;
             }
             uint8* buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
 
@@ -311,6 +313,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    value_len, // value_len
                                                    buffWithOffset // value_data
                                                    );
+
+            if ( is_last_slice && ble112.afterBTCallback ) {
+                ble112.afterBTCallback();
+            }
         }
         break;
     case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
@@ -516,7 +522,15 @@ void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
 BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     bglib_(module, 0, 1),
     next_command(0xFF),
-    reset_pin_(reset_pin)
+    reset_pin_(reset_pin),
+    isAuthorizedCallback(0),
+    didTimeoutCallback(0),
+    didConnectCallback(0),
+    didDisconnectCallback(0),
+    beforeIRCallback(0),
+    afterIRCallback(0),
+    beforeBTCallback(0),
+    afterBTCallback(0)
 {
     pinMode(reset_pin,      OUTPUT);
     digitalWrite(reset_pin, HIGH);

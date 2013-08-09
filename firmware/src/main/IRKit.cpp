@@ -63,7 +63,6 @@ void beforeBT() {
 }
 
 void afterBT() {
-    // TODO not called yet
     Serial.println(P("!!!\tto BT finished"));
     color.SetLedColor( 0, 0, 1 );
 }
@@ -158,6 +157,9 @@ void IRKit_loop() {
 
     // check for auth switch pressed
     authorizedBondHandles.loop(ble112.current_bond_handle);
+
+    // blink
+    color.Loop();
 
     // check for input from the user
     if (Serial.available()) {
