@@ -147,6 +147,7 @@ void IRKit_setup() {
     Serial.println(P("6) Disconnect"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
+    Serial.println(P("s) IrCtrl to IR_IDLE state"));
     Serial.println(P("t) Software reset BLE112 module"));
     Serial.println(P("u) Hardware reset BLE112 module"));
 
@@ -208,6 +209,9 @@ void IRKit_loop() {
         }
         else if (lastCharacter == 'g') {
             ble112.writeAttributeUnreadStatus( 1 );
+        }
+        else if (lastCharacter == 's') {
+            IR_state(IR_IDLE);
         }
         else if (lastCharacter == 't') {
             ble112.softwareReset();
