@@ -11,6 +11,13 @@
 // looks like 254Bytes is the longest length allowed
 #define BLE112_MAX_CHARACTERISTIC_VALUE_LENGTH 254
 
+// wait for this interval for ble112's response
+// we have to send commands sequentially
+#define BLE112_RESPONSE_TIMEOUT              100
+#define BLE112_RESPONSE_TIMEOUT_AFTER_RESET 1000
+
+#define IR_XMIT_TIMEOUT                     1000
+
 // TODO remove IrCtrl dependency here
 extern BLE112 ble112;
 extern volatile IR_STRUCT IrCtrl;
@@ -603,7 +610,7 @@ void BLE112::loop()
             }
         }
         else if ((IrCtrl.state == IR_XMITTING) &&
-                 (millis() - IrCtrl.xmitStart > 1000)) {
+                 (millis() - IrCtrl.xmitStart > IR_XMIT_TIMEOUT)) {
             // have been xmitting for more than ** milliseconds,
             // might be something wrong, but delay our decision, respond with success
             next_command = NEXT_COMMAND_ID_EMPTY;
@@ -637,7 +644,7 @@ void BLE112::softwareReset()
     bglib_.ble_cmd_system_reset(0);
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT_AFTER_RESET)));
     // system_reset doesn't have a response, but this BGLib
     // implementation allows the system_boot event specially to
     // set the P("busy") flag to false for this particular case
@@ -655,7 +662,7 @@ void BLE112::hardwareReset()
     bglib_.setBusy(true); // checkActivity will wait until system boot event occured
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT_AFTER_RESET)));
 }
 
 void BLE112::hello()
@@ -664,7 +671,7 @@ void BLE112::hello()
     bglib_.ble_cmd_system_hello();
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
     // response should come back within milliseconds
 }
 
@@ -730,7 +737,7 @@ void BLE112::startAdvertising()
 //     bglib_.ble_cmd_gap_set_adv_data( set_scanrsp, array->len, array->data );
 
 //     uint8_t status;
-//     while ((status = bglib_.checkActivity(1000)));
+//     while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 // }
 
 void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
@@ -743,7 +750,7 @@ void BLE112::gapSetMode( uint8 discoverable, uint8 connectable )
     bglib_.ble_cmd_gap_set_mode( discoverable, connectable );
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::gapSetAdvParameters( uint16 interval_min, uint16 interval_max, uint8 channels )
@@ -757,7 +764,7 @@ void BLE112::gapSetAdvParameters( uint16 interval_min, uint16 interval_max, uint
     bglib_.ble_cmd_gap_set_adv_parameters( interval_min, interval_max, channels );
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::getRSSI()
@@ -766,7 +773,7 @@ void BLE112::getRSSI()
     bglib_.ble_cmd_connection_get_rssi( 0x00 ); // connection handle
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::writeAttributeAuthorizationStatus(bool authorized)
@@ -780,7 +787,7 @@ void BLE112::writeAttributeAuthorizationStatus(bool authorized)
                                     (const uint8*)&authorized                // value_data
                                     );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::writeAttributeUnreadStatus(bool unread)
@@ -798,7 +805,7 @@ void BLE112::writeAttributeUnreadStatus(bool unread)
                                     (const uint8*)&unread                    // value_data
                                     );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::readAttribute()
@@ -827,7 +834,7 @@ void BLE112::readAttribute()
         // This files contains the ids and corresponding handle values.
         bglib_.ble_cmd_attributes_read( (uint16)0x0011,       // handle value
                                         (uint8)(i*20) );      // offset
-        while ((status = bglib_.checkActivity(1000)));
+        while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
     }
 }
 
@@ -836,7 +843,7 @@ void BLE112::disconnect() {
     bglib_.ble_cmd_connection_disconnect( (uint8)0 ); // connection handle
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::encryptStart()
@@ -846,7 +853,7 @@ void BLE112::encryptStart()
                                     (uint8)1  // create bonding if devices are not already bonded
                                     );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::getBonds()
@@ -855,7 +862,7 @@ void BLE112::getBonds()
     bglib_.ble_cmd_sm_get_bonds();
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::smSetBondableMode()
@@ -864,7 +871,7 @@ void BLE112::smSetBondableMode()
     bglib_.ble_cmd_sm_set_bondable_mode( 1 ); // this device is bondable
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::smSetParameters()
@@ -877,7 +884,7 @@ void BLE112::smSetParameters()
                                      );
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::deleteBonding(uint8 connectionHandle)
@@ -886,7 +893,7 @@ void BLE112::deleteBonding(uint8 connectionHandle)
     bglib_.ble_cmd_sm_delete_bonding( connectionHandle );
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, uint8* value_data)
@@ -904,7 +911,7 @@ void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, ui
                                                  (uint8*)value_data  // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::attributesUserReadResponseAuthorized(bool authorized)
@@ -918,7 +925,7 @@ void BLE112::attributesUserReadResponseAuthorized(bool authorized)
                                                  (uint8*)&authorized // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::attributesUserReadResponseFrequency(uint16 freq)
@@ -932,7 +939,7 @@ void BLE112::attributesUserReadResponseFrequency(uint16 freq)
                                                  (uint8*)&freq // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::attributesUserReadResponseSoftwareVersion()
@@ -946,7 +953,7 @@ void BLE112::attributesUserReadResponseSoftwareVersion()
                                                  (uint8*)version // value_data
                                                  );
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
 void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
@@ -957,5 +964,5 @@ void BLE112::attributesUserWriteResponse( uint8 conn_handle, uint8 att_error )
                                                   );
 
     uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
+    while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
