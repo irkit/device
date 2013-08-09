@@ -10,8 +10,6 @@
 
 #define AUTH_SWITCH      2 // pin32
 
-#define BUSY_LED        13
-
 #define FULLCOLOR_LED_R  5 // pin9
 // temporary toggle to fix circuit's wrong wiring
 #define FULLCOLOR_LED_B  6 // pin10

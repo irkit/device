@@ -8,10 +8,16 @@
 #include "FullColorLed.h"
 #include "DebugHelper.h"
 
+#define LED_BLINK_INTERVAL 200
+
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+
+bool isAuthorized(uint8 bond_handle) {
+    return authorizedBondHandles.isMember(bond_handle);
+}
 
 void didAuthorized() {
     Serial.print(P("didAuthorized bond: ")); Serial.println(ble112.current_bond_handle);
@@ -19,8 +25,46 @@ void didAuthorized() {
     ble112.writeAttributeAuthorizationStatus(1);
 }
 
-bool isAuthorized(uint8 bond_handle) {
-    return authorizedBondHandles.isMember(bond_handle);
+void didTimeout() {
+    Serial.println(P("!!!\tTimeout occurred!"));
+    color.SetLedColor( 1, 0, 0 );
+}
+
+void didConnect() {
+    Serial.println(P("!!!\tConnected!"));
+
+    if (isAuthorized(ble112.current_bond_handle)) {
+        color.SetLedColor( 0, 0, 1 );
+    }
+    else {
+        color.SetLedColor( 1, 1, 0, LED_BLINK_INTERVAL );
+    }
+}
+
+void didDisconnect() {
+    Serial.println(P("!!!\tDisonnected!"));
+    color.SetLedColor( 0, 1, 0 );
+}
+
+void beforeIR() {
+    Serial.println(P("!!!\twill xmit IR"));
+    color.SetLedColor( 0, 0, 1, LED_BLINK_INTERVAL );
+}
+
+void afterIR() {
+    Serial.println(P("!!!\tto IR finished"));
+    color.SetLedColor( 0, 0, 1 );
+}
+
+void beforeBT() {
+    Serial.println(P("!!!\twill xmit BT"));
+    color.SetLedColor( 0, 1, 1, LED_BLINK_INTERVAL );
+}
+
+void afterBT() {
+    // TODO not called yet
+    Serial.println(P("!!!\tto BT finished"));
+    color.SetLedColor( 0, 0, 1 );
 }
 
 void cleared() {
@@ -49,9 +93,6 @@ void ir_recv_loop(void) {
 }
 
 void IRKit_setup() {
-    pinMode(BUSY_LED,         OUTPUT);
-    digitalWrite(BUSY_LED,    LOW);
-
     color.SetLedColor( 0, 1, 0 );
 
     pinMode(IR_OUT,           OUTPUT);
@@ -65,7 +106,14 @@ void IRKit_setup() {
     digitalWrite(AUTH_SWITCH, HIGH);
 
     ble112.setup();
-    ble112.isAuthorizedCallback = isAuthorized;
+    ble112.isAuthorizedCallback  = isAuthorized;
+    ble112.didTimeoutCallback    = didTimeout;
+    ble112.didConnectCallback    = didConnect;
+    ble112.didDisconnectCallback = didDisconnect;
+    ble112.beforeIRCallback      = beforeIR;
+    ble112.afterIRCallback       = afterIR;
+    ble112.beforeBTCallback      = beforeBT;
+    ble112.afterBTCallback       = afterBT;
 
     // set the data rate for the SoftwareSerial port
     ble112uart.begin(38400);

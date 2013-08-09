@@ -31,6 +31,13 @@ class BLE112 {
         uint8 next_command;
         uint8 current_bond_handle;
         bool (*isAuthorizedCallback)(uint8);
+        void (*didTimeoutCallback)();
+        void (*didConnectCallback)();
+        void (*didDisconnectCallback)();
+        void (*beforeIRCallback)();
+        void (*afterIRCallback)();
+        void (*beforeBTCallback)();
+        void (*afterBTCallback)();
 
         void setup();
         void loop();

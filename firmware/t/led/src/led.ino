@@ -3,7 +3,7 @@
 #include "FullColorLed.h"
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
-#define LED_BLINK_INTERVAL 1000
+#define LED_BLINK_INTERVAL 200
 
 void setup() {
     color.SetLedColor( 1, 1, 1 );

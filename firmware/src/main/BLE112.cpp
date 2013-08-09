@@ -20,24 +20,10 @@ extern int IR_xmit();
 // INTERNAL BGLIB CLASS CALLBACK FUNCTIONS
 // ================================================================
 
-void onBusy() {
-    // turn LED on when we're busy
-    digitalWrite(BUSY_LED, HIGH);
-}
-
-void onIdle() {
-    // turn LED off when we're no longer busy
-    digitalWrite(BUSY_LED, LOW);
-}
-
 void onTimeout() {
-    Serial.println(P("!!!\tTimeout occurred!"));
-}
-
-void onBeforeTXCommand() {
-}
-
-void onTXCommandComplete() {
+    if (ble112.didTimeoutCallback) {
+        ble112.didTimeoutCallback();
+    }
 }
 
 // ================================================================
@@ -207,7 +193,7 @@ void my_evt_gap_scan_response(const ble_msg_gap_scan_response_evt_t *msg) {
     Serial.println(P(" }"));
 }
 
-void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) {
+void my_evt_connection_status(const ble_msg_connection_status_evt_t *msg) {
     Serial.print(P("###\tconnection_status: { "));
     Serial.print(P("conn: "));    Serial.print(msg -> connection, HEX);
 
@@ -253,6 +239,10 @@ void my_evt_connection_status_evt_t(const ble_msg_connection_status_evt_t *msg) 
          (msg->flags | BGLIB_CONNECTION_ENCRYPTED) ) {
         ble112.current_bond_handle = msg->bonding;
     }
+
+    if (ble112.didConnectCallback) {
+        ble112.didConnectCallback();
+    }
 }
 
 void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t *msg) {
@@ -261,6 +251,10 @@ void my_evt_connection_disconnected(const ble_msg_connection_disconnected_evt_t 
 
     ble112.current_bond_handle = INVALID_BOND_HANDLE;
     ble112.startAdvertising();
+
+    if (ble112.didDisconnectCallback) {
+        ble112.didDisconnectCallback();
+    }
 }
 
 void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
@@ -442,7 +436,11 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
-            Serial.println(P("will xmit"));
+
+            if (ble112.beforeIRCallback) {
+                ble112.beforeIRCallback();
+            }
+
             IR_xmit();
             DumpIR(&IrCtrl);
             Serial.println(P("xmitting"));
@@ -546,15 +544,7 @@ BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
 
 void BLE112::setup()
 {
-    // set up internal status handlers
-    // (these are technically optional)
-    bglib_.onBusy = onBusy;
-    bglib_.onIdle = onIdle;
     bglib_.onTimeout = onTimeout;
-
-    // ONLY enable these if you are using the <wakeup_pin> parameter in your firmware's hardware.xml file
-    bglib_.onBeforeTXCommand = onBeforeTXCommand;
-    bglib_.onTXCommandComplete = onTXCommandComplete;
 
     // set up BGLib response handlers (called almost immediately after sending commands)
     // (these are also technicaly optional)
@@ -582,7 +572,7 @@ void BLE112::setup()
     // set up BGLib event handlers (called at unknown times)
     bglib_.ble_evt_system_boot                    = my_evt_system_boot;
     bglib_.ble_evt_gap_scan_response              = my_evt_gap_scan_response;
-    bglib_.ble_evt_connection_status              = my_evt_connection_status_evt_t;
+    bglib_.ble_evt_connection_status              = my_evt_connection_status;
     bglib_.ble_evt_connection_disconnected        = my_evt_connection_disconnected;
     bglib_.ble_evt_attributes_status              = my_evt_attributes_status;
     bglib_.ble_evt_attributes_user_read_request   = my_evt_attributes_user_read_request;
@@ -616,7 +606,10 @@ void BLE112::loop()
             next_command = NEXT_COMMAND_ID_EMPTY;
             attributesUserWriteResponse( 0,   // conn_handle
                                          0 ); // att_error
-            Serial.println(P("xmit complete"));
+
+            if (ble112.afterIRCallback) {
+                ble112.afterIRCallback();
+            }
         }
         else if ((IrCtrl.state == IR_XMITTING) &&
                  (millis() - IrCtrl.xmitStart > 1000)) {
@@ -803,6 +796,10 @@ void BLE112::writeAttributeUnreadStatus(bool unread)
 {
     Serial.print(P("-->\tattributes_write unread status: "));
     Serial.println(unread, BIN);
+
+    if (beforeBTCallback) {
+        beforeBTCallback();
+    }
 
     bglib_.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_UNREAD_STATUS, // handle value
                                     0,                                       // offset
