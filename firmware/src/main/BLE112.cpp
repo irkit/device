@@ -129,13 +129,6 @@ void my_rsp_sm_get_bonds(const ble_msg_sm_get_bonds_rsp_t *msg) {
     Serial.println(P(" }"));
 }
 
-void my_rsp_sm_passkey_entry(const ble_msg_sm_passkey_entry_rsp_t *msg) {
-    Serial.print(P("<--\tsm_passkey_entry: { "));
-    // 0x0181: Device in Wrong State Device is in wrong state to receive command
-    Serial.print(P("result: "));   Serial.print((uint16)msg -> result, HEX);
-    Serial.println(P(" }"));
-}
-
 void my_rsp_sm_set_bondable_mode(const ble_msg_sm_set_bondable_mode_rsp_t *msg) {
     Serial.println(P("<--\tsm_set_bondable_mode: {}"));
 }
@@ -520,19 +513,6 @@ void my_evt_sm_bond_status(const struct ble_msg_sm_bond_status_evt_t *msg) {
     Serial.println(P(" }"));
 }
 
-void my_evt_sm_passkey_display(const struct ble_msg_sm_passkey_display_evt_t *msg) {
-    Serial.print( P("###\tsm_passkey_display: { ") );
-    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
-    Serial.print(P(", passkey: ")); Serial.print((uint32)msg -> passkey, HEX);
-    Serial.println(P(" }"));
-}
-
-void my_evt_sm_passkey_request(const struct ble_msg_sm_passkey_request_evt_t *msg) {
-    Serial.print( P("###\tsm_passkey_request: { ") );
-    Serial.print(P("handle: "));   Serial.print((uint8)msg -> handle, HEX);
-    Serial.println(P(" }"));
-}
-
 BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     bglib_(module, 0, 1),
     next_command(0xFF),
@@ -563,7 +543,6 @@ void BLE112::setup()
     bglib_.ble_rsp_connection_get_rssi            = my_rsp_connection_get_rssi;
     bglib_.ble_rsp_sm_encrypt_start               = my_rsp_sm_encrypt_start;
     bglib_.ble_rsp_sm_get_bonds                   = my_rsp_sm_get_bonds;
-    bglib_.ble_rsp_sm_passkey_entry               = my_rsp_sm_passkey_entry;
     bglib_.ble_rsp_sm_set_bondable_mode           = my_rsp_sm_set_bondable_mode;
     bglib_.ble_rsp_sm_set_oob_data                = my_rsp_sm_set_oob_data;
     bglib_.ble_rsp_sm_set_parameters              = my_rsp_sm_set_parameters;
@@ -582,8 +561,6 @@ void BLE112::setup()
     bglib_.ble_evt_attclient_procedure_completed  = my_evt_attclient_procedure_completed;
     bglib_.ble_evt_sm_bonding_fail                = my_evt_sm_bonding_fail;
     bglib_.ble_evt_sm_bond_status                 = my_evt_sm_bond_status;
-    bglib_.ble_evt_sm_passkey_display             = my_evt_sm_passkey_display;
-    bglib_.ble_evt_sm_passkey_request             = my_evt_sm_passkey_request;
 }
 
 void BLE112::loop()
@@ -862,17 +839,6 @@ void BLE112::getBonds()
 {
     Serial.println(P("-->\tsm_get_bonds"));
     bglib_.ble_cmd_sm_get_bonds();
-
-    uint8_t status;
-    while ((status = bglib_.checkActivity(1000)));
-}
-
-void BLE112::passkeyEntry()
-{
-    Serial.println(P("-->\tsm_passkey_entry"));
-    bglib_.ble_cmd_sm_passkey_entry( (uint8)0,  // connection handle
-                                    (uint32)0  // passkey
-                                    );
 
     uint8_t status;
     while ((status = bglib_.checkActivity(1000)));

@@ -136,7 +136,6 @@ void IRKit_setup() {
     Serial.println(P("6) Disconnect"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
-    Serial.println(P("c) Passkey Entry"));
     Serial.println(P("u) Software reset BLE112 module"));
     Serial.println(P("v) Hardware reset BLE112 module"));
     Serial.println(P("w) Dump bonding"));
@@ -189,9 +188,6 @@ void IRKit_loop() {
         }
         else if (lastCharacter == 'b') {
             ble112.getBonds();
-        }
-        else if (lastCharacter == 'c') {
-            ble112.passkeyEntry();
         }
         else if (lastCharacter == 'g') {
             ble112.writeAttributeUnreadStatus( 1 );
