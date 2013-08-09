@@ -202,6 +202,8 @@ OCIE1A : Timer/Counter1, Output Compare A Match Interrupt Enable
 // clear overflowed state after XXX ms
 #define OVERFLOW_CLEAR_TIMEOUT 1000 // [ms]
 
+#define RECV_TIMEOUT           1000
+#define XMIT_TIMEOUT           1000
 
 /* Working area for IR communication  */
 
@@ -355,6 +357,16 @@ int IR_xmit ()
     return 1;
 }
 
+uint8_t IRDidRecvTimeout ()
+{
+    return (IrCtrl.state == IR_RECVING) &&  (millis() - IrCtrl.recvStart > RECV_TIMEOUT);
+}
+
+uint8_t IRDidXmitTimeout ()
+{
+    return (IrCtrl.state == IR_XMITTING) && (millis() - IrCtrl.xmitStart > XMIT_TIMEOUT);
+}
+
 void IR_state (uint8_t nextState)
 {
     uint16_t i;
@@ -383,6 +395,7 @@ void IR_state (uint8_t nextState)
         for (i=0; i<IR_BUFF_SIZE; i++) {
             IrCtrl.buff[i] = 0;
         }
+        IrCtrl.recvStart = millis();
         break;
     case IR_RECVED:
         IR_COMPARE_DISABLE();

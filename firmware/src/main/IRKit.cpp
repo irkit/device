@@ -72,14 +72,16 @@ void cleared() {
 }
 
 void ir_recv_loop(void) {
+    if ( IRDidRecvTimeout() ) {
+        Serial.println(P("!!!\tIR recv timeout"));
+        IR_state(IR_IDLE);
+    }
     if (IrCtrl.state != IR_RECVED) {
         return;
     }
 
     // can't receive here
 
-    unsigned long now = millis();
-    Serial.print(P("now: ")); Serial.println( now );
     Serial.print(P("overflowed: ")); Serial.println( IrCtrl.overflowed );
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);

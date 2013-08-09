@@ -16,8 +16,6 @@
 #define BLE112_RESPONSE_TIMEOUT              100
 #define BLE112_RESPONSE_TIMEOUT_AFTER_RESET 1000
 
-#define IR_XMIT_TIMEOUT                     1000
-
 // TODO remove IrCtrl dependency here
 extern BLE112 ble112;
 extern volatile IR_STRUCT IrCtrl;
@@ -609,8 +607,8 @@ void BLE112::loop()
                 ble112.afterIRCallback();
             }
         }
-        else if ((IrCtrl.state == IR_XMITTING) &&
-                 (millis() - IrCtrl.xmitStart > IR_XMIT_TIMEOUT)) {
+        else if ( IRDidXmitTimeout() ) {
+            Serial.println(P("!!!\tIR xmit timeout"));
             // have been xmitting for more than ** milliseconds,
             // might be something wrong, but delay our decision, respond with success
             next_command = NEXT_COMMAND_ID_EMPTY;
