@@ -7,6 +7,7 @@
 #include "SetSwitch.h"
 #include "FullColorLed.h"
 #include "DebugHelper.h"
+#include "version.h"
 
 #define LED_BLINK_INTERVAL 200
 
@@ -136,10 +137,13 @@ void IRKit_setup() {
     Serial.println(P("6) Disconnect"));
     Serial.println(P("a) Encrypt Start"));
     Serial.println(P("b) Get Bonds"));
-    Serial.println(P("u) Software reset BLE112 module"));
-    Serial.println(P("v) Hardware reset BLE112 module"));
+    Serial.println(P("t) Software reset BLE112 module"));
+    Serial.println(P("u) Hardware reset BLE112 module"));
+
+    Serial.println(P("v) Dump version"));
     Serial.println(P("w) Dump bonding"));
     Serial.println(P("x) Dump IrCtrl.buff"));
+
     Serial.println(P("y) Delete bonding"));
     Serial.println(P("z) Clear Switch Auth saved data"));
     Serial.println(P("Command?"));
@@ -192,11 +196,15 @@ void IRKit_loop() {
         else if (lastCharacter == 'g') {
             ble112.writeAttributeUnreadStatus( 1 );
         }
-        else if (lastCharacter == 'u') {
+        else if (lastCharacter == 't') {
             ble112.softwareReset();
         }
-        else if (lastCharacter == 'v') {
+        else if (lastCharacter == 'u') {
             ble112.hardwareReset();
+        }
+        else if (lastCharacter == 'v') {
+            Serial.print(P("version: "));
+            Serial.println(version);
         }
         else if (lastCharacter == 'w') {
             Serial.print(P("authorized bond: count: "));
