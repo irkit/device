@@ -414,6 +414,9 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             }
             // ready to fill IR data
             if (msg->offset == 0) {
+                if (ble112.beforeIRCallback) {
+                    ble112.beforeIRCallback();
+                }
                 IR_state( IR_IDLE ); // clear IrCtrl.buff
             }
 
@@ -439,10 +442,6 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 Serial.println(P("!!! invalid data"));
                 ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
-            }
-
-            if (ble112.beforeIRCallback) {
-                ble112.beforeIRCallback();
             }
 
             IR_xmit();
