@@ -11,6 +11,9 @@
 
 #define LED_BLINK_INTERVAL 200
 
+// down -1- up -2- down -3- up -4- down -5- up
+#define VALID_IR_LEN_MIN   5
+
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 SetSwitch authorizedBondHandles( AUTH_SWITCH );
@@ -77,6 +80,11 @@ void ir_recv_loop(void) {
         IR_state(IR_IDLE);
     }
     if (IrCtrl.state != IR_RECVED) {
+        return;
+    }
+    if (IrCtrl.len < VALID_IR_LEN_MIN) {
+        // data is too short = should be noise
+        IR_state(IR_IDLE);
         return;
     }
 
