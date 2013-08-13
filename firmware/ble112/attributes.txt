@@ -9,4 +9,4 @@ c_ir_data 26
 c_ir_unread_status 29
 c_ir_control_point 33
 c_ir_carrier_frequency 36
-c_ir_auth_status 39
+c_auth_status 40

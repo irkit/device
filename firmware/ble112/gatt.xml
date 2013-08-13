@@ -70,7 +70,7 @@
     </service>
 
     <service uuid="195AE58A-437A-489B-B0CD-B7C9C394BAE4" id="ir_remote_controller" advertise="true">
-        <description>Infrared Remote Controller service</description>
+        <description>Infrared Remote Controller Service</description>
 
         <characteristic uuid="5FC569A0-74A9-4FA4-B8B7-8354C86E45A4" id="c_ir_data">
             <description>IR Data.
@@ -131,13 +131,18 @@
             <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
-        <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_ir_auth_status">
-            <description>IR Authorization Status</description>
+    </service>
+
+    <service uuid="D1D560E1-7ADA-43F3-ADB5-C3A49DC5C66D" id="proximity_auth" advertise="false">
+        <description>Proximity Authentication Service</description>
+
+        <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_auth_status">
+            <description>Authentication Status</description>
             <properties read="true"
                         const="false"
                         write="false"
                         notify="false"
-                        indicate="true"
+                        indicate="false"
                         authenticated_read="false"
                         authenticated_write="false"
                         />
