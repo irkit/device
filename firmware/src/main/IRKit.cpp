@@ -4,7 +4,7 @@
 #include "pgmStrToRAM.h"
 #include "BLE112.h"
 #include "IrCtrl.h"
-#include "SetSwitch.h"
+#include "EEPROMSet.h"
 #include "FullColorLed.h"
 #include "DebugHelper.h"
 #include "version.h"
@@ -16,7 +16,7 @@
 
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
-SetSwitch authorizedBondHandles( AUTH_SWITCH );
+EEPROMSet authorizedBondHandles;
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 bool isAuthorized(uint8 bond_handle) {
@@ -112,9 +112,7 @@ void IRKit_setup() {
     pinMode(IR_IN,            INPUT);
     digitalWrite(IR_IN,       HIGH);
 
-    // pull-up
-    pinMode(AUTH_SWITCH,      INPUT);
-    digitalWrite(AUTH_SWITCH, HIGH);
+    authorizedBondHandles.setup();
 
     ble112.setup();
     ble112.isAuthorizedCallback  = isAuthorized;
@@ -130,10 +128,6 @@ void IRKit_setup() {
     ble112uart.begin(38400);
 
     ble112.hardwareReset();
-
-    authorizedBondHandles.setup();
-    authorizedBondHandles.callback      = didAuthorized;
-    authorizedBondHandles.clearCallback = cleared;
 
     IR_initialize();
 
@@ -166,9 +160,6 @@ void IRKit_loop() {
 
     // check if received
     ir_recv_loop();
-
-    // check for auth switch pressed
-    authorizedBondHandles.loop(ble112.current_bond_handle);
 
     // blink
     color.Loop();

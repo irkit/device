@@ -8,8 +8,6 @@
 #define IR_IN            8 // pin12 PB0 ICP1 Counter1 (PCINT0/CLKO/ICP1)
 #define IR_OUT           3 // pin1  PD3 OC2B Timer2 (PCINT19/OC2B/INT1)
 
-#define AUTH_SWITCH      2 // pin32
-
 #define FULLCOLOR_LED_R  5 // pin9
 // temporary toggle to fix circuit's wrong wiring
 #define FULLCOLOR_LED_B  6 // pin10
