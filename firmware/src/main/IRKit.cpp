@@ -16,17 +16,18 @@
 
 SoftwareSerial ble112uart( BLE112_RX, BLE112_TX );
 BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
-EEPROMSet authorizedBondHandles;
+EEPROMSet authenticatedBondHandles;
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
-bool isAuthorized(uint8 bond_handle) {
-    return authorizedBondHandles.isMember(bond_handle);
+bool isAuthenticated(uint8 bond_handle) {
+    return authenticatedBondHandles.isMember(bond_handle);
 }
 
-void didAuthorized() {
-    Serial.print(P("didAuthorized bond: ")); Serial.println(ble112.current_bond_handle);
-    // ble112 will indicate iOS central device
-    ble112.writeAttributeAuthorizationStatus(1);
+void didAuthenticate() {
+    Serial.print(P("didAuthenticate bond: ")); Serial.println(ble112.current_bond_handle);
+
+    authenticatedBondHandles.add( ble112.current_bond_handle );
+    authenticatedBondHandles.save();
 }
 
 void didTimeout() {
@@ -37,7 +38,7 @@ void didTimeout() {
 void didConnect() {
     Serial.println(P("!!!\tConnected!"));
 
-    if (isAuthorized(ble112.current_bond_handle)) {
+    if (isAuthenticated(ble112.current_bond_handle)) {
         color.SetLedColor( 0, 0, 1 );
     }
     else {
@@ -71,7 +72,7 @@ void afterBT() {
 }
 
 void cleared() {
-    Serial.println(P("authorized bond cleared"));
+    Serial.println(P("authenticated bond cleared"));
 }
 
 void ir_recv_loop(void) {
@@ -98,7 +99,7 @@ void ir_recv_loop(void) {
     IR_state( IR_RECVED_IDLE );
 
     if (ble112.current_bond_handle != INVALID_BOND_HANDLE) {
-        // notify only when connected & authorized
+        // notify only when connected & authenticated
         ble112.writeAttributeUnreadStatus( 1 );
     }
 }
@@ -112,10 +113,11 @@ void IRKit_setup() {
     pinMode(IR_IN,            INPUT);
     digitalWrite(IR_IN,       HIGH);
 
-    authorizedBondHandles.setup();
+    authenticatedBondHandles.setup();
 
     ble112.setup();
-    ble112.isAuthorizedCallback  = isAuthorized;
+    ble112.isAuthenticatedCallback  = isAuthenticated;
+    ble112.didAuthenticateCallback  = didAuthenticate;
     ble112.didTimeoutCallback    = didTimeout;
     ble112.didConnectCallback    = didConnect;
     ble112.didDisconnectCallback = didDisconnect;
@@ -215,11 +217,11 @@ void IRKit_loop() {
             Serial.println(version);
         }
         else if (lastCharacter == 'w') {
-            Serial.print(P("authorized bond: count: "));
-            Serial.println(authorizedBondHandles.count(), HEX);
+            Serial.print(P("authenticated bond: count: "));
+            Serial.println(authenticatedBondHandles.count(), HEX);
             Serial.print(P("{ "));
-            for (uint8_t i=0; i<authorizedBondHandles.count(); i++) {
-                Serial.print(authorizedBondHandles.data(i));
+            for (uint8_t i=0; i<authenticatedBondHandles.count(); i++) {
+                Serial.print(authenticatedBondHandles.data(i));
                 Serial.print(P(" "));
             }
             Serial.println(P("}"));
@@ -231,8 +233,8 @@ void IRKit_loop() {
             ble112.deleteBonding(0);
         }
         else if (lastCharacter == 'z') {
-            Serial.println(P("cleared switch auth data"));
-            authorizedBondHandles.clear();
+            Serial.println(P("cleared authenticated bonding"));
+            authenticatedBondHandles.clear();
         }
     }
 }
