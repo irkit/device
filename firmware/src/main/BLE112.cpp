@@ -16,6 +16,13 @@
 #define BLE112_RESPONSE_TIMEOUT              100
 #define BLE112_RESPONSE_TIMEOUT_AFTER_RESET 1000
 
+// if RSSI is heigher than (including) this value,
+// authenticate the connected handle
+// at -38dBm the BLE112 receiver is saturated.
+// by p81 of Bluetooth_Smart_API_11_11032013.pdf
+// TODO adjust this when our production case is ready
+#define NEAR_RSSI_MIN  -40
+
 // TODO remove IrCtrl dependency here
 extern BLE112 ble112;
 extern volatile IR_STRUCT IrCtrl;
@@ -113,11 +120,28 @@ void my_rsp_connection_disconnect(const struct ble_msg_connection_disconnect_rsp
     Serial.println(P(" }"));
 }
 
+// respond to ATTRIBUTE_HANDLE_AUTH_CONTROL_POINT write event
 void my_rsp_connection_get_rssi(const ble_msg_connection_get_rssi_rsp_t *msg) {
+    int8 rssi = msg->rssi;
     Serial.print(P("<--\tconnection_get_rssi: { "));
     Serial.print(P("conn: "));   Serial.print((uint8)msg -> connection, HEX);
-    Serial.print(P(", rssi: ")); Serial.print((uint8)msg -> rssi);
+    Serial.print(P(", rssi: ")); Serial.print(rssi);
     Serial.println(P(" }"));
+
+    // rssi can be > 0 if not connected
+
+    if ( (rssi < 0) && (rssi >= NEAR_RSSI_MIN) ) {
+        // ok
+        if (ble112.didAuthenticateCallback) {
+            ble112.didAuthenticateCallback();
+        }
+
+        ble112.attributesUserReadResponseAuthenticated( 1 );
+    }
+    else {
+        // too far
+        ble112.attributesUserReadResponseAuthenticated( 0 );
+    }
 }
 
 void my_rsp_sm_encrypt_start(const ble_msg_sm_encrypt_start_rsp_t *msg) {
@@ -228,7 +252,7 @@ void my_evt_connection_status(const ble_msg_connection_status_evt_t *msg) {
 
     if (msg->bonding == INVALID_BOND_HANDLE) {
         // DON'T DO THIS, fails because of timing?
-        // we'll encrypt after client read authorization attribute
+        // we'll encrypt after client read auth attribute
         // auto enrypt
         // this shows bonding dialog on iOS
         // ble112.encryptStart();
@@ -265,6 +289,7 @@ void my_evt_attributes_status(const ble_msg_attributes_status_evt_t *msg) {
     Serial.println(P(" }"));
 }
 
+// central reads characteristic
 void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_read_request_evt_t* msg) {
     Serial.print(P("free:")); Serial.println( freeMemory() );
     Serial.print( P("###\tattributes_user_read_request: { ") );
@@ -277,10 +302,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
-            bool authorized = ble112.isAuthorizedCallback(ble112.current_bond_handle);
-            if ( ! authorized ) {
-                Serial.println(P("!!! unauthorized read"));
-                ble112.attributesUserReadResponseData( ATT_ERROR_UNAUTHORIZED, // att_error
+            bool authenticated = ble112.isAuthenticatedCallback(ble112.current_bond_handle);
+            if ( ! authenticated ) {
+                Serial.println(P("!!! unauthenticated read"));
+                ble112.attributesUserReadResponseData( ATT_ERROR_UNAUTHENTICATED, // att_error
                                                        0, // value_len
                                                        NULL // value_data
                                                        );
@@ -329,23 +354,27 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
             ble112.attributesUserReadResponseFrequency( IrCtrl.freq );
         }
         break;
-    case ATTRIBUTE_HANDLE_IR_AUTH_STATUS:
+    case ATTRIBUTE_HANDLE_AUTH_STATUS:
         {
             if (ble112.current_bond_handle == INVALID_BOND_HANDLE) {
-                // we can't determine if we're authorized or not
+                // we can't determine if we're authenticated or not
                 // if we aren't bonded yet
-                // maybe create a notification to tell central we're bonded?
                 Serial.println(P("!!! not bonded yet !!!"));
-                ble112.attributesUserReadResponseAuthorized( 0 );
+                ble112.attributesUserReadResponseAuthenticated( 0 );
                 ble112.next_command = NEXT_COMMAND_ID_ENCRYPT_START;
                 return;
             }
 
-            bool authorized = ble112.isAuthorizedCallback( ble112.current_bond_handle );
-            ble112.attributesUserReadResponseAuthorized( authorized );
-            if ( ! authorized ) {
-                ble112.next_command = NEXT_COMMAND_ID_ENCRYPT_START;
+            bool authenticated = ble112.isAuthenticatedCallback( ble112.current_bond_handle );
+            if ( authenticated ) {
+                ble112.attributesUserReadResponseAuthenticated( 1 );
+                return;
             }
+            // get RSSI, and if we're close enough,
+            // we determine that we've successfully authenticated
+            ble112.getRSSI();
+
+            // next: my_rsp_connection_get_rssi
         }
         break;
     case ATTRIBUTE_HANDLE_SOFTWARE_VERSION:
@@ -359,6 +388,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
     }
 }
 
+// central writes characteristic
 void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg ) {
     Serial.print( P("###\tattributes_value: { ") );
     Serial.print(P("conn: "));  Serial.print((uint8)msg -> connection, HEX);
@@ -385,11 +415,12 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
         return;
     }
-    bool authorized = ble112.isAuthorizedCallback( ble112.current_bond_handle );
-    if ( ! authorized ) {
-        // writes always require authz
-        Serial.println(P("!!! unauthorized write"));
-        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED;
+    bool authenticated = ble112.isAuthenticatedCallback( ble112.current_bond_handle );
+    if ( ! authenticated ) {
+        // writes to characteristics other than auth control point
+        // always require authz
+        Serial.println(P("!!! unauthenticated write"));
+        ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHENTICATED;
         return;
     }
     if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
@@ -434,7 +465,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
     case ATTRIBUTE_HANDLE_IR_CONTROL_POINT:
         {
             if (msg->value.data[0] != 0) {
-                Serial.println(P("!!! unknown control point value"));
+                Serial.println(P("!!! unknown ir control point value"));
                 ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
             }
@@ -527,7 +558,7 @@ BLE112::BLE112(HardwareSerial *module, uint8_t reset_pin) :
     bglib_(module, 0, 1),
     next_command(0xFF),
     reset_pin_(reset_pin),
-    isAuthorizedCallback(0),
+    isAuthenticatedCallback(0),
     didTimeoutCallback(0),
     didConnectCallback(0),
     didDisconnectCallback(0),
@@ -616,10 +647,10 @@ void BLE112::loop()
                                          0 ); // att_error
         }
         break;
-    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHORIZED:
+    case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHENTICATED:
         next_command = NEXT_COMMAND_ID_EMPTY;
         attributesUserWriteResponse( 0,   // conn_handle
-                                     ATT_ERROR_UNAUTHORIZED ); // att_error
+                                     ATT_ERROR_UNAUTHENTICATED ); // att_error
         break;
     case NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_STATE:
         next_command = NEXT_COMMAND_ID_EMPTY;
@@ -774,15 +805,15 @@ void BLE112::getRSSI()
     while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
-void BLE112::writeAttributeAuthorizationStatus(bool authorized)
+void BLE112::writeAttributeAuthStatus(bool authenticated)
 {
     Serial.print(P("-->\tattributes_write auth status: "));
-    Serial.println(authorized, BIN);
+    Serial.println(authenticated, BIN);
 
-    bglib_.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_IR_AUTH_STATUS, // handle value
-                                    0,                                       // offset
-                                    1,                                       // value_len
-                                    (const uint8*)&authorized                // value_data
+    bglib_.ble_cmd_attributes_write( (uint16)ATTRIBUTE_HANDLE_AUTH_STATUS, // handle value
+                                    0,                                     // offset
+                                    1,                                     // value_len
+                                    (const uint8*)&authenticated           // value_data
                                     );
     uint8_t status;
     while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
@@ -912,15 +943,15 @@ void BLE112::attributesUserReadResponseData(uint8 att_error, uint8 value_len, ui
     while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
 }
 
-void BLE112::attributesUserReadResponseAuthorized(bool authorized)
+void BLE112::attributesUserReadResponseAuthenticated(bool authenticated)
 {
-    Serial.print(P("-->\tattributes_user_read_response authorized: "));
-    Serial.println(authorized, BIN);
+    Serial.print(P("-->\tattributes_user_read_response authenticated: "));
+    Serial.println(authenticated, BIN);
 
     bglib_.ble_cmd_attributes_user_read_response( (uint8)0,   // connection handle
                                                  (uint8)0,   // att_error
                                                  (uint8)1,   // value_len,
-                                                 (uint8*)&authorized // value_data
+                                                 (uint8*)&authenticated // value_data
                                                  );
     uint8_t status;
     while ((status = bglib_.checkActivity(BLE112_RESPONSE_TIMEOUT)));
