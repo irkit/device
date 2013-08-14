@@ -131,11 +131,6 @@
             <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
 
-    </service>
-
-    <service uuid="D1D560E1-7ADA-43F3-ADB5-C3A49DC5C66D" id="proximity_auth" advertise="false">
-        <description>Proximity Authentication Service</description>
-
         <characteristic uuid="6A936395-E774-4BC0-8B1D-6D14DAA5FC13" id="c_auth_status">
             <description>Authentication Status</description>
             <properties read="true"
@@ -148,7 +143,5 @@
                         />
             <value variable_length="false" length="1" type="user">0</value>
         </characteristic>
-
     </service>
-
 </configuration>

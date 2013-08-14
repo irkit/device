@@ -28,6 +28,8 @@ void didAuthenticate() {
 
     authenticatedBondHandles.add( ble112.current_bond_handle );
     authenticatedBondHandles.save();
+
+    color.SetLedColor( 0, 0, 1 );
 }
 
 void didTimeout() {
