@@ -19,14 +19,14 @@ EEPROMSet authenticatedBondHandles;
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 bool isAuthenticated(uint8 bond_handle) {
-    return authenticatedBondHandles.isMember(bond_handle);
+    return authenticatedBondHandles.IsMember(bond_handle);
 }
 
 void didAuthenticate() {
     Serial.print(P("didAuthenticate bond: ")); Serial.println(ble112.current_bond_handle);
 
-    authenticatedBondHandles.add( ble112.current_bond_handle );
-    authenticatedBondHandles.save();
+    authenticatedBondHandles.Add( ble112.current_bond_handle );
+    authenticatedBondHandles.Save();
 
     color.SetLedColor( 0, 0, 1 );
 }
@@ -139,7 +139,7 @@ void IRKit_setup() {
     pinMode(IR_IN,            INPUT);
     digitalWrite(IR_IN,       HIGH);
 
-    authenticatedBondHandles.setup();
+    authenticatedBondHandles.Setup();
 
     ble112.setup();
     ble112.isAuthenticatedCallback  = isAuthenticated;
@@ -210,14 +210,7 @@ void IRKit_loop() {
         }
 
         else if (lastCharacter == 'a') {
-            Serial.print(P("authenticated bond: count: "));
-            Serial.println(authenticatedBondHandles.count(), HEX);
-            Serial.print(P("{ "));
-            for (uint8_t i=0; i<authenticatedBondHandles.count(); i++) {
-                Serial.print(authenticatedBondHandles.data(i));
-                Serial.print(P(" "));
-            }
-            Serial.println(P("}"));
+            authenticatedBondHandles.Dump();
         }
         else if (lastCharacter == 'b') {
             ble112.getBonds();
@@ -233,7 +226,7 @@ void IRKit_loop() {
         else if (lastCharacter == 'c') {
             ble112.deleteBonding(0);
 
-            authenticatedBondHandles.clear();
+            authenticatedBondHandles.Clear();
             Serial.println(P("cleared authenticated bonding"));
         }
         else if (lastCharacter == 'd') {

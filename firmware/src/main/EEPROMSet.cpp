@@ -1,5 +1,6 @@
 #include "EEPROMSet.h"
 #include <avr/eeprom.h>
+#include "pgmStrToRAM.h"
 
 //
 // DESCRIPTION:
@@ -14,67 +15,72 @@
 // 0xFF is the value of "bonding" in BLE112's connection status event, when the connected device is not bonded
 #define INVALID_KEY 0xFF
 
-struct
+struct SavedData
 {
     uint8_t members[MAX_NUMBER_OF_MEMBERS];
     uint8_t count;
-} setData;
+    uint8_t version;
+    uint8_t crc8;
+} saved_data;
+
+struct CRCedData
+{
+    uint8_t members[MAX_NUMBER_OF_MEMBERS];
+    uint8_t count;
+    uint8_t version;
+};
 
 EEPROMSet::EEPROMSet()
 {
 }
 
-void EEPROMSet::setup()
+void EEPROMSet::Setup()
 {
-    eeprom_read_block((void*)&setData, (void*)0, sizeof(setData));
+    eeprom_read_block((void*)&saved_data, (void*)0, sizeof(saved_data));
 }
 
-bool EEPROMSet::isMember(uint8_t key)
+bool EEPROMSet::IsMember(uint8_t key)
 {
     if (key == INVALID_KEY) {
         return 0;
     }
-    for (uint8_t i=0; i<setData.count; i++) {
-        if (setData.members[i] == key) {
+    for (uint8_t i=0; i<saved_data.count; i++) {
+        if (saved_data.members[i] == key) {
             return 1;
         }
     }
     return 0;
 }
 
-bool EEPROMSet::isFull()
-{
-    return setData.count == MAX_NUMBER_OF_MEMBERS ? 1 : 0;
-}
-
 // uniquely add
-void EEPROMSet::add(uint8_t key)
+void EEPROMSet::Add(uint8_t key)
 {
-    for (uint8_t i=0; i<setData.count; i++) {
-        if (setData.members[i] == key) {
+    for (uint8_t i=0; i<saved_data.count; i++) {
+        if (saved_data.members[i] == key) {
             return;
         }
     }
-    setData.members[ setData.count ++ ] = key;
+    saved_data.members[ saved_data.count ++ ] = key;
 }
 
-uint8_t EEPROMSet::count()
+void EEPROMSet::Save(void)
 {
-    return setData.count;
+    eeprom_write_block((const void*)&saved_data, (void*)0, sizeof(saved_data));
 }
 
-uint8_t EEPROMSet::data(uint8_t index)
+void EEPROMSet::Clear(void)
 {
-    return setData.members[index];
+    saved_data.count = 0;
+    Save();
 }
 
-void EEPROMSet::save(void)
+void EEPROMSet::Dump(void)
 {
-    eeprom_write_block((const void*)&setData, (void*)0, sizeof(setData));
-}
-
-void EEPROMSet::clear(void)
-{
-    setData.count = 0;
-    save();
+    Serial.print(P("authenticated bond: ")); Serial.println(saved_data.count, HEX);
+    Serial.print(P("{ "));
+    for (uint8_t i=0; i<saved_data.count; i++) {
+        Serial.print(saved_data.members[i]);
+        Serial.print(P(" "));
+    }
+    Serial.println(P("}"));
 }
