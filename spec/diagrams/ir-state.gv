@@ -1,0 +1,46 @@
+digraph ir_state {
+    rankdir=TB;
+
+    START [ label = "START", shape = point, fixedsize = false ];
+
+    node [shape=ellipse, fontsize=12, fixedsize=true, width=1.5, height=0.8];
+
+    IDLE  [ label = "IDLE (0)" ];
+    START -> IDLE       [ label = "Initialize", weight = 100 ];
+
+    subgraph cluster_ir {
+        label = "IR -> BLE";
+        color=lightgray;
+        rank=source;
+
+        RECVING     [ label = "RECVING (1)" ];
+        RECVED      [ label = "RECVED (2)" ];
+        RECVED_IDLE [ label = "RECVED_IDLE (4)" ];
+        READING     [ label = "READING (5)" ];
+
+        RECVING     -> RECVED      [ label = "Overflowed" ];
+        RECVING     -> RECVED      [ label = "Trailer detected" ];
+
+        RECVED      -> RECVED_IDLE [ label = "Notified BLE central using\n\"IR Unread Status\" characteristic" ];
+        RECVED_IDLE -> READING     [ label = "BLE central starts reading" ];
+
+    }
+    subgraph cluster_ble {
+        label = "BLE -> IR";
+        color=lightgray;
+        rank=source;
+
+        XMITTING    [ label = "XMITTING (3)" ];
+        WRITING     [ label = "WRITING (6)" ];
+
+        WRITING     -> XMITTING    [ label = "IR_xmit called" ];
+    }
+
+    IDLE -> IDLE        [ label = "Overflow continues" ];
+    IDLE -> RECVING     [ label = "Falling edge", weight = 10 ];
+    IDLE -> WRITING     [ label = "BLE central writing\nIR data into peripheral", weight = 10 ];
+
+    RECVED_IDLE -> IDLE [ label = "Falling edge\n(starts RECVING)" ];
+    READING     -> IDLE [ label = "Reading finished or any error" ];
+    XMITTING    -> IDLE [ label = "All data sent" ];
+}

@@ -1,0 +1,4 @@
+use graphviz
+http://www.graphviz.org/pdf/dotguide.pdf
+
+dot -Tpng in.gv -o out.png
