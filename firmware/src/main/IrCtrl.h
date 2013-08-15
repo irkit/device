@@ -25,16 +25,14 @@
 #define IR_BUFF_SIZE       512
 #define IR_DEFAULT_CARRIER 38
 
-/* IR control state (state) */
+/* IR control state */
 #define IR_IDLE        0    /* In idle state, ready to receive/transmit */
 #define IR_RECVING     1    /* An IR frame is being received */
 #define IR_RECVED      2    /* An IR frame has been received and data is valid */
-#define IR_XMITTING    3    /* IR transmission is in progress */
-#define IR_RECVED_IDLE 4    /* Received IR frame is on memory til next receive and transmit */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define IR_RECVED_IDLE 3    /* Received IR frame is on memory til next receive and transmit */
+#define IR_READING     4    /* BLE central is reading IR data, can't receive IR */
+#define IR_WRITING     10   /* BLE central is wrinting IR data, can't receive IR */
+#define IR_XMITTING    11   /* IR transmission is in progress */
 
 typedef struct _irstruct {
     uint8_t state;               // Communication state
@@ -58,9 +56,6 @@ int IR_xmit (void);
 uint8_t IRDidRecvTimeout ();
 uint8_t IRDidXmitTimeout ();
 void IR_state (uint8_t);
-
-#ifdef __cplusplus
-}
-#endif
+void IR_dump (void);
 
 #endif // __IRCTRL_H__

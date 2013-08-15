@@ -6,7 +6,6 @@
 #include "IrCtrl.h"
 #include "EEPROMSet.h"
 #include "FullColorLed.h"
-#include "DebugHelper.h"
 #include "version.h"
 
 #define LED_BLINK_INTERVAL 200
@@ -81,6 +80,7 @@ void ir_recv_loop(void) {
     if ( IRDidRecvTimeout() ) {
         Serial.println(P("!!!\tIR recv timeout"));
         IR_state(IR_IDLE);
+        return;
     }
     if (IrCtrl.state != IR_RECVED) {
         return;
@@ -93,8 +93,8 @@ void ir_recv_loop(void) {
 
     // can't receive here
 
-    Serial.print(P("overflowed: ")); Serial.println( IrCtrl.overflowed );
-    Serial.print(P("free:")); Serial.println( freeMemory() );
+    Serial.print(P("overflowed: "));  Serial.println( IrCtrl.overflowed );
+    Serial.print(P("free:"));         Serial.println( freeMemory() );
     Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
 
     // start receiving again while leaving received data readable from central
@@ -223,7 +223,7 @@ void IRKit_loop() {
             ble112.getBonds();
         }
         else if (lastCharacter == 'i') {
-            DumpIR(&IrCtrl);
+            IR_dump();
         }
         else if (lastCharacter == 'v') {
             Serial.print(P("version: "));

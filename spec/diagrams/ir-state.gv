@@ -15,8 +15,8 @@ digraph ir_state {
 
         RECVING     [ label = "RECVING (1)" ];
         RECVED      [ label = "RECVED (2)" ];
-        RECVED_IDLE [ label = "RECVED_IDLE (4)" ];
-        READING     [ label = "READING (5)" ];
+        RECVED_IDLE [ label = "RECVED_IDLE (3)" ];
+        READING     [ label = "READING (4)" ];
 
         RECVING     -> RECVED      [ label = "Overflowed" ];
         RECVING     -> RECVED      [ label = "Trailer detected" ];
@@ -30,8 +30,8 @@ digraph ir_state {
         color=lightgray;
         rank=source;
 
-        XMITTING    [ label = "XMITTING (3)" ];
-        WRITING     [ label = "WRITING (6)" ];
+        WRITING     [ label = "WRITING (10)" ];
+        XMITTING    [ label = "XMITTING (11)" ];
 
         WRITING     -> XMITTING    [ label = "IR_xmit called" ];
     }

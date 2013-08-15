@@ -4,7 +4,6 @@
 #include "IrCtrl.h"
 #include "MemoryFree.h"
 #include "version.h"
-#include "DebugHelper.h"
 
 // gatt.xml allows max: 255 for service.characteristic.value.length
 // but BGLib I2C fails (waiting for attributes_write response timeouts) sending 255Bytes
@@ -311,9 +310,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                        );
                 break;
             }
-            if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
-                // must be idle
-                Serial.print(P("!!! user_read_request not idle state: ")); Serial.println(IrCtrl.state, HEX);
+            if ( (IrCtrl.state != IR_RECVED_IDLE) &&
+                 (IrCtrl.state != IR_READING) ) {
+                // you can read data only when we're IR_RECVED_IDLE state
+                Serial.print(P("!!! user_read_request unexpected state: ")); Serial.println(IrCtrl.state, HEX);
                 ble112.attributesUserReadResponseData( ATT_ERROR_STATE, // att_error
                                                        0, // value_len
                                                        NULL // value_data
@@ -328,6 +328,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                        NULL // value_data
                                                        );
                 break;
+            }
+            if ( msg->offset == 0 ) {
+                // 1st read
+                IR_state( IR_READING );
             }
             uint8 value_len = msg->maxsize;
             bool is_last_slice = 0;
@@ -345,6 +349,7 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                                                    );
 
             if ( is_last_slice && ble112.afterBTCallback ) {
+                IR_state( IR_IDLE );
                 ble112.afterBTCallback();
             }
         }
@@ -423,8 +428,11 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNAUTHENTICATED;
         return;
     }
-    if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
-        // must be idle
+    if ( (IrCtrl.state != IR_IDLE) &&
+         (IrCtrl.state != IR_RECVED_IDLE) &&
+         (IrCtrl.state != IR_WRITING) ) {
+        // must be idle or writing
+        IR_state( IR_IDLE );
         Serial.print(P("!!! write_request not idle state: ")); Serial.println(IrCtrl.state, HEX);
         ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_STATE;
         return;
@@ -439,6 +447,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             // valid offset and length?
             if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
                 // overflow
+                IR_state( IR_IDLE );
                 Serial.println(P("!!! write overflow"));
                 ble112.next_command = NEXT_COMMAND_ID_USER_WRITE_RESPONSE_ERROR_UNEXPECTED;
                 return;
@@ -448,7 +457,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                 if (ble112.beforeIRCallback) {
                     ble112.beforeIRCallback();
                 }
-                IR_state( IR_IDLE ); // clear IrCtrl.buff
+                IR_state( IR_WRITING );
             }
 
             buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
@@ -476,7 +485,7 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
             }
 
             IR_xmit();
-            DumpIR(&IrCtrl);
+            IR_dump();
             Serial.println(P("xmitting"));
 
             // delay response til xmit complete
@@ -639,6 +648,7 @@ void BLE112::loop()
             }
         }
         else if ( IRDidXmitTimeout() ) {
+            IR_state( IR_IDLE );
             Serial.println(P("!!!\tIR xmit timeout"));
             // have been xmitting for more than ** milliseconds,
             // might be something wrong, but delay our decision, respond with success

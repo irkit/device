@@ -20,6 +20,7 @@
 
 #include <Arduino.h>
 #include "IrCtrl.h"
+#include "pgmStrToRAM.h"
 
 /*----------------------------------------------------------------------------/
 / How this works (RX)
@@ -340,7 +341,7 @@ int IR_xmit ()
         (IrCtrl.len > IR_BUFF_SIZE)) {
         return 0;
     }
-    if ( (IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVED_IDLE) ) {
+    if ( IrCtrl.state != IR_WRITING ) {
         return 0; // Abort when collision detected
     }
 
@@ -367,9 +368,20 @@ uint8_t IRDidXmitTimeout ()
     return (IrCtrl.state == IR_XMITTING) && (millis() - IrCtrl.xmitStart > XMIT_TIMEOUT);
 }
 
-void IR_state (uint8_t nextState)
+void IR_clear (void)
 {
     uint16_t i;
+    IrCtrl.len        = 0;
+    IrCtrl.txIndex    = 0;
+    IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+    IrCtrl.overflowed = 0;
+    for (i=0; i<IR_BUFF_SIZE; i++) {
+        IrCtrl.buff[i] = 0;
+    }
+}
+
+void IR_state (uint8_t nextState)
+{
     switch (nextState) {
     case IR_IDLE:
         IR_TX_OFF();
@@ -379,31 +391,29 @@ void IR_state (uint8_t nextState)
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
 
-        IrCtrl.len        = 0;
-        IrCtrl.txIndex    = 0;
-        IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
-        IrCtrl.overflowed = 0;
-        for (i=0; i<IR_BUFF_SIZE; i++) {
-            IrCtrl.buff[i] = 0;
-        }
+        IR_clear();
         break;
     case IR_RECVING:
-        IrCtrl.len        = 0;
-        IrCtrl.txIndex    = 0;
-        IrCtrl.freq       = IR_DEFAULT_CARRIER; // we only receive 38kHz (our IR receiver device decodes 38kHz)
-        IrCtrl.overflowed = 0;
-        for (i=0; i<IR_BUFF_SIZE; i++) {
-            IrCtrl.buff[i] = 0;
-        }
+        IR_clear();
+
         IrCtrl.recvStart = millis();
         break;
     case IR_RECVED:
-        IR_COMPARE_DISABLE();
         IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
         break;
     case IR_RECVED_IDLE:
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
+        break;
+    case IR_READING:
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
+        break;
+    case IR_WRITING:
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
+        IR_clear();
         break;
     case IR_XMITTING:
         IR_CAPTURE_DISABLE();
@@ -421,4 +431,47 @@ void IR_initialize (void)
     IR_INIT_XMIT();
 
     IR_state( IR_IDLE );
+}
+
+void IR_dump (void)
+{
+    Serial.print(P("IR .state: "));
+    switch (IrCtrl.state) {
+    case IR_IDLE:
+        Serial.println(P("IDLE"));
+        break;
+    case IR_RECVING:
+        Serial.println(P("RECVING"));
+        break;
+    case IR_RECVED:
+        Serial.println(P("RECVED"));
+        break;
+    case IR_RECVED_IDLE:
+        Serial.println(P("RECVED_IDLE"));
+        break;
+    case IR_READING:
+        Serial.println(P("READING"));
+        break;
+    case IR_WRITING:
+        Serial.println(P("WRITING"));
+        break;
+    case IR_XMITTING:
+        Serial.println(P("XMITTING"));
+        break;
+    default:
+        Serial.println(P("!!! UNEXPECTED !!!"));
+        break;
+    }
+    Serial.print(P(" .len: "));          Serial.println(IrCtrl.len,HEX);
+    Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
+    Serial.print(P(" .overflowed: "));   Serial.println(IrCtrl.overflowed);
+    for (uint16_t i=0; i<IrCtrl.len; i++) {
+        if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
+        if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }
+        if (IrCtrl.buff[i] < 0x0010) { Serial.write('0'); }
+        Serial.print(IrCtrl.buff[i], HEX);
+        Serial.print(P(" "));
+        if (i % 16 == 15) { Serial.println(); }
+    }
+    Serial.println();
 }
