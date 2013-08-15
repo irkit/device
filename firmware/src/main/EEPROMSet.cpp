@@ -1,80 +1,75 @@
 #include "EEPROMSet.h"
 #include <avr/eeprom.h>
+#include "pgmStrToRAM.h"
+#include "CRC8.h"
 
 //
 // DESCRIPTION:
 // Save a unique set of unit8_t values
 //
 
-// There can be a maximum of 8 bonded devices. The information related to the bonded devices is stored in the Flash memory, so it is persistent across resets and power-cycles.
-// p158 or Bluetooth_Smart_API_11_11032013.pdf
-#define MAX_NUMBER_OF_MEMBERS 8
-
-// if callback returns INVALID_KEY, it's not stored in set
-// 0xFF is the value of "bonding" in BLE112's connection status event, when the connected device is not bonded
-#define INVALID_KEY 0xFF
-
-struct
-{
-    uint8_t members[MAX_NUMBER_OF_MEMBERS];
-    uint8_t count;
-} setData;
-
 EEPROMSet::EEPROMSet()
 {
 }
 
-void EEPROMSet::setup()
+void EEPROMSet::Setup()
 {
-    eeprom_read_block((void*)&setData, (void*)0, sizeof(setData));
+    eeprom_read_block((void*)&data, (void*)0, sizeof(data));
 }
 
-bool EEPROMSet::isMember(uint8_t key)
+// crc8 is ok && version is ok
+bool EEPROMSet::IsValid()
 {
-    if (key == INVALID_KEY) {
-        return 0;
-    }
-    for (uint8_t i=0; i<setData.count; i++) {
-        if (setData.members[i] == key) {
+    uint8_t crc = crc8( (uint8_t*)&data, sizeof(CRCedData) );
+    return (crc == data.crc8) && (EEPROMSET_NEWEST_VERSION == data.version);
+}
+
+bool EEPROMSet::IsMember(uint8_t key)
+{
+    for (uint8_t i=0; i<data.count; i++) {
+        if (data.members[i] == key) {
             return 1;
         }
     }
     return 0;
 }
 
-bool EEPROMSet::isFull()
-{
-    return setData.count == MAX_NUMBER_OF_MEMBERS ? 1 : 0;
-}
-
 // uniquely add
-void EEPROMSet::add(uint8_t key)
+void EEPROMSet::Add(uint8_t key)
 {
-    for (uint8_t i=0; i<setData.count; i++) {
-        if (setData.members[i] == key) {
+    for (uint8_t i=0; i<data.count; i++) {
+        if (data.members[i] == key) {
             return;
         }
     }
-    setData.members[ setData.count ++ ] = key;
+    data.members[ data.count ++ ] = key;
 }
 
-uint8_t EEPROMSet::count()
+void EEPROMSet::Save(void)
 {
-    return setData.count;
+    data.version = EEPROMSET_NEWEST_VERSION;
+    data.crc8    = crc8( (uint8_t*)&data, sizeof(CRCedData) );
+    eeprom_write_block((const void*)&data, (void*)0, sizeof(data));
 }
 
-uint8_t EEPROMSet::data(uint8_t index)
+void EEPROMSet::Clear(void)
 {
-    return setData.members[index];
+    data.count = 0;
+    Save();
 }
 
-void EEPROMSet::save(void)
+void EEPROMSet::Dump(void)
 {
-    eeprom_write_block((const void*)&setData, (void*)0, sizeof(setData));
+    Serial.print(P("set entries: ")); Serial.println(data.count, HEX);
+    Serial.print(P("{ "));
+    for (uint8_t i=0; i<data.count; i++) {
+        Serial.print(data.members[i]);
+        Serial.print(P(" "));
+    }
+    Serial.println(P("}"));
 }
 
-void EEPROMSet::clear(void)
+uint8_t EEPROMSet::crc(void)
 {
-    setData.count = 0;
-    save();
+    return data.crc8;
 }
