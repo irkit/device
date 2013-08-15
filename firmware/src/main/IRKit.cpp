@@ -19,6 +19,9 @@ EEPROMSet authenticatedBondHandles;
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 bool isAuthenticated(uint8 bond_handle) {
+    if (bond_handle == INVALID_BOND_HANDLE) {
+        return 0;
+    }
     return authenticatedBondHandles.IsMember(bond_handle);
 }
 
@@ -140,6 +143,10 @@ void IRKit_setup() {
     digitalWrite(IR_IN,       HIGH);
 
     authenticatedBondHandles.Setup();
+    if (! authenticatedBondHandles.IsValid()) {
+        Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
+        authenticatedBondHandles.Clear();
+    }
 
     ble112.setup();
     ble112.isAuthenticatedCallback  = isAuthenticated;
