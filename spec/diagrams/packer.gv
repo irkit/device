@@ -1,0 +1,47 @@
+digraph packer {
+    rankdir=TB;
+
+    START [ label = "START", shape = point, fixedsize = false ];
+    START -> LOOPSTART;
+
+    node [shape=ellipse, fontsize=12];
+
+    LOOPSTART -> IF1;
+
+    IF1 [ label = "If isBytePacking" ];
+    IF1 -> IF11 [ label = "YES" ];
+    IF1 -> IF2 [ label = "NO" ];
+
+    IF11 [ label = "If current data fits 0/1" ];
+    IF11 -> IF111 [ label = "YES" ];
+    IF11 -> IF112 [ label = "NO" ];
+
+    IF111 [ label = "Write 0 or 1" ];
+    IF111 -> INDEXPP;
+
+    IF112 [ label = "isBytePacking = 0" ];
+    IF112 -> LOOPEND;
+
+    IF2 [ label = "If following 3 entries\nlook like a 0/1 pattern" ];
+    IF2 -> IF21 [ label = "YES" ];
+    IF2 -> IF22 [ label = "NO" ];
+
+    IF21 [ label = "isBytePacking = 1 &&\nWrite BytePacking header\nindex += xx" ];
+    IF21 -> INDEXPP;
+
+    IF22 [ label = "If following 2 entries\nlook like 0xFFFF 0x0000 pattern" ];
+    IF22 -> IF221 [ label = "YES" ];
+    IF22 -> IF222 [ label = "NO" ];
+
+    IF221 [ label = "Write 0xFF\nindex++" ];
+    IF221 -> INDEXPP;
+
+    IF222 [ label = "Pack uint16_t -> uint8_t" ];
+    IF222 -> INDEXPP;
+
+    INDEXPP [ label = "index++" ];
+    INDEXPP -> LOOPEND;
+
+    LOOPEND;
+    LOOPEND -> LOOPSTART;
+}

@@ -1,5 +1,5 @@
 
-OUT = ir-state.png
+OUT = ir-state.png packer.png
 
 all: $(OUT)
 
