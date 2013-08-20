@@ -82,5 +82,30 @@ int main() {
         ok( unpacked[ 5 ] == 0x0D0D );
     }
 
+    {
+        IrPacker packer;
+        memset( packed, 0, sizeof(packed) );
+        memset( unpacked, 0, sizeof(unpacked) );
+
+        SetBuffer8( packed, 4, 0xD7, 0xC3, 0x00, 0x04 );
+
+        length = packer.Unpack( packed, unpacked, 4 );
+
+        ok( length == 2, "streaming unpack 1" );
+
+        SetBuffer8( packed, 4, 0x00, 0x88, 0xA7, 0x10 );
+
+        length = packer.Unpack( packed, unpacked + length, 4 );
+
+        ok( length == 4, "streaming unpack 2" );
+
+        ok( unpacked[ 0 ] == 0x440D );
+        ok( unpacked[ 1 ] == 0x2233 );
+        ok( unpacked[ 2 ] == 0x047E );
+        ok( unpacked[ 3 ] == 0x047E );
+        ok( unpacked[ 4 ] == 0x047E );
+        ok( unpacked[ 5 ] == 0x0D0D );
+    }
+
     done_testing();
 }
