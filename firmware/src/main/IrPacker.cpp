@@ -162,15 +162,20 @@ uint8_t IrBitPack::Write( uint8_t *out )
     return ret;
 }
 
+// 0x00 - marker
+// uint16_t bit_length
+// val0
+// val1
+// bits
 uint8_t IrBitPack::StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpacked_index)
 {
-    if (! bit_length_received_bytes_) {
-        bit_length_received_bytes_ ++;
+    if (! bit_length_received_count_) {
+        bit_length_received_count_ ++;
         bit_length_ = value; // little endian
         return 0;
     }
-    else if (bit_length_received_bytes_ == 1) {
-        bit_length_received_bytes_ ++;
+    else if (bit_length_received_count_ == 1) {
+        bit_length_received_count_ ++;
         bit_length_ |= (((uint16_t)value) << 8);
         return 0;
     }
@@ -207,7 +212,7 @@ void IrBitPack::Clear()
     val1_      = 0;
     bit_index_ = 0;
     bit_length_ = 0;
-    bit_length_received_bytes_ = 0;
+    bit_length_received_count_ = 0;
     uint8_t i;
     for (i=0; i<IRBITPACK_VALUE_SIZE; i++) {
         values_[i] = 0;

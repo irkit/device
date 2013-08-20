@@ -29,7 +29,7 @@ private:
     uint16_t bit_index_; // 0-511
     // uint8_t  byte_index_; // 0-63
     uint16_t bit_length_; // 0-511
-    uint8_t  bit_length_received_bytes_; // 0-1
+    uint8_t  bit_length_received_count_; // 0-1
 
     void AddBit(bool value);
 };
