@@ -26,6 +26,11 @@
 // 0492 0474 0492 0474 0492 0D22 0493 0D22 0494 0474 0492 0D21 0494 0474 0491 0D22
 // 0493 0477 0492 FFFF 0000 229F 4623 1164 0494
 //
+// becomes:
+// 0xd7 0xc3 0x00 0x41 0x00 0x88 0xa7 0x15
+// 0x15 0x54 0x01 0x51 0x00 0x14 0x44 0x00
+// 0xff 0xc3 0xd7 0xaf 0x88
+
 //
 
 // these should be set in Arduino.h
@@ -228,6 +233,13 @@ void IrBitPack::Clear()
 IrPacker::IrPacker()
     : is_bit_packing_(0)
 {
+    Clear();
+}
+
+void IrPacker::Clear()
+{
+    is_bit_packing_ = 0;
+    bitpack_.Clear();
 }
 
 // * data : input

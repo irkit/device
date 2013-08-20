@@ -40,6 +40,7 @@ public:
     IrPacker();
     uint16_t Pack( const uint16_t *data, uint8_t *packed, uint16_t datasize );
     uint16_t Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t datasize, uint16_t maxsize );
+    void Clear();
 
     // class methods
     static uint8_t BitPack( uint16_t value );

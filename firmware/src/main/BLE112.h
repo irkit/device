@@ -2,6 +2,7 @@
 #define __BLE112_H__
 
 #include "BGLib.h"
+#include "IrPacker.h"
 
 // imported from firmware/ble112/attributes.txt
 #define ATTRIBUTE_HANDLE_SOFTWARE_VERSION     22 // 0x16
@@ -55,6 +56,7 @@ class BLE112 {
         void (*afterIRCallback)();
         void (*beforeBTCallback)();
         void (*afterBTCallback)();
+        IrPacker packer;
 
         void setup();
         void loop();
