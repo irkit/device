@@ -16,7 +16,7 @@ public:
     uint8_t Write( uint8_t *out );
 
     // unpacking
-    uint8_t StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpacked_index);
+    uint8_t StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpacked_index, uint16_t maxsize);
 
     void Clear();
 
@@ -39,7 +39,7 @@ class IrPacker
 public:
     IrPacker();
     uint16_t Pack( const uint16_t *data, uint8_t *packed, uint16_t datasize );
-    uint16_t Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t datasize );
+    uint16_t Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t datasize, uint16_t maxsize );
 
     // class methods
     static uint8_t BitPack( uint16_t value );

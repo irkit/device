@@ -167,14 +167,17 @@ uint8_t IrBitPack::Write( uint8_t *out )
 // val0
 // val1
 // bits
-uint8_t IrBitPack::StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpacked_index)
+uint8_t IrBitPack::StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpacked_index, uint16_t maxsize)
 {
+    if (! maxsize) {
+        return 0;
+    }
     if (! bit_length_received_count_) {
         bit_length_received_count_ ++;
         bit_length_ = value; // little endian
         return 0;
     }
-    else if (bit_length_received_count_ == 1) {
+    if (bit_length_received_count_ == 1) {
         bit_length_received_count_ ++;
         bit_length_ |= (((uint16_t)value) << 8);
         return 0;
@@ -190,6 +193,9 @@ uint8_t IrBitPack::StreamParse(uint8_t value, uint16_t *unpacked, uint16_t unpac
     uint8_t i;
     uint8_t ret = 0;
     for (i=7; i>=0; i--) {
+        if (unpacked_index + ret == maxsize) {
+            break;
+        }
         if (bit_length_ == 0) {
             break;
         }
@@ -296,7 +302,7 @@ bool IrPacker::IsStartOfAbsence( const uint16_t *data, uint16_t datasize, uint16
 // * data : input
 // * unpacked : unpacked output
 // * datasize : number of uint8_t entries in data
-uint16_t IrPacker::Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t datasize )
+uint16_t IrPacker::Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t datasize, uint16_t maxsize )
 {
 #ifndef ARDUINO
     printf("[unpack]input: ");
@@ -304,11 +310,11 @@ uint16_t IrPacker::Unpack( const uint8_t *data, uint16_t *unpacked, uint16_t dat
 #endif
     uint16_t input_index    = 0;
     uint16_t unpacked_index = 0;
-    while (input_index < datasize) {
+    while ( (input_index < datasize) && (unpacked_index < maxsize) ) {
         uint8_t value = data[input_index];
 
         if (is_bit_packing_) {
-            uint8_t written_bytes = bitpack_.StreamParse(value, unpacked, unpacked_index);
+            uint8_t written_bytes = bitpack_.StreamParse(value, unpacked, unpacked_index, maxsize);
             if (written_bytes) {
                 unpacked_index += (uint16_t)written_bytes;
                 is_bit_packing_ = 0;
