@@ -69,10 +69,10 @@
 
     </service>
 
-    <service uuid="195AE58A-437A-489B-B0CD-B7C9C394BAE4" id="ir_remote_controller" advertise="true">
+    <service uuid="6C29D110-BE00-419A-BDDC-D4FA6228A20F" id="ir_remote_controller" advertise="true">
         <description>Infrared Remote Controller Service</description>
 
-        <characteristic uuid="5FC569A0-74A9-4FA4-B8B7-8354C86E45A4" id="c_ir_data">
+        <characteristic uuid="06853C75-1617-4D10-822F-40C2018B6B53" id="c_ir_data">
             <description>IR Data.
             Unsigned 16bit signal data array
             </description>
