@@ -341,11 +341,10 @@ void my_evt_attributes_user_read_request(const struct ble_msg_attributes_user_re
                 value_len = IrCtrl.len * 2 - msg->offset;
                 is_last_slice = 1;
             }
-            uint8* buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
 
             ble112.attributesUserReadResponseData( 0, // att_error
                                                    value_len, // value_len
-                                                   buffWithOffset // value_data
+                                                   (uint8*)IrCtrl.buff + msg->offset // value_data
                                                    );
 
             if ( is_last_slice && ble112.afterBTCallback ) {
@@ -438,14 +437,13 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
         return;
     }
 
-    uint8 *buffWithOffset;
     switch (msg->handle) {
     case ATTRIBUTE_HANDLE_IR_DATA:
         {
             Serial.print(P("free:")); Serial.println( freeMemory() );
 
             // valid offset and length?
-            if (IR_BUFF_SIZE * 2 < msg->offset + msg->value.len) {
+            if (msg->offset + msg->value.len > IR_BUFF_SIZE * 2) {
                 // overflow
                 IR_state( IR_IDLE );
                 Serial.println(P("!!! write overflow"));
@@ -458,11 +456,15 @@ void my_evt_attributes_value(const struct ble_msg_attributes_value_evt_t * msg )
                     ble112.beforeIRCallback();
                 }
                 IR_state( IR_WRITING );
+                ble112.packer.Clear();
             }
 
-            buffWithOffset = (uint8*)IrCtrl.buff + msg->offset;
-            memcpy( buffWithOffset, (const void*)(msg->value.data), msg->value.len );
-            IrCtrl.len = (msg->offset + msg->value.len) / 2;
+            // ir data is compressed using IrPacker.pack algorithm
+            uint16_t length = ble112.packer.Unpack( msg->value.data,
+                                                    (uint16_t*)( IrCtrl.buff + IrCtrl.len ),
+                                                    msg->value.len,
+                                                    IR_BUFF_SIZE - IrCtrl.len );
+            IrCtrl.len += length;
         }
         break;
     case ATTRIBUTE_HANDLE_IR_CARRIER_FREQUENCY:
