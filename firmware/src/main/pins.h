@@ -11,11 +11,11 @@
 
 // #define IR_IN            8 // pin12 PB0 ICP1 Counter1 (PCINT0/CLKO/ICP1)
 // #define IR_OUT           3 // pin1  PD3 OC2B Timer2 (PCINT19/OC2B/INT1)
-#define IR_IN           13 // pin32
-#define IR_OUT          10 // pin30
+#define IR_IN           13 // pin32 PC7 (ICP3/CLK0/OC4A)
+#define IR_OUT          10 // pin30 PB6 (PCINT6/OC1B/OC4B/ADC13)
 
-#define FULLCOLOR_LED_R  6 // pin27
-#define FULLCOLOR_LED_G  9 // pin29
-#define FULLCOLOR_LED_B  8 // pin28
+#define FULLCOLOR_LED_R  6 // pin27 PD7 (T0/OC4D/ADC10)
+#define FULLCOLOR_LED_G  9 // pin29 PB5 (PCINT5/OC1A/!OC4B/ADC12)
+#define FULLCOLOR_LED_B  8 // pin28 PB4 (PCINT4/ADC11)
 
 #endif
