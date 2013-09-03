@@ -80,11 +80,12 @@
     0b00000000 = Normal port operation
 
 */
-
-#define IR_INIT_XMIT()                          /* Tx: Initialize Transmitter (Timer2 for IR subcarrier: Fast PWM, clk/8) */ \
+/*
+#define IR_INIT_XMIT() ()                         / Tx: Initialize Transmitter (Timer2 for IR subcarrier: Fast PWM, clk/8) / \
     OCR2B = 16; \
     TCCR2A = _BV(WGM21)|_BV(WGM20); \
     TCCR2B = _BV(WGM22)|0b010
+*/
 /*
 
  Counting from BOTTOM to TOP(=OCR2A), At BOTTOM set 1, At OCR2B set 0.
@@ -124,11 +125,11 @@ CS21:0 : Clock Select
 
 */
 
-#define IR_TX_38K()     OCR2A = 52; TCNT2 = 0   /* Tx: Set IR burst frequency to 38kHz */
-#define IR_TX_40K()     OCR2A = 49; TCNT2 = 0   /* Tx: Set IR burst frequency to 40kHz */
-#define IR_TX_ON()      TCCR2A |=  _BV(COM2B1)  /* Tx: Start IR burst */
-#define IR_TX_OFF()     TCCR2A &= ~_BV(COM2B1)  /* Tx: Stop IR burst */
-#define IR_TX_IS_ON()   TCCR2A &   _BV(COM2B1)  /* Tx: Check if IR is being transmitted or not */
+// #define IR_TX_38K()     OCR2A = 52; TCNT2 = 0   /* Tx: Set IR burst frequency to 38kHz */
+// #define IR_TX_40K()     OCR2A = 49; TCNT2 = 0   /* Tx: Set IR burst frequency to 40kHz */
+// #define IR_TX_ON()      TCCR2A |=  _BV(COM2B1)  /* Tx: Start IR burst */
+// #define IR_TX_OFF()     TCCR2A &= ~_BV(COM2B1)  /* Tx: Stop IR burst */
+// #define IR_TX_IS_ON()   TCCR2A &   _BV(COM2B1)  /* Tx: Check if IR is being transmitted or not */
 
 #define IR_CAPTURED_RISING() TCCR1B & _BV(ICES1) /* Rx: Check which edge generated the capture interrupt */
 /*
@@ -300,21 +301,21 @@ ISR_COMPARE()
             return;
         }
         uint16_t next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
-        if (IR_TX_IS_ON()) {
-            // toggle
-            IR_TX_OFF();
-        }
-        else {
-            if ( next != 0 ) {
-                // toggle
-                IR_TX_ON();
-            }
-            else {
-                // continue for another uin16_t loop
-                next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
-                IR_TX_OFF();
-            }
-        }
+        // if (IR_TX_IS_ON()) {
+        //     // toggle
+        //     IR_TX_OFF();
+        // }
+        // else {
+        //     if ( next != 0 ) {
+        //         // toggle
+        //         IR_TX_ON();
+        //     }
+        //     else {
+        //         // continue for another uin16_t loop
+        //         next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
+        //         IR_TX_OFF();
+        //     }
+        // }
 
         IR_COMPARE_NEXT( next );
         return;
@@ -346,13 +347,13 @@ int IR_xmit ()
     }
 
     IR_state( IR_XMITTING );
-    if (IrCtrl.freq == 40) {
-        IR_TX_40K();
-    }
-    else {
-        IR_TX_38K();
-    }
-    IR_TX_ON();
+    // if (IrCtrl.freq == 40) {
+    //     IR_TX_40K();
+    // }
+    // else {
+    //     IR_TX_38K();
+    // }
+    // IR_TX_ON();
     IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
 
     return 1;
@@ -384,7 +385,7 @@ void IR_state (uint8_t nextState)
 {
     switch (nextState) {
     case IR_IDLE:
-        IR_TX_OFF();
+        // IR_TX_OFF();
         IR_COMPARE_DISABLE();
 
         // 1st interrupt when receiving ir must be falling edge
@@ -428,7 +429,7 @@ void IR_state (uint8_t nextState)
 void IR_initialize (void)
 {
     IR_INIT_TIMER();
-    IR_INIT_XMIT();
+    // IR_INIT_XMIT();
 
     IR_state( IR_IDLE );
 }
