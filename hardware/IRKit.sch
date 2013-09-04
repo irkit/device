@@ -3910,6 +3910,26 @@ Source: WE-TPC 744053220.pdf</description>
 <text x="-2.54" y="2.54" size="1.27" layer="25" ratio="10">&gt;NAME</text>
 <text x="-3.683" y="-5.969" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 </package>
+<package name="STAND-OFF">
+<description>&lt;b&gt;Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<wire x1="0" y1="1.8542" x2="0" y2="-1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="-180"/>
+<circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
+<hole x="0" y="0" drill="3.302"/>
+</package>
+<package name="STAND-OFF-TIGHT">
+<description>&lt;b&gt;Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<wire x1="0" y1="1.8542" x2="0" y2="-1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="-180"/>
+<circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
+<hole x="0" y="0" drill="3.048"/>
+</package>
 </packages>
 <symbols>
 <symbol name="R">
@@ -4144,6 +4164,9 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <text x="-3.81" y="3.175" size="1.778" layer="96" rot="R90">&gt;VALUE</text>
 <pin name="P" x="0" y="-5.08" visible="pad" length="short" direction="pas" rot="R90"/>
 <pin name="S" x="0" y="5.08" visible="pad" length="short" direction="pas" rot="R270"/>
+</symbol>
+<symbol name="STAND-OFF">
+<circle x="0" y="0" radius="1.27" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -5106,6 +5129,25 @@ http://www.ti.com/lit/ds/slvsag6b/slvsag6b.pdf
 </device>
 </devices>
 </deviceset>
+<deviceset name="STAND-OFF" prefix="STANDOFF">
+<description>&lt;b&gt;#4 Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<gates>
+<gate name="G$1" symbol="STAND-OFF" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="STAND-OFF">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="TIGHT" package="STAND-OFF-TIGHT">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
 </devicesets>
 </library>
 <library name="m-pad-2.1">
@@ -5124,7 +5166,7 @@ M-Pad is an embedded modular multifunctional multimedia Board with Intel PXA 27x
 &lt;br&gt;
 &lt;br&gt;
 
-&lt;b&gt;Changes:&lt;/b&gt; 
+&lt;b&gt;Changes:&lt;/b&gt;
 &lt;ul&gt;
 	&lt;li&gt; Changed the symbol of the ZHX2022 IRDA module
 	&lt;li&gt; Added a new landpatter to L_EU and L_US (ELLATV)
@@ -5152,7 +5194,7 @@ M-Pad is an embedded modular multifunctional multimedia Board with Intel PXA 27x
 	&lt;li&gt; MT48H8M32LF
 	&lt;li&gt; Si7868ADP
 	&lt;li&gt; TPS5124
-	&lt;li&gt; TPS6204x 
+	&lt;li&gt; TPS6204x
 	&lt;li&gt; MC14548x
 	&lt;li&gt; CON-52991-0508
 	&lt;li&gt; MAX9813
@@ -5160,7 +5202,7 @@ M-Pad is an embedded modular multifunctional multimedia Board with Intel PXA 27x
 	&lt;li&gt; MSM7717
 	&lt;li&gt; GM-862-GPS
 	&lt;li&gt; CON-HIROSE-COAXIAL
-	&lt;li&gt; K9WAG08U1A 
+	&lt;li&gt; K9WAG08U1A
 	&lt;li&gt; K9**G08U*A
 	&lt;li&gt; SMT-ANTENNA
 	&lt;li&gt; CF-CARD-IDE_MODE
@@ -5170,7 +5212,7 @@ M-Pad is an embedded modular multifunctional multimedia Board with Intel PXA 27x
 	&lt;li&gt; MD8831_MD8832
 	&lt;li&gt; MD253
 	&lt;li&gt; TPS54550
-	&lt;li&gt; FDB1*AN06A0 
+	&lt;li&gt; FDB1*AN06A0
 	&lt;li&gt; TPS6220X
 	&lt;li&gt; TPS62510
 	&lt;li&gt; TPS6205x
@@ -7270,15 +7312,15 @@ e.g. Nichicon F93 series Tantalum Cap. A-case</description>
 <part name="P+7" library="supply1" deviceset="+5V" device=""/>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
-<part name="STANDOFF1" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
-<part name="STANDOFF2" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
-<part name="STANDOFF4" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF1" library="my" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF2" library="my" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF4" library="my" deviceset="STAND-OFF" device=""/>
 <part name="CN1" library="pinhead" deviceset="PINHD-2X3" device="" value="ICSP"/>
 <part name="PL-IRM2161-XD1" library="my" deviceset="PL-IRM2161" device=""/>
 <part name="R12" library="my" deviceset="R" device="" value="200"/>
 <part name="D1" library="my" deviceset="LED" device="-3MM" value="VSLB3940"/>
 <part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
-<part name="STANDOFF3" library="SparkFun-Electromechanical" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF3" library="my" deviceset="STAND-OFF" device=""/>
 <part name="C2" library="my" deviceset="C" device="-2012" value="0.1uF"/>
 <part name="C6" library="my" deviceset="C" device="-2012" value="0.1uF"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
