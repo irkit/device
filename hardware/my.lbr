@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="mm" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -33,9 +33,9 @@
 <layer number="37" name="tTest" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="38" name="bTest" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
-<layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
 <layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
@@ -44,7 +44,7 @@
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
@@ -2378,6 +2378,56 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
 <hole x="0" y="0" drill="3.048"/>
 </package>
+<package name="TACTILE-SWITCH-FSMRA6JH">
+<wire x1="3.683" y1="4.01" x2="3.683" y2="1.27" width="0.1524" layer="51"/>
+<wire x1="3.683" y1="1.27" x2="3.68" y2="-2.61" width="0.1524" layer="21"/>
+<wire x1="-3.683" y1="1.27" x2="-3.68" y2="-2.61" width="0.1524" layer="21"/>
+<wire x1="-3.683" y1="1.27" x2="-3.683" y2="4.01" width="0.1524" layer="51"/>
+<wire x1="-3.683" y1="4.01" x2="-3.429" y2="4.01" width="0.1524" layer="51"/>
+<wire x1="-3.429" y1="4.01" x2="-3.429" y2="1.27" width="0.1524" layer="51"/>
+<wire x1="-3.429" y1="-2.032" x2="-0.635" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="3.429" y1="1.27" x2="3.429" y2="4.01" width="0.1524" layer="51"/>
+<wire x1="3.429" y1="4.01" x2="3.683" y2="4.01" width="0.1524" layer="51"/>
+<wire x1="-1.27" y1="-2.61" x2="-1.27" y2="-6.85" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="-6.85" x2="1.27" y2="-6.85" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="-2.61" x2="1.27" y2="-6.85" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-2.032" x2="-0.635" y2="-1.016" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-2.032" x2="0.635" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-1.016" x2="0.635" y2="-1.016" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-2.032" x2="0.635" y2="-1.016" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-2.032" x2="3.429" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="-3.429" y1="1.27" x2="-2.667" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-2.667" y1="1.524" x2="-2.667" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-2.667" y1="1.524" x2="-1.905" y2="1.524" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-1.905" y2="1.524" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-0.762" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.762" y1="1.016" x2="-0.762" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.762" y1="1.016" x2="0.762" y2="1.016" width="0.1524" layer="21"/>
+<wire x1="0.762" y1="1.27" x2="0.762" y2="1.016" width="0.1524" layer="21"/>
+<wire x1="0.762" y1="1.27" x2="1.778" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="1.778" y1="1.524" x2="2.667" y2="1.524" width="0.1524" layer="21"/>
+<wire x1="2.667" y1="1.27" x2="2.667" y2="1.524" width="0.1524" layer="21"/>
+<wire x1="2.667" y1="1.27" x2="3.429" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-1.651" y1="0.381" x2="-0.762" y2="0.381" width="0.1524" layer="51"/>
+<wire x1="-0.762" y1="0.381" x2="0.508" y2="0" width="0.1524" layer="51"/>
+<wire x1="0.508" y1="0.381" x2="1.651" y2="0.381" width="0.1524" layer="51"/>
+<wire x1="0" y1="0" x2="0" y2="-0.381" width="0.1524" layer="51"/>
+<wire x1="-0.254" y1="-0.381" x2="0" y2="-0.381" width="0.1524" layer="51"/>
+<wire x1="0" y1="-0.381" x2="0.254" y2="-0.381" width="0.1524" layer="51"/>
+<wire x1="-3.429" y1="0.762" x2="-3.429" y2="-0.762" width="0.1524" layer="51"/>
+<wire x1="-3.429" y1="0.762" x2="-3.429" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-3.429" y1="-0.762" x2="-3.429" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="3.429" y1="-0.762" x2="3.429" y2="-2.032" width="0.1524" layer="21"/>
+<wire x1="3.429" y1="0.762" x2="3.429" y2="-0.762" width="0.1524" layer="51"/>
+<wire x1="3.429" y1="0.762" x2="3.429" y2="1.27" width="0.1524" layer="21"/>
+<pad name="1" x="-2.25" y="0" drill="1"/>
+<pad name="2" x="2.25" y="0" drill="1"/>
+<pad name="3" x="-3.505" y="2.49" drill="1.31"/>
+<pad name="4" x="3.505" y="2.49" drill="1.31"/>
+<text x="-2.54" y="3.81" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-3.683" y="-4.699" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<wire x1="-3.68" y1="-2.61" x2="3.68" y2="-2.61" width="0.1524" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="USB-MINIB">
@@ -4068,7 +4118,7 @@ http://www.ti.com/lit/ds/slvsag6b/slvsag6b.pdf
 </devices>
 </deviceset>
 <deviceset name="TACTILE-SWITCH-31-XX" prefix="S" uservalue="yes">
-<description>&lt;b&gt;OMRON SWITCH&lt;/b&gt;</description>
+<description>&lt;b&gt;TACTILE SWITCH&lt;/b&gt;</description>
 <gates>
 <gate name="1" symbol="TS" x="0" y="0"/>
 </gates>
@@ -4085,6 +4135,15 @@ http://www.ti.com/lit/ds/slvsag6b/slvsag6b.pdf
 <attribute name="OC_FARNELL" value="959704" constant="no"/>
 <attribute name="OC_NEWARK" value="36M3582" constant="no"/>
 </technology>
+</technologies>
+</device>
+<device name="FSMRA6JH" package="TACTILE-SWITCH-FSMRA6JH">
+<connects>
+<connect gate="1" pin="P" pad="1"/>
+<connect gate="1" pin="S" pad="2"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
