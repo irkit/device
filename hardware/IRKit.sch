@@ -8754,7 +8754,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="STANDOFF1" library="my" deviceset="STAND-OFF" device=""/>
 <part name="STANDOFF2" library="my" deviceset="STAND-OFF" device=""/>
 <part name="STANDOFF4" library="my" deviceset="STAND-OFF" device=""/>
-<part name="CN2" library="pinhead" deviceset="PINHD-2X3" device="" value="ICSP"/>
+<part name="ICSP" library="pinhead" deviceset="PINHD-2X3" device="" value="ICSP"/>
 <part name="IR-RECEIVER" library="my" deviceset="PL-IRM2161" device=""/>
 <part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="200"/>
 <part name="D1" library="my" deviceset="LED" device="-3MM" value="VSLB3940"/>
@@ -8899,7 +8899,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="STANDOFF1" gate="G$1" x="327.66" y="40.64"/>
 <instance part="STANDOFF2" gate="G$1" x="332.74" y="40.64"/>
 <instance part="STANDOFF4" gate="G$1" x="342.9" y="40.64"/>
-<instance part="CN2" gate="A" x="231.14" y="127"/>
+<instance part="ICSP" gate="A" x="231.14" y="127"/>
 <instance part="IR-RECEIVER" gate="1" x="205.74" y="43.18" rot="R270"/>
 <instance part="R15" gate="G$1" x="195.58" y="53.34" rot="R180"/>
 <instance part="D1" gate="G$1" x="149.86" y="58.42" smashed="yes" rot="R270">
@@ -9040,7 +9040,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <net name="!RESET" class="0">
 <segment>
 <wire x1="228.6" y1="124.46" x2="220.98" y2="124.46" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="5"/>
+<pinref part="ICSP" gate="A" pin="5"/>
 <label x="205.74" y="124.46" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
@@ -9058,7 +9058,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="P+3" gate="1" pin="+5V"/>
 <wire x1="236.22" y1="129.54" x2="246.38" y2="129.54" width="0.1524" layer="91"/>
 <wire x1="246.38" y1="129.54" x2="246.38" y2="132.08" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="2"/>
+<pinref part="ICSP" gate="A" pin="2"/>
 </segment>
 <segment>
 <wire x1="35.56" y1="58.42" x2="35.56" y2="63.5" width="0.1524" layer="91"/>
@@ -9183,7 +9183,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="GND5" gate="1" pin="GND"/>
 <wire x1="236.22" y1="124.46" x2="246.38" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="246.38" y1="124.46" x2="246.38" y2="119.38" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="6"/>
+<pinref part="ICSP" gate="A" pin="6"/>
 </segment>
 <segment>
 <pinref part="GND11" gate="1" pin="GND"/>
@@ -9919,7 +9919,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <wire x1="228.6" y1="127" x2="220.98" y2="127" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="3"/>
+<pinref part="ICSP" gate="A" pin="3"/>
 <label x="205.74" y="127" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
@@ -9931,7 +9931,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <wire x1="236.22" y1="127" x2="246.38" y2="127" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="4"/>
+<pinref part="ICSP" gate="A" pin="4"/>
 <label x="246.38" y="127" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
@@ -9943,7 +9943,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <wire x1="228.6" y1="129.54" x2="220.98" y2="129.54" width="0.1524" layer="91"/>
-<pinref part="CN2" gate="A" pin="1"/>
+<pinref part="ICSP" gate="A" pin="1"/>
 <label x="205.74" y="129.54" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
