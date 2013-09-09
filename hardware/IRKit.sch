@@ -8745,7 +8745,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="STANDOFF4" library="my" deviceset="STAND-OFF" device=""/>
 <part name="ICSP" library="pinhead" deviceset="PINHD-2X3" device="" value="ICSP"/>
 <part name="IR-RECEIVER" library="my" deviceset="PL-IRM2161" device=""/>
-<part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="200"/>
+<part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="220"/>
 <part name="D1" library="my" deviceset="LED" device="-3MM" value="VSLB3940"/>
 <part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
 <part name="STANDOFF3" library="my" deviceset="STAND-OFF" device=""/>
@@ -8762,7 +8762,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R9" library="my" deviceset="RESISTOR-US" device="2012" value="1.2K"/>
 <part name="R8" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
 <part name="R5" library="my" deviceset="RESISTOR-US" device="2012" value="2.4k"/>
-<part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="10K"/>
+<part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="C5" library="my" deviceset="CAPACITOR" device="2012" value="22pF"/>
@@ -8829,7 +8829,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
 <part name="R10" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
-<part name="SW1" library="my" deviceset="TACTILE-SWITCH-31-XX" device="FSMRA6JH"/>
+<part name="SW1" library="my" deviceset="TACTILE-SWITCH-31-XX" device="FSMRA6JH" value="FSMRA6JH"/>
 <part name="CN4" library="pinhead" deviceset="PINHD-2X4" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>

@@ -28,6 +28,16 @@ class PartSheet
     worksheet        = @spreadsheet.worksheets.first
     spreadsheet_rows = worksheet.list.to_hash_array
 
+    def update_row_id( worksheet, row_id, row_data )
+      worksheet.list[ row_id ][ "Used" ] = "1"
+      row_data.each do |key,value|
+        if key && ! key.empty? && ( worksheet.list[ row_id ][ key ] != value )
+          puts "updating row[ #{row_id} ][ #{key} ] = #{value}"
+          worksheet.list[ row_id ][ key ] = value
+        end
+      end
+    end
+
     csv = CSV.new( csv_string, {
         headers:        :first_row,
         return_headers: true,
@@ -48,19 +58,33 @@ class PartSheet
         next
       end
 
-      found = spreadsheet_rows.index { |r| yield( csv_row, r ) }
+      found = spreadsheet_rows.index { |r|
+        (csv_row.field("Value") == r["Value"]) &&
+        (csv_row.field("Parts") == r["Parts"])
+      }
 
       if found != nil
         # update
         puts "found row[ #{found} ]"
-        worksheet.list[ found ][ "Used" ] = "1"
-        csv_row.each do |key,value|
-          if key && ! key.empty? && ( worksheet.list[ found ][ key ] != value )
-            puts "updating row[ #{found} ][ #{key} ] = #{value}"
-            worksheet.list[ found ][ key ] = value
+        update_row_id( worksheet, found, csv_row )
+      else
+
+        found_similar = spreadsheet_rows.index { |r|
+          (csv_row.field("Parts") == r["Parts"])
+        }
+
+        if found_similar != nil
+          puts "update row[ #{found_similar} ]?"
+          puts "  before: Value=#{ worksheet.list[found_similar]["Value"] } Device=#{ worksheet.list[found_similar]["Device"]}"
+          puts "  after:  Value=#{ csv_row["Value"] } Device=#{ csv_row["Device"] }"
+          puts "(Y/n)"
+          input = STDIN.gets.chomp
+          if input != "n"
+            update_row_id( worksheet, found_similar, csv_row )
+            next
           end
         end
-      else
+
         # create
         new_row = {}
         new_row[ "Used" ] = "1"
@@ -82,7 +106,7 @@ end
 
 def main
   if ARGV.size < 2 then
-    abort "usage: ruby #{$0} spreadsheet-title semi-collon-separated-csvfile"
+    abort "usage: 1st, File -> Export -> BOM -> List type (values), Output format (CSV) -> Save\nruby #{$0} spreadsheet-title semi-collon-separated-csvfile"
   end
   title               = ARGV[ 0 ]
   semicollon_csv_file = ARGV[ 1 ]
@@ -99,10 +123,7 @@ def main
 
   csv = IO.read( semicollon_csv_file ).gsub( /\";/, "\"," )
 
-  sheet.merge_csv( csv ) {|csv_row, spreadsheet_row|
-    (csv_row.field("Value") == spreadsheet_row["Value"]) &&
-    (csv_row.field("Parts") == spreadsheet_row["Parts"])
-  }
+  sheet.merge_csv( csv )
 end
 
-main
+main()
