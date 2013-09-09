@@ -2708,8 +2708,6 @@ Source: http://ww1.microchip.com/downloads/en/devicedoc/39632c.pdf</description>
 <wire x1="2.9464" y1="-0.6096" x2="3.048" y2="-0.6096" width="0.127" layer="31"/>
 <wire x1="3.048" y1="-0.6096" x2="3.0734" y2="-0.5842" width="0.127" layer="31" curve="90"/>
 <wire x1="3.0734" y1="-0.5842" x2="3.0734" y2="0.6096" width="0.127" layer="31"/>
-<wire x1="-1.8288" y1="2.5146" x2="-2.0828" y2="2.2606" width="0.127" layer="31" curve="-90"/>
-<wire x1="-2.0828" y1="2.2606" x2="-2.8956" y2="2.2606" width="0.127" layer="31"/>
 <wire x1="-2.8956" y1="2.2606" x2="-3.1496" y2="2.5146" width="0.127" layer="31" curve="-90"/>
 <wire x1="-3.1496" y1="2.5146" x2="-3.1496" y2="2.8702" width="0.127" layer="31"/>
 <wire x1="-3.1496" y1="2.8702" x2="-2.8956" y2="3.1242" width="0.127" layer="31" curve="-90"/>
@@ -2731,7 +2729,6 @@ Source: http://ww1.microchip.com/downloads/en/devicedoc/39632c.pdf</description>
 <wire x1="2.8956" y1="3.1242" x2="3.1496" y2="2.8702" width="0.127" layer="31" curve="-90"/>
 <wire x1="3.1496" y1="2.8702" x2="3.1496" y2="2.5146" width="0.127" layer="31"/>
 <wire x1="2.0574" y1="2.9972" x2="1.9304" y2="2.8702" width="0.127" layer="31" curve="90"/>
-<wire x1="1.9304" y1="2.8702" x2="1.9304" y2="2.5146" width="0.127" layer="31"/>
 <wire x1="1.9304" y1="2.5146" x2="2.0574" y2="2.3876" width="0.127" layer="31" curve="90"/>
 <wire x1="2.8956" y1="3.0226" x2="3.0226" y2="2.8956" width="0.127" layer="31" curve="-90"/>
 <wire x1="3.0226" y1="2.8956" x2="3.0226" y2="2.4892" width="0.127" layer="31"/>
@@ -2760,14 +2757,6 @@ Source: http://ww1.microchip.com/downloads/en/devicedoc/39632c.pdf</description>
 <smd name="S5" x="-1.016" y="0" dx="1.524" dy="1.524" layer="1" roundness="10"/>
 <smd name="S6" x="1.016" y="0" dx="1.524" dy="1.524" layer="1" roundness="10"/>
 <text x="4.826" y="-1.27" size="1.016" layer="51">PCB</text>
-<hole x="-3.5052" y="0.254" drill="0.7"/>
-<hole x="-3.5052" y="-0.254" drill="0.7"/>
-<hole x="3.5052" y="0.254" drill="0.7"/>
-<hole x="3.5052" y="-0.254" drill="0.7"/>
-<hole x="-2.6162" y="2.6924" drill="0.7"/>
-<hole x="-2.3622" y="2.6924" drill="0.7"/>
-<hole x="2.3622" y="2.6924" drill="0.7"/>
-<hole x="2.6162" y="2.6924" drill="0.7"/>
 <text x="-3.81" y="3.81" size="1.27" layer="25">&gt;NAME</text>
 <wire x1="-3.556" y1="2.794" x2="-3.5" y2="2.794" width="0.254" layer="21"/>
 <wire x1="3.5" y1="2.794" x2="3.556" y2="2.794" width="0.254" layer="21"/>
