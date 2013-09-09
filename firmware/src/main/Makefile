@@ -1,6 +1,6 @@
-BOARD_TAG    = uno
+BOARD_TAG    = leonardo
 ARDUINO_PORT = /dev/cu.usb*
-ARDUINO_LIBS = SoftwareSerial BGLib
+# ARDUINO_LIBS = SoftwareSerial BGLib
 ARDUINO_DIR  = /Applications/Arduino.app/Contents/Resources/Java
 ARDMK_DIR    = ~/proj/Arduino-Makefile
 USER_LIB_PATH = ${HOME}/shared/arduino/imote
