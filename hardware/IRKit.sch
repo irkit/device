@@ -2302,29 +2302,29 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <vertex x="-0.17" y="-0.3175"/>
 </polygon>
 </package>
-<package name="LED-2012">
-<description>&lt;b&gt;2012&lt;/b&gt;
-&lt;a href="http://rohmfs.rohm.com/jp/products/databook/datasheet/passive/resistor/chip_resistor/mcr_g-j.pdf"&gt;rohm 角形チップ抵抗器
-&lt;/a&gt;</description>
-<smd name="A" x="-0.95" y="0" dx="0.7" dy="1.15" layer="1" rot="R180"/>
-<smd name="K" x="0.95" y="0" dx="0.7" dy="1.15" layer="1"/>
-<text x="-0.762" y="1.016" size="1.27" layer="25">&gt;NAME</text>
-<text x="-0.762" y="-2.286" size="1.27" layer="27">&gt;VALUE</text>
-<wire x1="0.3" y1="-0.3" x2="0.3" y2="0.3" width="0.127" layer="21"/>
-<wire x1="-0.3" y1="0.3" x2="-0.3" y2="-0.3" width="0.127" layer="21"/>
-<wire x1="-0.3" y1="-0.3" x2="0.2" y2="0" width="0.127" layer="21"/>
-<wire x1="0.2" y1="0" x2="-0.3" y2="0.3" width="0.127" layer="21"/>
-<wire x1="-0.4" y1="0.5" x2="0.4" y2="0.5" width="0.127" layer="21"/>
-<wire x1="-0.4" y1="-0.5" x2="0.4" y2="-0.5" width="0.127" layer="21"/>
-<rectangle x1="-0.4" y1="-0.6" x2="0.4" y2="0.6" layer="41"/>
-</package>
-<package name="LED-3MM">
-<description>LED 3mm bullet</description>
-<pad name="C" x="1.27" y="0" drill="0.8"/>
-<pad name="A" x="-1.27" y="0" drill="0.8"/>
-<wire x1="2.36" y1="1.77" x2="2.36" y2="-1.77" width="0.127" layer="21"/>
-<wire x1="2.36" y1="-1.77" x2="2.36" y2="1.77" width="0.127" layer="21" curve="-286.260205"/>
-<text x="-3.81" y="3.81" size="1.27" layer="21">&gt;NAME</text>
+<package name="LED3MM">
+<description>&lt;B&gt;LED&lt;/B&gt;&lt;p&gt;
+3 mm, round</description>
+<wire x1="1.5748" y1="-1.27" x2="1.5748" y2="1.27" width="0.254" layer="51"/>
+<wire x1="0" y1="2.032" x2="1.561" y2="1.3009" width="0.254" layer="21" curve="-50.193108" cap="flat"/>
+<wire x1="-1.8" y1="1.0562" x2="0" y2="2.032" width="0.254" layer="21" curve="-61.926949"/>
+<wire x1="0" y1="-2.032" x2="1.5512" y2="-1.3126" width="0.254" layer="21" curve="49.763022" cap="flat"/>
+<wire x1="-1.8" y1="-1.0562" x2="0" y2="-2.032" width="0.254" layer="21" curve="60.255215"/>
+<wire x1="-2.132" y1="0" x2="-1.7891" y2="1.0634" width="0.254" layer="51" curve="-28.301701"/>
+<wire x1="-2.132" y1="0" x2="-1.7306" y2="-1.165" width="0.254" layer="51" curve="31.60822"/>
+<wire x1="1.5748" y1="1.2954" x2="1.5748" y2="1.13" width="0.254" layer="21"/>
+<wire x1="1.5748" y1="-1.2954" x2="1.5748" y2="-1.13" width="0.254" layer="21"/>
+<pad name="A" x="-1.27" y="0" drill="0.8128" diameter="1.8796"/>
+<pad name="K" x="1.27" y="0" drill="0.8128" diameter="1.8796"/>
+<text x="1.905" y="0.381" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="1.905" y="-1.651" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<wire x1="-1.2" y1="1.5" x2="-1.2" y2="1.2" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="-1.2" x2="-1.2" y2="-1.5" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="-1.5" x2="0.3" y2="-0.7" width="0.127" layer="21"/>
+<wire x1="0.3" y1="0.7" x2="-1.2" y2="1.5" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="1.2" x2="-1.2" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="1.6" y1="0" x2="-1.2" y2="1.5" width="0.127" layer="51"/>
+<wire x1="1.6" y1="0" x2="-1.2" y2="-1.5" width="0.127" layer="51"/>
 </package>
 <package name="GS1011MXXS">
 <wire x1="0" y1="28.7" x2="19.4" y2="28.7" width="0.127" layer="21"/>
@@ -5171,6 +5171,18 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <text x="-3.937" y="-4.064" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="5.207" y="-4.064" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
 </package>
+<package name="LED-SPACER">
+<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="1.26" y1="0.5" x2="1.26" y2="-0.5" width="0.127" layer="51" curve="180"/>
+<wire x1="-2.1" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
+<wire x1="-2.1" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="-1.25" y1="0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51" curve="-180"/>
+<wire x1="1.25" y1="0.5" x2="1.26" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="0.5" x2="2.1" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.25" y1="-0.5" x2="1.26" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51"/>
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -5228,20 +5240,6 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <pin name="GND" x="0" y="-5.08" visible="pin" length="middle" rot="R90"/>
 <pin name="VCC" x="2.54" y="-5.08" visible="pin" length="middle" rot="R90"/>
 <text x="-5.842" y="-2.54" size="1.778" layer="95" rot="R90">&gt;NAME</text>
-</symbol>
-<symbol name="LED-1">
-<wire x1="0" y1="0" x2="-1.27" y2="2.54" width="0.254" layer="94"/>
-<wire x1="-1.27" y1="2.54" x2="1.27" y2="2.54" width="0.254" layer="94"/>
-<wire x1="1.27" y1="2.54" x2="0" y2="0" width="0.254" layer="94"/>
-<wire x1="-1.27" y1="0" x2="1.27" y2="0" width="0.254" layer="94"/>
-<wire x1="1.524" y1="1.27" x2="2.54" y2="1.778" width="0.254" layer="94"/>
-<wire x1="2.54" y1="1.778" x2="2.286" y2="1.016" width="0.254" layer="94"/>
-<wire x1="2.286" y1="1.016" x2="3.302" y2="1.524" width="0.254" layer="94"/>
-<wire x1="2.794" y1="1.524" x2="3.302" y2="1.524" width="0.254" layer="94"/>
-<wire x1="3.302" y1="1.524" x2="3.048" y2="1.143" width="0.254" layer="94"/>
-<text x="1.27" y="2.794" size="1.778" layer="95" font="vector">&gt;NAME</text>
-<pin name="A" x="0" y="5.08" visible="off" length="short" direction="pas" rot="R270"/>
-<pin name="K" x="0" y="-2.54" visible="off" length="short" direction="pas" rot="R90"/>
 </symbol>
 <symbol name="LED">
 <wire x1="-1.27" y1="0" x2="1.27" y2="0" width="0.254" layer="94"/>
@@ -5499,6 +5497,16 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <text x="-2.54" y="3.81" size="1.778" layer="95">&gt;NAME</text>
 <text x="-2.54" y="-6.35" size="1.778" layer="96">&gt;VALUE</text>
 </symbol>
+<symbol name="LED-SPACER">
+<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.254" layer="94" curve="150.647214"/>
+<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.254" layer="94" curve="153.215004"/>
+<wire x1="-1.26" y1="0.5" x2="-1.26" y2="-0.5" width="0.254" layer="94" curve="-180"/>
+<wire x1="1.23" y1="0.5" x2="1.18" y2="-0.5" width="0.254" layer="94" curve="174.289407"/>
+<wire x1="1.23" y1="0.5" x2="2.1" y2="0.5" width="0.254" layer="94"/>
+<wire x1="1.18" y1="-0.5" x2="2.1" y2="-0.5" width="0.254" layer="94"/>
+<wire x1="-2.09" y1="0.5" x2="-1.26" y2="0.5" width="0.254" layer="94"/>
+<wire x1="-2.1" y1="-0.5" x2="-1.26" y2="-0.5" width="0.254" layer="94"/>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="RESISTOR-US" prefix="R" uservalue="yes">
@@ -5600,48 +5608,31 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 </device>
 </devices>
 </deviceset>
-<deviceset name="LED-SWITCH-SCIENCE" prefix="LED">
-<description>Generic LEDs</description>
-<gates>
-<gate name="G$1" symbol="LED-1" x="0" y="0"/>
-</gates>
-<devices>
-<device name="1608" package="LED1608">
-<connects>
-<connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="K"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="2012" package="LED2012">
-<connects>
-<connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="K"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="LED" prefix="D" uservalue="yes">
 <description>Through-hole LED</description>
 <gates>
 <gate name="G$1" symbol="LED" x="0" y="1.016"/>
 </gates>
 <devices>
-<device name="-3MM" package="LED-3MM">
+<device name="-1608" package="LED1608">
 <connects>
 <connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="C"/>
+<connect gate="G$1" pin="K" pad="K"/>
 </connects>
 <technologies>
 <technology name=""/>
 </technologies>
 </device>
-<device name="-2012" package="LED-2012">
+<device name="-2012" package="LED2012">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="K" pad="K"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="-3MM" package="LED3MM">
 <connects>
 <connect gate="G$1" pin="A" pad="A"/>
 <connect gate="G$1" pin="K" pad="K"/>
@@ -6968,6 +6959,18 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
 </connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LED-SPACER">
+<gates>
+<gate name="G$1" symbol="LED-SPACER" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LED-SPACER">
 <technologies>
 <technology name=""/>
 </technologies>
@@ -8733,7 +8736,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" deviceset="+5V" device=""/>
 <part name="C11" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
-<part name="LED1" library="my" deviceset="LED-SWITCH-SCIENCE" device="2012" value="5V"/>
+<part name="LED1" library="my" deviceset="LED" device="-2012" value="5V"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1781K"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
@@ -8838,6 +8841,8 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="RC2" library="my" deviceset="R" device="3225" value="10Ω 0.5W"/>
 <part name="R4" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="R7" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
+<part name="U$2" library="my" deviceset="LED-SPACER" device=""/>
+<part name="U$3" library="my" deviceset="LED-SPACER" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8857,6 +8862,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <text x="154.94" y="259.08" size="3.81" layer="94" ratio="10">Logic Level Converter</text>
 <text x="38.1" y="33.02" size="1.778" layer="94">True green </text>
 <text x="147.32" y="142.24" size="3.81" layer="94" ratio="10">Reset Switch</text>
+<text x="325.12" y="68.58" size="3.81" layer="94" ratio="10">LED SPACERs</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -9022,6 +9028,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="NAME" x="67.31" y="99.06" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="72.39" y="101.6" size="1.778" layer="96" rot="R90"/>
 </instance>
+<instance part="U$2" gate="G$1" x="327.66" y="63.5"/>
+<instance part="U$3" gate="G$1" x="332.74" y="63.5"/>
 </instances>
 <busses>
 </busses>
@@ -9157,14 +9165,14 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </net>
 <net name="N$3" class="0">
 <segment>
-<wire x1="35.56" y1="48.26" x2="35.56" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="48.26" x2="35.56" y2="40.64" width="0.1524" layer="91"/>
 <pinref part="R2" gate="G$1" pin="2"/>
 <pinref part="LED1" gate="G$1" pin="A"/>
 </segment>
 </net>
 <net name="GND" class="3">
 <segment>
-<wire x1="35.56" y1="30.48" x2="35.56" y2="35.56" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="30.48" x2="35.56" y2="33.02" width="0.1524" layer="91"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 <pinref part="LED1" gate="G$1" pin="K"/>
 </segment>
