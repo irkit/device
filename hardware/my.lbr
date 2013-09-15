@@ -3487,6 +3487,42 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <text x="-3.937" y="-4.064" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="5.207" y="-4.064" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
 </package>
+<package name="LED3MM">
+<description>&lt;B&gt;LED&lt;/B&gt;&lt;p&gt;
+3 mm, round</description>
+<wire x1="1.5748" y1="-1.27" x2="1.5748" y2="1.27" width="0.254" layer="51"/>
+<wire x1="0" y1="2.032" x2="1.561" y2="1.3009" width="0.254" layer="21" curve="-50.193108" cap="flat"/>
+<wire x1="-1.8" y1="1.0562" x2="0" y2="2.032" width="0.254" layer="21" curve="-61.926949"/>
+<wire x1="0" y1="-2.032" x2="1.5512" y2="-1.3126" width="0.254" layer="21" curve="49.763022" cap="flat"/>
+<wire x1="-1.8" y1="-1.0562" x2="0" y2="-2.032" width="0.254" layer="21" curve="60.255215"/>
+<wire x1="-2.132" y1="0" x2="-1.7891" y2="1.0634" width="0.254" layer="51" curve="-28.301701"/>
+<wire x1="-2.132" y1="0" x2="-1.7306" y2="-1.165" width="0.254" layer="51" curve="31.60822"/>
+<wire x1="1.5748" y1="1.2954" x2="1.5748" y2="1.13" width="0.254" layer="21"/>
+<wire x1="1.5748" y1="-1.2954" x2="1.5748" y2="-1.13" width="0.254" layer="21"/>
+<pad name="A" x="-1.27" y="0" drill="0.8128" diameter="1.8796"/>
+<pad name="K" x="1.27" y="0" drill="0.8128" diameter="1.8796"/>
+<text x="1.905" y="0.381" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="1.905" y="-1.651" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<wire x1="-1.2" y1="1.5" x2="-1.2" y2="1.2" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="-1.2" x2="-1.2" y2="-1.5" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="-1.5" x2="0.3" y2="-0.7" width="0.127" layer="21"/>
+<wire x1="0.3" y1="0.7" x2="-1.2" y2="1.5" width="0.127" layer="21"/>
+<wire x1="-1.2" y1="1.2" x2="-1.2" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="1.6" y1="0" x2="-1.2" y2="1.5" width="0.127" layer="51"/>
+<wire x1="1.6" y1="0" x2="-1.2" y2="-1.5" width="0.127" layer="51"/>
+</package>
+<package name="LED-SPACER">
+<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="1.26" y1="0.5" x2="1.26" y2="-0.5" width="0.127" layer="51" curve="180"/>
+<wire x1="-2.1" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
+<wire x1="-2.1" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="-1.25" y1="0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51" curve="-180"/>
+<wire x1="1.25" y1="0.5" x2="1.26" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="0.5" x2="2.1" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.25" y1="-0.5" x2="1.26" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51"/>
+</package>
 </packages>
 <symbols>
 <symbol name="USB-MINIB">
@@ -3988,6 +4024,16 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <text x="-2.54" y="3.81" size="1.778" layer="95">&gt;NAME</text>
 <text x="-2.54" y="-6.35" size="1.778" layer="96">&gt;VALUE</text>
 </symbol>
+<symbol name="LED-SPACER">
+<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.254" layer="94" curve="150.647214"/>
+<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.254" layer="94" curve="153.215004"/>
+<wire x1="-1.26" y1="0.5" x2="-1.26" y2="-0.5" width="0.254" layer="94" curve="-180"/>
+<wire x1="1.23" y1="0.5" x2="1.18" y2="-0.5" width="0.254" layer="94" curve="174.289407"/>
+<wire x1="1.23" y1="0.5" x2="2.1" y2="0.5" width="0.254" layer="94"/>
+<wire x1="1.18" y1="-0.5" x2="2.1" y2="-0.5" width="0.254" layer="94"/>
+<wire x1="-2.09" y1="0.5" x2="-1.26" y2="0.5" width="0.254" layer="94"/>
+<wire x1="-2.1" y1="-0.5" x2="-1.26" y2="-0.5" width="0.254" layer="94"/>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="V_REG_LDO" prefix="U">
@@ -4040,16 +4086,25 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <gate name="G$1" symbol="LED" x="0" y="1.016"/>
 </gates>
 <devices>
-<device name="-3MM" package="LED-3MM">
+<device name="-1608" package="LED1608">
 <connects>
 <connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="C"/>
+<connect gate="G$1" pin="K" pad="K"/>
 </connects>
 <technologies>
 <technology name=""/>
 </technologies>
 </device>
-<device name="-2012" package="LED-2012">
+<device name="-2012" package="LED2012">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="K" pad="K"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="-3MM" package="LED3MM">
 <connects>
 <connect gate="G$1" pin="A" pad="A"/>
 <connect gate="G$1" pin="K" pad="K"/>
@@ -5318,32 +5373,6 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </device>
 </devices>
 </deviceset>
-<deviceset name="LED-SWITCH-SCIENCE" prefix="LED">
-<description>Generic LEDs</description>
-<gates>
-<gate name="G$1" symbol="LED-1" x="0" y="0"/>
-</gates>
-<devices>
-<device name="1608" package="LED1608">
-<connects>
-<connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="K"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-<device name="2012" package="LED2012">
-<connects>
-<connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="K" pad="K"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="CAPACITOR-POL" prefix="C" uservalue="yes">
 <description>Generic Capacitor with Polarity</description>
 <gates>
@@ -5732,6 +5761,18 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
 </connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LED-SPACER">
+<gates>
+<gate name="G$1" symbol="LED-SPACER" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LED-SPACER">
 <technologies>
 <technology name=""/>
 </technologies>
