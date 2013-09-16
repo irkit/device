@@ -11,7 +11,8 @@
 // down -1- up -2- down -3- up -4- down -5- up
 #define VALID_IR_LEN_MIN   5
 
-SoftwareSerial wifiUART( WIFI_RX, WIFI_TX );
+// Serial1(RX=D0,TX=D1) is Wifi module's UART interface
+
 // BLE112 ble112( (HardwareSerial *)&ble112uart, BLE112_RESET );
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
@@ -166,6 +167,8 @@ void IRKit_setup() {
     // ble112.startAdvertising();
 
     printGuide();
+
+    Serial1.begin(9600);
 }
 
 void IRKit_loop() {
@@ -179,67 +182,82 @@ void IRKit_loop() {
     color.Loop();
 
     // check for input from the user
+    if (Serial1.available()) {
+        Serial.write(Serial1.read());
+    }
+
+    // Wifi UART interface test
+    // if (Serial.available()) {
+    //     static uint8_t last_character = '0';
+    //     static uint8_t is_new_line = 1;
+    //     last_character = Serial.read();
+
+    //     if (is_new_line) {
+    //         is_new_line = 0;
+    //         Serial.print(P("> "));
+    //     }
+
+    //     if (last_character == 0x0D) {
+    //         is_new_line = 1;
+    //     }
+
+    //     // GS module echoes back
+    //     // Serial.write( last_character );
+    //     Serial1.write( last_character );
+    // }
+
     if (Serial.available()) {
-        static uint8_t lastCharacter = '0';
-
-        Serial.print(P("free:"));
-        Serial.println( freeMemory() );
-
-        lastCharacter = Serial.read();
-        Serial.print(P("0x"));
-        Serial.println( lastCharacter, HEX );
-
-        uint8_t status;
-        if (lastCharacter == 'h') {
+        static uint8_t last_character = '0';
+        if (last_character == 'h') {
             printGuide();
         }
-        // else if (lastCharacter == '1') {
+        // else if (last_character == '1') {
         //     // Say hello to the BLE112 and wait for response
         //     ble112.hello();
         // }
-        // else if (lastCharacter == '2') {
+        // else if (last_character == '2') {
         //     ble112.startAdvertising();
         // }
-        // else if (lastCharacter == '3') {
+        // else if (last_character == '3') {
         //     ble112.getRSSI();
         // }
-        // else if (lastCharacter == '5') {
+        // else if (last_character == '5') {
         //     ble112.readAttribute();
         // }
-        // else if (lastCharacter == '6') {
+        // else if (last_character == '6') {
         //     ble112.disconnect();
         // }
-        // else if (lastCharacter == '7') {
+        // else if (last_character == '7') {
         //     ble112.encryptStart();
         // }
 
-        // else if (lastCharacter == 'a') {
+        // else if (last_character == 'a') {
         //     authenticatedBondHandles.Dump();
         // }
-        // else if (lastCharacter == 'b') {
+        // else if (last_character == 'b') {
         //     ble112.getBonds();
         // }
-        else if (lastCharacter == 'i') {
+        else if (last_character == 'i') {
             IR_dump();
         }
-        else if (lastCharacter == 'v') {
+        else if (last_character == 'v') {
             Serial.print(P("version: "));
             Serial.println(version);
         }
 
-        // else if (lastCharacter == 'c') {
+        // else if (last_character == 'c') {
         //     ble112.deleteBonding(0);
 
         //     authenticatedBondHandles.Clear();
         //     Serial.println(P("cleared authenticated bonding"));
         // }
-        else if (lastCharacter == 'd') {
+        else if (last_character == 'd') {
             IR_state(IR_IDLE);
         }
-        // else if (lastCharacter == 's') {
+        // else if (last_character == 's') {
         //     ble112.softwareReset();
         // }
-        // else if (lastCharacter == 'w') {
+        // else if (last_character == 'w') {
         //     ble112.hardwareReset();
         // }
     }
