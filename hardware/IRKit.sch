@@ -9803,7 +9803,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="58.42" y="137.16" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="N$46" class="0">
+<net name="USB-ID" class="0">
 <segment>
 <pinref part="CN1" gate="G$1" pin="ID"/>
 <wire x1="50.8" y1="111.76" x2="53.34" y2="111.76" width="0.1524" layer="91"/>
@@ -9858,9 +9858,9 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="121.92" y="195.58" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
-<wire x1="284.48" y1="124.46" x2="279.4" y2="124.46" width="0.1524" layer="91"/>
-<label x="279.4" y="124.46" size="1.778" layer="95" rot="R180" xref="yes"/>
-<pinref part="CN3" gate="A" pin="5"/>
+<wire x1="292.1" y1="127" x2="297.18" y2="127" width="0.1524" layer="91"/>
+<label x="297.18" y="127" size="1.778" layer="95" xref="yes"/>
+<pinref part="CN3" gate="A" pin="4"/>
 </segment>
 </net>
 <net name="TXLED" class="0">
@@ -9868,6 +9868,11 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="IC1" gate="G$1" pin="(XCK1/#CTS)PD5"/>
 <wire x1="116.84" y1="198.12" x2="121.92" y2="198.12" width="0.1524" layer="91"/>
 <label x="121.92" y="198.12" size="1.778" layer="95" xref="yes"/>
+</segment>
+<segment>
+<wire x1="292.1" y1="129.54" x2="297.18" y2="129.54" width="0.1524" layer="91"/>
+<label x="297.18" y="129.54" size="1.778" layer="95" xref="yes"/>
+<pinref part="CN3" gate="A" pin="2"/>
 </segment>
 </net>
 <net name="HWB" class="0">
@@ -9958,9 +9963,9 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="121.92" y="200.66" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
-<label x="297.18" y="124.46" size="1.778" layer="95" xref="yes"/>
-<wire x1="292.1" y1="124.46" x2="297.18" y2="124.46" width="0.1524" layer="91"/>
-<pinref part="CN3" gate="A" pin="6"/>
+<wire x1="284.48" y1="124.46" x2="279.4" y2="124.46" width="0.1524" layer="91"/>
+<label x="279.4" y="124.46" size="1.778" layer="95" rot="R180" xref="yes"/>
+<pinref part="CN3" gate="A" pin="5"/>
 </segment>
 </net>
 <net name="XTAL1" class="0">
@@ -9985,30 +9990,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="40.64" y1="226.06" x2="55.88" y2="226.06" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="228.6" x2="40.64" y2="226.06" width="0.1524" layer="91"/>
 <junction x="40.64" y="226.06"/>
-</segment>
-</net>
-<net name="D0" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="(RXD1/AIN1/INT2)PD2"/>
-<wire x1="116.84" y1="190.5" x2="121.92" y2="190.5" width="0.1524" layer="91"/>
-<label x="121.92" y="190.5" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<wire x1="292.1" y1="127" x2="297.18" y2="127" width="0.1524" layer="91"/>
-<label x="297.18" y="127" size="1.778" layer="95" xref="yes"/>
-<pinref part="CN3" gate="A" pin="4"/>
-</segment>
-</net>
-<net name="D1" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="(TXD1/INT3)PD3"/>
-<wire x1="116.84" y1="193.04" x2="121.92" y2="193.04" width="0.1524" layer="91"/>
-<label x="121.92" y="193.04" size="1.778" layer="95" xref="yes"/>
-</segment>
-<segment>
-<wire x1="292.1" y1="129.54" x2="297.18" y2="129.54" width="0.1524" layer="91"/>
-<label x="297.18" y="129.54" size="1.778" layer="95" xref="yes"/>
-<pinref part="CN3" gate="A" pin="2"/>
 </segment>
 </net>
 <net name="D7/LDO3.3_EN" class="0">
@@ -10124,11 +10105,23 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="279.4" y="121.92" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
-<net name="A3/WIFIRX" class="0">
+<net name="A3" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="(ADC4/TCK)PF4"/>
 <wire x1="116.84" y1="172.72" x2="121.92" y2="172.72" width="0.1524" layer="91"/>
 <label x="121.92" y="172.72" size="1.778" layer="95" xref="yes"/>
+</segment>
+<segment>
+<label x="297.18" y="124.46" size="1.778" layer="95" xref="yes"/>
+<wire x1="292.1" y1="124.46" x2="297.18" y2="124.46" width="0.1524" layer="91"/>
+<pinref part="CN3" gate="A" pin="6"/>
+</segment>
+</net>
+<net name="D0/WIFIRX" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="(RXD1/AIN1/INT2)PD2"/>
+<wire x1="116.84" y1="190.5" x2="121.92" y2="190.5" width="0.1524" layer="91"/>
+<label x="121.92" y="190.5" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="T2" gate="G$1" pin="D"/>
@@ -10140,11 +10133,18 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <label x="172.72" y="231.14" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
-<net name="A4/WIFITX" class="0">
+<net name="A4" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="(ADC1)PF1"/>
 <wire x1="116.84" y1="165.1" x2="121.92" y2="165.1" width="0.1524" layer="91"/>
 <label x="121.92" y="165.1" size="1.778" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="D1/WIFITX" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="(TXD1/INT3)PD3"/>
+<wire x1="116.84" y1="193.04" x2="121.92" y2="193.04" width="0.1524" layer="91"/>
+<label x="121.92" y="193.04" size="1.778" layer="95" xref="yes"/>
 </segment>
 <segment>
 <wire x1="180.34" y1="210.82" x2="177.8" y2="210.82" width="0.1524" layer="91"/>
@@ -10183,9 +10183,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <approved hash="106,1,314.96,223.52,N$40,,,,,"/>
 <approved hash="106,1,314.96,238.76,N$43,,,,,"/>
 <approved hash="106,1,314.96,236.22,N$44,,,,,"/>
-<approved hash="106,1,55.88,111.76,N$46,,,,,"/>
 <approved hash="106,1,116.84,226.06,RXLED,,,,,"/>
-<approved hash="106,1,116.84,198.12,TXLED,,,,,"/>
 </errors>
 </schematic>
 </drawing>
