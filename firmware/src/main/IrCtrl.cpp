@@ -119,21 +119,21 @@
 
 // Initialize Timer1 for IR subcarrier: Fast PWM, clk/8
 // Countup from BOTTOM to TOP(=OCR1A), At BOTTOM set 1, At OCR1B set 0.
+// "In fast PWM mode the counter is incremented until the counter value matches either one of the fixed values 0x00FF, 0x01FF, or 0x03FF (WGMn3:0 = 5, 6, or 7), the value in ICRn (WGMn3:0 = 14), or the value in OCRnA (WGMn3:0 = 15)." - we want the last behavior
 // TCCR1A : Timer/Counter Control Register A
 // TCCR1B : Timer/Counter Control Register B
 //   0b010 : clk(T2S) / 8
-// WGM20, WGM21, WGM22 all 1 :
+// WGM10, WGM11, WGM12, WGM13 all 1 :
 //   Timer/Counter Mode of Operation : Fast PWM - p148
 //   TOP                             : OCRA
-//   Update of OCRx at               : BOTTOM
+//   Update of OCRnX at              : TOP
 //   TOV Flag Set on                 : TOP
 // OCR1B : Timer/Counter1 Output Compare Register B
 //   16 / 52 (OCR1A:38kHz) = 31% (PWM Duty)
 #define IR_INIT_XMIT() \
   OCR1B  = 16; \
   TCCR1A = _BV(WGM11)|_BV(WGM10); \
-  TCCR1B = _BV(WGM12)|0b010
-
+  TCCR1B = _BV(WGM13)|_BV(WGM12)|0b010
 
 // [atmega32u4 16MHz]
 //   16MHz/8  = 2.00MHz
@@ -317,9 +317,9 @@ int IR_xmit ()
         (IrCtrl.len > IR_BUFF_SIZE)) {
         return 0;
     }
-    if ( IrCtrl.state != IR_WRITING ) {
-        return 0; // Abort when collision detected
-    }
+    // if ( IrCtrl.state != IR_WRITING ) {
+    //     return 0; // Abort when collision detected
+    // }
 
     IR_state( IR_XMITTING );
     if (IrCtrl.freq == 40) {
@@ -441,6 +441,8 @@ void IR_dump (void)
     Serial.print(P(" .len: "));          Serial.println(IrCtrl.len,HEX);
     Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
     Serial.print(P(" .overflowed: "));   Serial.println(IrCtrl.overflowed);
+    Serial.print(P(" .txIndex: "));   Serial.println(IrCtrl.txIndex,HEX);
+    Serial.print(P(" .xmitStart: "));   Serial.println(IrCtrl.xmitStart);
     for (uint16_t i=0; i<IrCtrl.len; i++) {
         if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
         if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }
