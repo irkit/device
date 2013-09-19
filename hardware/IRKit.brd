@@ -145,10 +145,19 @@ v1.1.1</text>
 <dimension x1="5" y1="5" x2="49" y2="5" x3="27" y3="-6.1" textsize="1.778" layer="51" dtype="horizontal"/>
 <dimension x1="5" y1="5" x2="0" y2="9.3" x3="2.5" y3="-6.1" textsize="1.778" layer="51" dtype="horizontal"/>
 <dimension x1="0" y1="46" x2="13.6" y2="53.525" x3="6.8" y3="57.8" textsize="1.778" layer="51" dtype="horizontal"/>
-<wire x1="10" y1="56" x2="46" y2="56" width="0" layer="20"/>
+<wire x1="10" y1="56" x2="20" y2="56" width="0" layer="20"/>
+<wire x1="20" y1="56" x2="21" y2="55" width="0" layer="20" curve="-90"/>
+<wire x1="21" y1="55" x2="22" y2="54" width="0" layer="20" curve="90"/>
+<wire x1="22" y1="54" x2="32" y2="54" width="0" layer="20"/>
+<wire x1="32" y1="54" x2="33" y2="55" width="0" layer="20" curve="90"/>
+<wire x1="33" y1="55" x2="34" y2="56" width="0" layer="20" curve="-90"/>
+<wire x1="34" y1="56" x2="46" y2="56" width="0" layer="20"/>
 <dimension x1="8" y1="0" x2="12.2" y2="56" x3="-4.5" y3="28" textsize="1.778" layer="51" dtype="vertical"/>
 <dimension x1="46" y1="56" x2="49" y2="49" x3="60" y3="52.5" textsize="1.778" layer="51" dtype="vertical"/>
 <dimension x1="40.4" y1="54.2" x2="54" y2="43.1" x3="47.2" y3="60.4" textsize="1.778" layer="51" dtype="horizontal"/>
+<rectangle x1="22" y1="55" x2="32" y2="56" layer="51"/>
+<dimension x1="22" y1="56" x2="32" y2="56" x3="27" y3="57.2" textsize="1.778" layer="51"/>
+<dimension x1="22" y1="56" x2="22" y2="55" x3="21.4" y3="55.5" textsize="1.778" layer="51"/>
 </plain>
 <libraries>
 <library name="transistor">
@@ -3464,10 +3473,10 @@ design rules under a new name.</description>
 <wire x1="18.475" y1="54.525" x2="16.902" y2="54.525" width="0.8128" layer="1"/>
 <wire x1="25.2" y1="51.7" x2="25.1" y2="51.8" width="0.8128" layer="1"/>
 <wire x1="25.1" y1="51.8" x2="21.3" y2="51.8" width="0.8128" layer="1"/>
-<via x="21.3" y="54.1" extent="1-16" drill="0.3048"/>
+<via x="20.2" y="54.5" extent="1-16" drill="0.3048"/>
 <via x="19.9" y="53" extent="1-16" drill="0.3048"/>
 <via x="25" y="53.1" extent="1-16" drill="0.3048"/>
-<via x="23.4" y="54.1" extent="1-16" drill="0.3048"/>
+<via x="22.9" y="53.1" extent="1-16" drill="0.3048"/>
 <via x="18.2" y="50.2" extent="1-16" drill="0.3048"/>
 <via x="12" y="49.2" extent="1-16" drill="0.3048"/>
 </signal>
