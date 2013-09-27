@@ -8722,9 +8722,9 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
 <part name="P+11" library="supply1" deviceset="+5V" device=""/>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
-<part name="R9" library="my" deviceset="RESISTOR-US" device="2012" value="1.2K"/>
+<part name="R9" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
 <part name="R8" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
-<part name="R5" library="my" deviceset="RESISTOR-US" device="2012" value="2.4k"/>
+<part name="R5" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
