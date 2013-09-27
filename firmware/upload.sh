@@ -1,4 +1,4 @@
 #!/bin/sh
 set -xe
 
-ino upload -m leonardo
+~/src/ino/bin/ino upload -m leonardo
