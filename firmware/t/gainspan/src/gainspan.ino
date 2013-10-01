@@ -8,6 +8,10 @@ GSwifi gs(&Serial1);
 void setup() {
     // gs.setup();
 
+    // enable 3.3V LDO
+    pinMode( LDO33_ENABLE, OUTPUT );
+    digitalWrite( LDO33_ENABLE, HIGH );
+
     // USB serial
     Serial.begin(115200);
 

@@ -6,6 +6,9 @@ void setup() {
     // USB serial
     Serial.begin(115200);
 
+    pinMode( LDO33_ENABLE, OUTPUT );
+    digitalWrite( LDO33_ENABLE, HIGH );
+
     // gainspan
     Serial1.begin(9600);
 
