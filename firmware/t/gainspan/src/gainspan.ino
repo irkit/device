@@ -35,15 +35,37 @@ void loop() {
 
         last_character = Serial.read();
 
-        Serial.print(P("last character: 0x")); Serial.println( last_character, HEX );
+        Serial.print(P("> 0x"));
+        Serial.print(last_character, HEX);
+        if (last_character > 0x0D) {
+            Serial.print(P(" "));
+            Serial.write(last_character);
+        }
+        Serial.println();
         /* Serial.print(P("free memory:    0x")); Serial.println( freeMemory(), HEX ); */
 
         uint8_t status;
         if (last_character == 'c') {
-            gs.connect( GSwifi::GSSEC_WPA2_PSK, P("Rhodos"), P("aaaaaaaaaaaaa") );
+            gs.connect( GSwifi::GSSEC_WPA2_PSK, "Rhodos", "aaaaaaaaaaaaa" );
         }
         else if (last_character == 'h') {
             printGuide();
         }
+        else {
+            Serial1.write(last_character);
+        }
+    }
+
+    // gainspan
+    if (Serial1.available()) {
+        static uint8_t last_character_gainspan = '0';
+        last_character_gainspan = Serial1.read();
+        Serial.print(P("< 0x"));
+        Serial.print(last_character_gainspan, HEX);
+        if (last_character_gainspan > 0x0D) {
+            Serial.print(P(" "));
+            Serial.write(last_character_gainspan);
+        }
+        Serial.println();
     }
 }
