@@ -11,7 +11,7 @@ void setup() {
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // wait til gs wakes up
-    sleep_ms( 100 );
+    // sleep_ms( 100 );
 
     gs.setup();
 

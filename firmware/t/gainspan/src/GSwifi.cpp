@@ -25,7 +25,6 @@
 #include "pgmStrToRAM.h"
 #include "GSwifi.h"
 
-
 // GSwifi::GSwifi (PinName p_tx, PinName p_rx, PinName p_reset, PinName p_alarm, int baud)
 //   : _gs(p_tx, p_rx), _reset(p_reset), _buf_cmd(GS_CMD_SIZE) {
 GSwifi::GSwifi( HardwareSerial *serial ) :
@@ -44,6 +43,8 @@ int8_t GSwifi::setup() {
     if (did_timeout_) {
         return -1;
     }
+
+    setBaud( GS_BAUD );
 
     // disable echo
     command("ATE0", GSRES_NORMAL);
@@ -94,36 +95,36 @@ void GSwifi::parse(uint8_t dat) {
             // esc
             switch (dat) {
             case 'O':
-                DBG("ok\r\n");
+                Serial.println("ok");
                 _gs_ok = true;
                 break;
             case 'F':
-                DBG("failure\r\n");
+                Serial.println("failure");
                 _gs_failure = true;
                 break;
             case 'S':
-                DBG("GSMODE_DATA_RX\r\n");
+                Serial.println("GSMODE_DATA_RX");
                 _gs_mode = GSMODE_DATA_RX;
                 mode = 0;
                 break;
             case 'u':
-                DBG("GSMODE_DATA_RXUDP\r\n");
+                Serial.println("GSMODE_DATA_RXUDP");
                 _gs_mode = GSMODE_DATA_RXUDP;
                 mode = 0;
                 break;
             case 'Z':
             case 'H':
-                DBG("GSMODE_DATA_RX_BULK\r\n");
+                Serial.println("GSMODE_DATA_RX_BULK");
                 _gs_mode = GSMODE_DATA_RX_BULK;
                 mode = 0;
                 break;
             case 'y':
-                DBG("GSMODE_DATA_RXUDP_BULK\r\n");
+                Serial.println("GSMODE_DATA_RXUDP_BULK");
                 _gs_mode = GSMODE_DATA_RXUDP_BULK;
                 mode = 0;
                 break;
             default:
-                DBG("unknown [ESC] %02x\r\n", dat);
+                Serial.print("unknown [ESC] 0x"); Serial.println(dat,HEX);
                 break;
             }
             _escape = false;
@@ -188,7 +189,7 @@ void GSwifi::parse(uint8_t dat) {
             // esc
             switch (dat) {
             case 'E':
-                DBG("recv ascii %d\r\n", _cid);
+                // Serial.println("recv ascii %d", _cid);
                 _gs_sock[_cid].received = true;
                 _gs_mode = GSMODE_COMMAND;
 
@@ -199,7 +200,7 @@ void GSwifi::parse(uint8_t dat) {
                 }
                 break;
             default:
-                DBG("unknown <ESC> %02x\r\n", dat);
+                // Serial.println("unknown <ESC> %02x", dat);
                 break;
             }
             _escape = false;
@@ -288,7 +289,7 @@ void GSwifi::parse(uint8_t dat) {
               }
             }
             if (len == 0) {
-                DBG("recv binary %d\r\n", _cid);
+                // Serial.println("recv binary %d", _cid);
                 _gs_sock[_cid].received = true;
                 _escape = false;
                 _gs_mode = GSMODE_COMMAND;
@@ -335,7 +336,7 @@ void GSwifi::parseResponse () {
                 char *tmp = buf + 12;
 
                 acid = x2i(buf[10]);
-                DBG("connect %d -> %d\r\n", cid, acid);
+                // Serial.println("connect %d -> %d", cid, acid);
                 // newSock(acid, _gs_sock[cid].type, _gs_sock[cid].protocol);
                 // _gs_sock[acid].onGsReceive = _gs_sock[cid].onGsReceive;
                 _gs_sock[acid].lcid = cid;
@@ -348,7 +349,7 @@ void GSwifi::parseResponse () {
         } else
         if (strncmp(buf, "DISCONNECT ", 11) == 0) {
             int cid = x2i(buf[11]);
-            DBG("disconnect %d\r\n", cid);
+            // Serial.println("disconnect %d", cid);
             _gs_sock[cid].connect = false;
             // _gs_sock[cid].onGsReceive.call(cid, -1); // event disconnected
         } else
@@ -363,7 +364,7 @@ void GSwifi::parseResponse () {
         if (strncmp(buf, "UnExpected Warm Boot", 20) == 0 ||
           strncmp(buf, "APP Reset-APP SW Reset", 22) == 0 ||
           strncmp(buf, "APP Reset-Wlan Except", 21) == 0 ) {
-            DBG("disassociate\r\n");
+            Serial.println("disassociate");
             _connect = false;
             _status = GSSTAT_READY;
             _escape = false;
@@ -540,7 +541,7 @@ void GSwifi::poll () {
 
     // if (_reconnect > 0 && ! _connect) {
     //     if (_reconnect_time < time(NULL)) {
-    //         DBG("reconnect %d\r\n", _reconnect_time);
+    //         Serial.println("reconnect %d", _reconnect_time);
     //         if (reconnect()) {
     //             _reconnect_time = time(NULL) + _reconnect;
     //         }
@@ -660,7 +661,7 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         sprintf(cmd, "AT+WA=%s", ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         if (did_timeout_) {
-            DBG("retry\r\n");
+            Serial.println("retry");
             // wait_ms(1000);
             command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         }
@@ -675,7 +676,7 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         sprintf(cmd, "AT+WA=%s", ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         if (did_timeout_) {
-            DBG("retry\r\n");
+            Serial.println("retry");
             // wait_ms(1000);
             command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         }
@@ -689,7 +690,7 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         sprintf(cmd, "AT+WA=%s", ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         if (did_timeout_) {
-            DBG("retry\r\n");
+            Serial.println("retry");
             // wait_ms(1000);
             command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         }
@@ -716,7 +717,7 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         }
         break;
     default:
-        DBG("Can't use security\r\n");
+        Serial.println("Can't use security");
         r = -1;
         break;
     }
@@ -788,7 +789,7 @@ int GSwifi::adhock (GSSECURITY sec, const char *ssid, const char *pass, IpAddr i
         }
         break;
     default:
-        DBG("Can't use security\r\n");
+        Serial.println("Can't use security");
         r = -1;
         break;
     }
@@ -853,7 +854,7 @@ int GSwifi::limitedap (GSSECURITY sec, const char *ssid, const char *pass, IpAdd
         }
         break;
     default:
-        DBG("Can't use security\r\n");
+        Serial.println("Can't use security");
         r = -1;
         break;
     }
@@ -905,7 +906,7 @@ int GSwifi::reconnect () {
         }
         break;
     default:
-        DBG("Can't use security\r\n");
+        Serial.println("Can't use security");
         r = -1;
         break;
     }
@@ -1020,18 +1021,29 @@ int GSwifi::getRssi () {
     return _rssi;
 }
 
-int GSwifi::setBaud (int baud) {
+// 4.2.1 UART Parameters
+// Allowed baud rates include: 9600, 19200, 38400, 57600, 115200, 230400,460800 and 921600.
+// The new UART parameters take effect immediately. However, they are stored in RAM and will be lost when power is lost unless they are saved to a profile using AT&W (section 4.6.1). The profile used in that command must also be set as the power-on profile using AT&Y (section 4.6.3).
+// This command returns the standard command response (section 4) to the serial interface with the new UART configuration.
+int8_t GSwifi::setBaud (uint32_t baud) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY || acquireUart()) return -1;
+    if (_status != GSSTAT_READY) {
+        return -1;
+    }
 
-    _baud = baud;
-    sprintf(cmd, "ATB=%d\r\n", _baud);
-    // _gs_puts(cmd);
-    // releaseUart();
-    // wait_ms(100);
-    // _gs.baud(_baud);
-    // _buf_cmd.flush();
+    sprintf(cmd, "ATB=%d\r\n", baud);
+    _serial->println(cmd);
+
+    _serial->begin(baud);
+
+    // sleep_ms(100);
+
+    resetResponse(GSRES_NORMAL);
+
+    setBusy(true);
+    waitResponse(GS_TIMEOUT);
+
     return 0;
 }
 
@@ -1189,7 +1201,6 @@ int GSwifi::gpioOut (int port, int out) {
 }
 
 int GSwifi::certAdd (const char *name, const char *cert, int len) {
-    int i;
     char cmd[GS_CMD_SIZE];
 
     if (! _connect || _status != GSSTAT_READY) return -1;
@@ -1250,56 +1261,20 @@ char GSwifi::i2x (int i) {
     return '0';
 }
 
-
-#ifdef DEBUG
 // for test
-void GSwifi::dump () {
-    int i;
+// void GSwifi::dump () {
+//     int i;
 
-    DBG("GS mode=%d, escape=%d, cid=%d\r\n", _gs_mode, _escape, _cid);
-    for (i = 0; i < 16; i ++) {
-        DBG("[%d] ", i);
-        DBG("connect=%d, type=%d, protocol=%d, len=%d\r\n", _gs_sock[i].connect, _gs_sock[i].type, _gs_sock[i].protocol, _gs_sock[i].data->available());
-        DBG("  %x, %x\r\n", &_gs_sock[i], _gs_sock[i].data);
-#ifdef GS_ENABLE_HTTPD
-        if (_gs_sock[i].protocol == GSPROT_HTTPD) {
-            DBG("  mode=%d, type=%d, len=%d\r\n", i, _httpd[i].mode, _httpd[i].type, _httpd[i].len);
-            DBG("  %x, %x\r\n", &_httpd[i], _httpd[i].buf);
-        }
-#endif
-    }
-}
-
-void GSwifi::test () {
-/*
-    command(NULL, GSRES_NORMAL);
-    wait_ms(100);
-    command("AT+NCLOSEALL", GSRES_NORMAL);
-    _connect = true;
-*/
-    command("AT+WRXACTIVE=1", GSRES_NORMAL);
-}
-
-int GSwifi::getc() {
-    char c;
-    if (! _buf_cmd.isEmpty()) {
-        _buf_cmd.dequeue(&c);
-    }
-/*
-    } else
-    if (_gs_sock[0].data != NULL) {
-        _gs_sock[0].data->dequeue(&c);
-    }
-*/
-    return c;
-}
-
-void GSwifi::putc(char c) {
-    _gs_putc(c);
-}
-
-int GSwifi::readable() {
-    return ! _buf_cmd.isEmpty();
-//    return _buf_cmd.use() || (_gs_sock[0].data != NULL && _gs_sock[0].data->use());
-}
-#endif
+//     DBG("GS mode=%d, escape=%d, cid=%d\r\n", _gs_mode, _escape, _cid);
+//     for (i = 0; i < 16; i ++) {
+//         DBG("[%d] ", i);
+//         DBG("connect=%d, type=%d, protocol=%d, len=%d\r\n", _gs_sock[i].connect, _gs_sock[i].type, _gs_sock[i].protocol, _gs_sock[i].data->available());
+//         DBG("  %x, %x\r\n", &_gs_sock[i], _gs_sock[i].data);
+// #ifdef GS_ENABLE_HTTPD
+//         if (_gs_sock[i].protocol == GSPROT_HTTPD) {
+//             DBG("  mode=%d, type=%d, len=%d\r\n", i, _httpd[i].mode, _httpd[i].type, _httpd[i].len);
+//             DBG("  %x, %x\r\n", &_httpd[i], _httpd[i].buf);
+//         }
+// #endif
+//     }
+// }

@@ -23,36 +23,12 @@
 #ifndef _GSWIFI_H_
 #define _GSWIFI_H_
 
-#include "dbg.h"
-// #include "mbed.h"
 #include "Arduino.h"
 #include "CBuffer.h"
 // #include "GSFunctionPointer.h"
 #include "host.h"
 #include "ipaddr.h"
 #include "GSwifi_conf.h"
-// #include <ctype.h>
-// #include <stdlib.h>
-// #include <string.h>
-
-// #ifdef GS_UART_DIRECT
-// #if defined(TARGET_LPC1768) || defined(TARGET_LPC2368) || defined(TARGET_LPC11U24)
-// #define _gs_getc() _uart->RBR
-// #define _gs_putc(c) while(!(_uart->LSR & (1<<5))); _uart->THR = c
-// #elif defined(TARGET_KL25Z)
-// #error "no support GS_UART_DIRECT"
-// #endif
-// #else // GS_UART_DIRECT
-// #define _gs_getc() _gs.getc()
-// #define _gs_putc(c) _gs.putc(c)
-// #endif
-
-// #ifdef GS_SYSLOG
-// #define LOG(...) printf("" __VA_ARGS__)
-// #else
-// #define LOG(...)
-// #endif
-
 
 /**
  * GSwifi class
@@ -185,26 +161,16 @@ struct GS_httpd_handler {
 
     // ----- GSwifi.cpp -----
     /**
-     * default constructor (no fllow controll)
-     * @param p_tx mbed TXD pin (GS RXD)
-     * @param p_rx mbed RXD pin (GS TXD)
-     * @param p_reset GS RESET pin
-     * @param p_alarm GS ALARM pin
-     * @param baud uart baud rate
+     * default constructor
+     * @param serial
      */
-    // GSwifi (PinName p_tx, PinName p_rx, PinName p_reset, PinName p_alarm = NC, int baud = GS_BAUD);
     GSwifi (HardwareSerial *serial);
+
     /**
-     * default constructor (with hardware fllow controll)
-     * @param p_tx mbed TXD pin (GS RXD)
-     * @param p_rx mbed RXD pin (GS TXD)
-     * @param p_cts mbed CTS pin (GS RTS)
-     * @param p_rts mbed RTS pin (GS CTS)
-     * @param p_reset GS RESET pin
-     * @param p_alarm GS ALARM pin
-     * @param baud uart baud rate
+     * setup call once after initialization
      */
-    // GSwifi (PinName p_tx, PinName p_rx, PinName p_cts, PinName p_rts, PinName p_reset, PinName p_alarm = NC, int baud = GS_BAUD);
+    int8_t setup();
+
     /**
      * polling
      */
@@ -268,7 +234,7 @@ struct GS_httpd_handler {
     /**
      * main polling
      */
-    int setBaud (int baud);
+    int8_t setBaud (uint32_t baud);
     /**
      * change radio region
      */
@@ -535,7 +501,6 @@ struct GS_httpd_handler {
 
 protected:
     void reset ();
-    int autobaud (int flg);
     int acquireUart (int ms = GS_TIMEOUT);
     void releaseUart ();
 
@@ -582,7 +547,6 @@ protected:
 
 private:
     HardwareSerial* _serial;
-    int _baud;
     bool _rts;
 #if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
     LPC_UART1_TypeDef *_uart;
@@ -629,7 +593,6 @@ private:
     bool did_timeout_;
     void (*onTimeout_)();
     bool connected_;
-    int8_t setup();
     uint8_t checkActivity(uint32_t timeout_ms);
     bool setBusy(bool busy);
     void parse(uint8_t dat);

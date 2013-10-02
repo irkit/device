@@ -1,7 +1,7 @@
 #ifndef _GSWIFI_CONF_H_
 #define _GSWIFI_CONF_H_
 
-#define GS_BAUD 9600  // default module baud
+#define GS_BAUD 115200 // TODO tune up
 
 //#define GS_UART_DIRECT
 #define GS_BULK
