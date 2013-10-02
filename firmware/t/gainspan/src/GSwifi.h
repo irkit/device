@@ -491,6 +491,17 @@ struct GS_httpd_handler {
     int attach_httpd (const char *uri, onHttpdCgiFunc ponHttpCgi);
 #endif
 
+    /**
+     * mDNS
+     */
+    int8_t mDNSStart();
+    int8_t mDNSRegisterHostname(const char *hostname = "");
+    int8_t mDNSDeregisterHostname(const char *hostname);
+    int8_t mDNSRegisterService(const char *name, const char *subtype, const char *type, const char *protocol, uint16_t port);
+    int8_t mDNSDeregisterService(const char *name, const char *subtype, const char *type, const char *protocol);
+    int8_t mDNSAnnounceService();
+    int8_t mDNSDiscoverService(const char *subtype, const char *type, const char *protocol);
+
 #ifdef DEBUG
     void dump ();
     void test ();

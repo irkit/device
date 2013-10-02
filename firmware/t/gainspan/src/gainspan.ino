@@ -27,6 +27,7 @@ void setup() {
 void printGuide() {
     Serial.println(P("Menu:"));
     Serial.println(P("c) connect to wifi"));
+    Serial.println(P("m) start mDNS"));
     Serial.println(P("h) help (this)"));
     Serial.println(P("Command?"));
 }
@@ -50,6 +51,13 @@ void loop() {
         uint8_t status;
         if (last_character == 'c') {
             gs.connect( GSwifi::GSSEC_WPA2_PSK, "Rhodos", "aaaaaaaaaaaaa" );
+        }
+        else if (last_character == 'm') {
+            gs.mDNSStart();
+            gs.mDNSRegisterHostname("IRKit");
+            gs.mDNSRegisterService("irsend","","_http","_tcp",80);
+            gs.mDNSAnnounceService();
+            gs.mDNSDiscoverService("","_http","_tcp");
         }
         else if (last_character == 'h') {
             printGuide();

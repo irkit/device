@@ -1229,6 +1229,79 @@ int GSwifi::provisioning (char *user, char *pass) {
 }
 #endif
 
+/**
+ * mDNS
+ */
+int8_t GSwifi::mDNSStart() {
+    command("AT+MDNSSTART", GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::mDNSRegisterHostname(const char *hostname) {
+    char cmd[GS_CMD_SIZE];
+    sprintf(cmd, "AT+MDNSHNREG=%s,local", hostname);
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::mDNSDeregisterHostname(const char *hostname) {
+    char cmd[GS_CMD_SIZE];
+    sprintf(cmd, "AT+MDNSHNDEREG=%s,local", hostname);
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+// AT+MDNSSRVREG=<ServiceInstanceName>,[<ServiceSubType>],<ServiceType>, <Protocol>,<Domain>,<port>,<Default Key=Val>,<key 1=val 1>, <key 2=val 2>.....
+// Example: if the factory default host name is “GAINSPAN” and the mac address of the node is “00-1d-c9- 00-22-97”, then AT+MDNSHNREG=,local
+// Will take the host name as “GAINSPAN_002297”
+// TODO change factory default host name
+int8_t GSwifi::mDNSRegisterService(const char *name, const char *subtype, const char *type, const char *protocol, uint16_t port) {
+    char cmd[GS_CMD_SIZE];
+    sprintf(cmd, "AT+MDNSSRVREG=%s,%s,%s,%s,local,%d", name, subtype, type, protocol, port );
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::mDNSDeregisterService(const char *name, const char *subtype, const char *type, const char *protocol) {
+    char cmd[GS_CMD_SIZE];
+    sprintf(cmd, "AT+MDNSSRVDEREG=%s,%s,%s,%s,local", name, subtype, type, protocol );
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::mDNSAnnounceService() {
+    command("AT+MDNSANNOUNCE", GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::mDNSDiscoverService(const char *subtype, const char *type, const char *protocol) {
+    char cmd[GS_CMD_SIZE];
+    sprintf(cmd, "AT+MDNSSD=%s,%s,%s,local", subtype, type, protocol);
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
 int GSwifi::from_hex (int ch) {
   return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
 }
