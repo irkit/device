@@ -7,7 +7,6 @@
 #define GS_BULK
 //#define GS_LIB_TINY
 
-#define GS_DHCPNAME "mbed-gs"
 #define GS_DNSNAME "setup.local"
 #define GS_WREGDOMAIN 2 // 0:FCC, 1:ETSI, 2:TELEC
 

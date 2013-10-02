@@ -629,6 +629,7 @@ private:
     bool did_timeout_;
     void (*onTimeout_)();
     bool connected_;
+    int8_t setup();
     uint8_t checkActivity(uint32_t timeout_ms);
     bool setBusy(bool busy);
     void parse(uint8_t dat);

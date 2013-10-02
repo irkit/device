@@ -30,156 +30,51 @@
 //   : _gs(p_tx, p_rx), _reset(p_reset), _buf_cmd(GS_CMD_SIZE) {
 GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial),
-    _buf_cmd(GS_CMD_SIZE)
+    _buf_cmd(GS_CMD_SIZE),
+    _rts(false)
 {
-    _serial->begin(9600);
-
-    // if (p_alarm != NC) {
-    //     _alarm = new DigitalInOut(p_alarm);
-    //     _alarm->output(); // low
-    //     _alarm->write(0);
-    // } else {
-    //     _alarm = NULL;
-    // }
-
-    // _reset.output(); // low
-    // _reset = 0;
-    // _baud = baud;
-    // if (_baud) _gs.baud(_baud);
-    // _gs.attach(this, &GSwifi::isr_recv, Serial::RxIrq);
-    _rts = false;
-// #if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
-//     _uart = LPC_UART1;
-// #elif defined(TARGET_LPC11U24)
-//     _uart = LPC_USART;
-// #endif
-
-    // wait_ms(100);
-    reset();
 }
 
-// GSwifi::GSwifi (PinName p_tx, PinName p_rx, PinName p_cts, PinName p_rts, PinName p_reset, PinName p_alarm, int baud)
-//   : _gs(p_tx, p_rx), _reset(p_reset), _buf_cmd(GS_CMD_SIZE) {
+int8_t GSwifi::setup() {
+    reset();
 
-//     if (p_alarm != NC) {
-//         _alarm = new DigitalInOut(p_alarm);
-//         _alarm->output(); // low
-//         _alarm->write(0);
-//     } else {
-//         _alarm = NULL;
-//     }
+    _serial->begin(9600);
 
-//     _reset.output(); // low
-//     _reset = 0;
-//     _baud = baud;
-//     if (_baud) _gs.baud(_baud);
-//     _gs.attach(this, &GSwifi::isr_recv, Serial::RxIrq);
-//     _rts = false;
-// #if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
-//     _uart = LPC_UART1;
-//     if (p_cts == p12) { // CTS input (P0_17)
-//         _uart->MCR |= (1<<7); // CTSEN
-//         LPC_PINCON->PINSEL1 &= ~(3 << 2);
-//         LPC_PINCON->PINSEL1 |= (1 << 2); // UART CTS
-//     } else
-//     if (p_cts == P2_2) { // CTS input (P2_2)
-//         _uart->MCR |= (1<<7); // CTSEN
-//         LPC_PINCON->PINSEL4 &= ~(3 << 4);
-//         LPC_PINCON->PINSEL4 |= (2 << 4); // UART CTS
-//     }
-//     if (p_rts == P0_22) { // RTS output (P0_22)
-//         _uart->MCR |= (1<<6); // RTSEN
-//         LPC_PINCON->PINSEL1 &= ~(3 << 12);
-//         LPC_PINCON->PINSEL1 |= (1 << 12); // UART RTS
-//         _rts = true;
-//     } else
-//     if (p_rts == P2_7) { // RTS output (P2_7)
-//         _uart->MCR |= (1<<6); // RTSEN
-//         LPC_PINCON->PINSEL4 &= ~(3 << 14);
-//         LPC_PINCON->PINSEL4 |= (2 << 14); // UART RTS
-//         _rts = true;
-//     }
-// #elif defined(TARGET_LPC11U24)
-//     _uart = LPC_USART;
-//     if (p_cts == p21) { // CTS input (P0_7)
-//         _uart->MCR |= (1<<7); // CTSEN
-//         LPC_IOCON->PIO0_7 &= ~0x07;
-//         LPC_IOCON->PIO0_7 |= 0x01; // UART CTS
-//     }
-//     if (p_rts == p22) { // RTS output (P0_17)
-//         _uart->MCR |= (1<<6); // RTSEN
-//         LPC_IOCON->PIO0_17 &= ~0x07;
-//         LPC_IOCON->PIO0_17 |= 0x01; // UART RTS
-//         _rts = true;
-//     }
-// #endif
+    command("AT", GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
 
-//     wait_ms(100);
-//     reset();
-// }
+    // disable echo
+    command("ATE0", GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    // UART hardware flow control
+    if (_rts) {
+        command("AT&R1", GSRES_NORMAL);
+    }
+}
 
 void GSwifi::reset () {
-
-    // if (_alarm != NULL) {
-    //     _alarm->output(); // low
-    //     _alarm->write(0);
-    //     wait_ms(10);
-    //     _alarm->input(); // high
-    //     _alarm->mode(PullUp);
-    //     wait_ms(10);
-    // }
-    // _reset.output(); // low
-    // _reset = 0;
 
     memset(&_gs_sock, 0, sizeof(_gs_sock));
     memset(&_mac, 0, sizeof(_mac));
     _connect = false;
-    _status = GSSTAT_READY;
-    _escape = false;
+    _status  = GSSTAT_READY;
+    _escape  = false;
     resetResponse(GSRES_NONE);
     _gs_mode = GSMODE_COMMAND;
-    _dhcp = false;
-    _ssid = NULL;
-    _pass = NULL;
-    _reconnect = 0;
+    _dhcp    = false;
+    _ssid    = NULL;
+    _pass    = NULL;
+    _reconnect      = 0;
     _reconnect_time = 0;
     _buf_cmd.flush();
-
-    // wait_ms(100);
-    // if (! _baud) autobaud(0);
-    // _reset.input(); // high
-    // _reset.mode(PullNone);
-    // if (! _baud) autobaud(1);
-    // wait_ms(500);
 }
 
-int GSwifi::autobaud (int flg) {
-    int i;
-
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC2368) || defined(TARGET_LPC11U24)
-    if (flg == 0) {
-        _uart->ACR = (1<<2)|(1<<0); // auto-baud mode 0
-        return 0;
-    } else {
-        for (i = 0; i < 50; i ++) {
-            if (! (_uart->ACR & (1<<0))) {
-                return 0;
-            }
-            wait_ms(10);
-        }
-        _uart->ACR = 0;
-    }
-#endif
-    return -1;
-}
-
-void GSwifi::releaseUart () {
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC2368) || defined(TARGET_LPC11U24)
-    _uart->MCR |= (1<<6); // RTSEN
-#endif
-}
-
-// uart interrupt
+// received a character from UART
 void GSwifi::parse(uint8_t dat) {
     Serial.print(P("p< 0x"));
     Serial.print(dat, HEX);
@@ -604,8 +499,8 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         if (_gs_flg == 0 && strncmp(buf, "MODE:", 5) == 0) {
             _gs_flg ++;
-        } else
-        if (_gs_flg == 1 && strncmp(buf, "BSSID:", 6) == 0) {
+        }
+        else if (_gs_flg == 1 && strncmp(buf, "BSSID:", 6) == 0) {
             char *tmp = strstr(buf, "SECURITY:") + 2;
             if (strncmp(tmp, "WEP (OPEN)", 10) == NULL) {
                 _sec = GSSEC_OPEN;
@@ -654,54 +549,22 @@ void GSwifi::poll () {
 }
 
 void GSwifi::command (const char *cmd, GSRESPONCE res, uint32_t timeout) {
-    int i;
-
-    // if (acquireUart()) return -1;
-
-    Serial.print(P("command> "));
-
-    if ( (cmd == NULL) ||
-         (strlen(cmd) == 0) ) {
-        // dummy CR+LF
-        // _gs_putc('\r');
-        // _gs_putc('\n');
-        // releaseUart();
-        // wait_ms(100);
-        _serial->write('\r');
-        _serial->write('\n');
-        // delay(1000);
-
-        Serial.println();
-        _buf_cmd.flush();
-
-        setBusy(true);
-        waitResponse(timeout);
-        return;
-    }
+    Serial.print(P("c> "));
 
     resetResponse(res);
-    for (i = 0; i < strlen(cmd); i ++) {
-        // _gs_putc(cmd[i]);
-        _serial->write(cmd[i]);
-        Serial.print(cmd[i]);
-    }
-    _serial->write('\r');
-    _serial->write('\n');
-    Serial.println();
-    // _gs_putc('\r');
-    // _gs_putc('\n');
-    // releaseUart();
-    // Serial.print(P(">")); Serial.println(cmd);
+
+    _serial->println(cmd);
+    Serial.println(cmd);
 
     setBusy(true);
     waitResponse(timeout);
 }
 
 void GSwifi::resetResponse (GSRESPONCE res) {
-    _gs_ok = false;
+    _gs_ok      = false;
     _gs_failure = false;
-    _gs_flg = 0;
-    _gs_res = res;
+    _gs_flg     = 0;
+    _gs_res     = res;
 }
 
 bool GSwifi::setBusy(bool busy) {
@@ -727,7 +590,9 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
             timeout_start_ = millis();
         }
 
-        if (_gs_ok || _gs_failure) {
+        if ( (_gs_ok || _gs_failure) &&
+             (_gs_flg == -1 || _gs_res == GSRES_NONE) ) {
+            _gs_res = GSRES_NONE;
             setBusy(false);
             break;
         }
@@ -750,26 +615,6 @@ void GSwifi::waitResponse (uint32_t ms) {
 
     while ( checkActivity(ms) ) ;
     return;
-
-    // Timer timeout;
-
-    // if (! ms) return 0;
-
-    // timeout.start();
-    // for (;;) {
-    //     if (timeout.read_ms() > ms) {
-    //         DBG("timeout\r\n");
-    //         break;
-    //     }
-    //     if (_gs_ok && (_gs_flg == -1 || _gs_res == GSRES_NONE)) {
-    //         timeout.stop();
-    //         _gs_res = GSRES_NONE;
-    //         return 0;
-    //     }
-    //     if (_gs_failure) break;
-    // }
-    // timeout.stop();
-    // _gs_res = GSRES_NONE;
 }
 
 int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, int reconnect, char *name) {
@@ -778,20 +623,6 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 
     if (_connect || _status != GSSTAT_READY) return -1;
 
-    // command(NULL, GSRES_NORMAL);
-
-    // Serial.println(P("connect 1"));
-
-    // TODO move ATE0 to setup()
-    // disable echo
-    command("ATE0", GSRES_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    // if (_rts) {
-    //     command("AT&R1", GSRES_NORMAL);
-    // }
     if (getMacAddress(_mac)) {
         return -1;
     }
@@ -804,15 +635,13 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 #endif
 
     disconnect();
-    command("AT+WM=0", GSRES_NORMAL); // infrastructure
-    // wait_ms(100);
+
+    // infrastructure mode
+    command("AT+WM=0", GSRES_NORMAL);
+
+    // dhcp
     if (dhcp && (sec != GSSEC_WPS_BUTTON)) {
-        if (name) {
-            sprintf(cmd, "AT+NDHCP=1,%s", name);
-        } else {
-            strcpy(cmd, "AT+NDHCP=1," GS_DHCPNAME);
-        }
-        command(cmd, GSRES_NORMAL);
+        command("AT+NDHCP=1", GSRES_NORMAL);
     } else {
         command("AT+NDHCP=0", GSRES_NORMAL);
     }
@@ -838,13 +667,25 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         break;
     case GSSEC_WPA_PSK:
     case GSSEC_WPA_ENT:
+        command("AT+WAUTH=0", GSRES_NORMAL);
+
+        sprintf(cmd, "AT+WWPA=%s", pass);
+        command(cmd, GSRES_NORMAL, GS_TIMEOUT2);
+
+        sprintf(cmd, "AT+WA=%s", ssid);
+        command(cmd, GSRES_DHCP, GS_TIMEOUT2);
+        if (did_timeout_) {
+            DBG("retry\r\n");
+            // wait_ms(1000);
+            command(cmd, GSRES_DHCP, GS_TIMEOUT2);
+        }
+        break;
     case GSSEC_WPA2_PSK:
     case GSSEC_WPA2_ENT:
         command("AT+WAUTH=0", GSRES_NORMAL);
-//        sprintf(cmd, "AT+WWPA=%s", pass);
         sprintf(cmd, "AT+WPAPSK=%s,%s", ssid, pass);
         command(cmd, GSRES_NORMAL, GS_TIMEOUT2);
-        // wait_ms(100);
+
         sprintf(cmd, "AT+WA=%s", ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
         if (did_timeout_) {
@@ -856,7 +697,9 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     case GSSEC_WPS_BUTTON:
         command("AT+WAUTH=0", GSRES_NORMAL);
         command("AT+WWPS=1", GSRES_WPS, GS_TIMEOUT2);
-        if (did_timeout_) break;
+        if (did_timeout_) {
+            break;
+        }
         if (dhcp) {
             r = setAddress(name);
         }
@@ -865,7 +708,9 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         command("AT+WAUTH=0", GSRES_NORMAL);
         sprintf(cmd, "AT+WWPS=2,%s", pass);
         command(cmd, GSRES_WPS, GS_TIMEOUT2);
-        if (did_timeout_) break;
+        if (did_timeout_) {
+            break;
+        }
         if (dhcp) {
             r = setAddress(name);
         }
@@ -883,11 +728,11 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     }
 
     if (r == 0) {
-        _connect = true;
-        _reconnect = reconnect;
+        _connect        = true;
+        _reconnect      = reconnect;
         _reconnect_time = 0;
-        _sec = sec;
-        _dhcp = dhcp;
+        _sec            = sec;
+        _dhcp           = dhcp;
         if (_reconnect && ssid) {
             if (!_ssid) _ssid = (char*)malloc(strlen(ssid) + 1);
             strcpy(_ssid, ssid);
@@ -1025,9 +870,8 @@ int GSwifi::disconnect () {
         _gs_sock[i].connect = false;
     }
     command("AT+NCLOSEALL", GSRES_NORMAL);
-    command("AT+WD", GSRES_NORMAL);
-    command("AT+NDHCP=0", GSRES_NORMAL);
-    // wait_ms(100);
+    command("AT+WD",        GSRES_NORMAL);
+    command("AT+NDHCP=0",   GSRES_NORMAL);
     return 0;
 }
 
@@ -1052,7 +896,7 @@ int GSwifi::reconnect () {
     case GSSEC_WPA2_PSK:
     case GSSEC_WPA2_ENT:
         if (_dhcp) {
-            command("AT+NDHCP=1," GS_DHCPNAME, GSRES_NORMAL);
+            command("AT+NDHCP=1", GSRES_NORMAL);
         }
         sprintf(cmd, "AT+WA=%s", _ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
@@ -1071,14 +915,7 @@ int GSwifi::reconnect () {
 }
 
 int GSwifi::setAddress (char *name) {
-    char cmd[GS_CMD_SIZE];
-
-    if (name) {
-        sprintf(cmd, "AT+NDHCP=1,%s", name);
-    } else {
-        strcpy(cmd, "AT+NDHCP=1," GS_DHCPNAME);
-    }
-    command(cmd, GSRES_DHCP, GS_TIMEOUT2);
+    command("AT+NDHCP=1", GSRES_DHCP, GS_TIMEOUT2);
     if (did_timeout_) {
         return -1;
     }
