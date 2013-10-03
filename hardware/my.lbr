@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="mm" altunit="mm"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -3646,6 +3646,25 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <rectangle x1="-1.0963" y1="1.78" x2="-0.8525" y2="2.45" layer="51"/>
 <rectangle x1="-1.0963" y1="1.4256" x2="-0.8525" y2="1.78" layer="21"/>
 </package>
+<package name="VSSOP8">
+<smd name="6" x="0.25" y="1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="5" x="0.75" y="1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="7" x="-0.25" y="1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="8" x="-0.75" y="1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="3" x="0.25" y="-1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="4" x="0.75" y="-1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="2" x="-0.25" y="-1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<smd name="1" x="-0.75" y="-1.55" dx="0.8" dy="0.3" layer="1" rot="R90"/>
+<wire x1="-1.05" y1="1.2" x2="-1.05" y2="-1.2" width="0.127" layer="21"/>
+<wire x1="-1.05" y1="1.2" x2="-1.05" y2="-1.2" width="0.127" layer="21"/>
+<wire x1="-1.05" y1="1.2" x2="-1.05" y2="-1.2" width="0.127" layer="21"/>
+<wire x1="1.05" y1="1.2" x2="1.05" y2="-1.2" width="0.127" layer="21"/>
+<wire x1="-1.05" y1="-1.2" x2="1.05" y2="-1.2" width="0.127" layer="51"/>
+<wire x1="-1.05" y1="1.2" x2="1.05" y2="1.2" width="0.127" layer="51"/>
+<text x="-1.2" y="-1.1" size="0.254" layer="51" rot="R90">&gt;NAME</text>
+<text x="1.4" y="-1.2" size="0.254" layer="51" rot="R90">&gt;VALUE</text>
+<circle x="-1.3" y="-1.4" radius="0.2" width="0.1" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="USB-MINIB">
@@ -4214,6 +4233,23 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <pin name="VS" x="-2.54" y="7.62" visible="pad" length="short" direction="pwr" rot="R270"/>
 <pin name="GND" x="-2.54" y="-7.62" visible="pad" length="short" direction="pwr" rot="R90"/>
 <pin name="BYPASS" x="2.54" y="-5.08" visible="pad" length="short" direction="pas" rot="R90"/>
+</symbol>
+<symbol name="SN74LVC2G125">
+<pin name="1!OE" x="-7.62" y="2.54" length="middle" direction="in"/>
+<pin name="1A" x="-7.62" y="5.08" length="middle" direction="in"/>
+<pin name="2Y" x="22.86" y="0" length="middle" direction="out" rot="R180"/>
+<pin name="GND" x="7.62" y="12.7" length="middle" direction="pwr" rot="R270"/>
+<pin name="VCC" x="10.16" y="12.7" length="middle" direction="pwr" rot="R270"/>
+<pin name="2!OE" x="-7.62" y="-2.54" length="middle" direction="in"/>
+<pin name="1Y" x="22.86" y="5.08" length="middle" direction="out" rot="R180"/>
+<pin name="2A" x="-7.62" y="0" length="middle" direction="in"/>
+<wire x1="-2.54" y1="5.08" x2="-2.54" y2="7.62" width="0.254" layer="95"/>
+<wire x1="-2.54" y1="7.62" x2="17.78" y2="7.62" width="0.254" layer="95"/>
+<wire x1="17.78" y1="7.62" x2="17.78" y2="-5.08" width="0.254" layer="95"/>
+<wire x1="17.78" y1="-5.08" x2="-2.54" y2="-5.08" width="0.254" layer="95"/>
+<wire x1="-2.54" y1="5.08" x2="-2.54" y2="-5.08" width="0.254" layer="95"/>
+<text x="-2.54" y="7.62" size="1.778" layer="95">&gt;NAME</text>
+<text x="-2.54" y="-7.62" size="1.778" layer="95">&gt;VALUE</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -6033,6 +6069,28 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </connects>
 <technologies>
 <technology name="1"/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="SN74LVC2G125" prefix="IC">
+<gates>
+<gate name="G$1" symbol="SN74LVC2G125" x="-5.08" y="0"/>
+</gates>
+<devices>
+<device name="DCU" package="VSSOP8">
+<connects>
+<connect gate="G$1" pin="1!OE" pad="1"/>
+<connect gate="G$1" pin="1A" pad="2"/>
+<connect gate="G$1" pin="1Y" pad="6"/>
+<connect gate="G$1" pin="2!OE" pad="7"/>
+<connect gate="G$1" pin="2A" pad="5"/>
+<connect gate="G$1" pin="2Y" pad="3"/>
+<connect gate="G$1" pin="GND" pad="4"/>
+<connect gate="G$1" pin="VCC" pad="8"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
