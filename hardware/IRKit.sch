@@ -9009,7 +9009,6 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="C14" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="C16" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="C15" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
-<part name="GND18" library="supply1" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
 <part name="D2" library="my" deviceset="LED" device="-3MM" value="VSLB3940"/>
 <part name="C12" library="my" deviceset="CAPACITOR-POL" device="PANASONIC_B" value="10uF"/>
@@ -9056,6 +9055,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="X24" library="wirepad" deviceset="PAD-N" device="" value="0"/>
 <part name="C18" library="my" deviceset="CAPACITOR-POL" device="PANASONIC_B" value="1uF"/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
+<part name="+3V6" library="supply1" deviceset="+3V3" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9185,7 +9185,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="C14" gate="G$1" x="251.46" y="215.9" rot="R180"/>
 <instance part="C16" gate="G$1" x="335.28" y="246.38" rot="R180"/>
 <instance part="C15" gate="G$1" x="297.18" y="165.1" rot="R180"/>
-<instance part="GND18" gate="1" x="327.66" y="132.08"/>
 <instance part="P+1" gate="1" x="327.66" y="121.92"/>
 <instance part="D2" gate="G$1" x="160.02" y="58.42" smashed="yes" rot="R270">
 <attribute name="NAME" x="159.004" y="54.864" size="1.27" layer="94" rot="R270"/>
@@ -9257,6 +9256,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="X24" gate="G$1" x="281.94" y="20.32"/>
 <instance part="C18" gate="G$1" x="281.94" y="38.1" rot="R90"/>
 <instance part="+3V5" gate="G$1" x="259.08" y="63.5"/>
+<instance part="+3V6" gate="G$1" x="332.74" y="137.16"/>
 </instances>
 <busses>
 </busses>
@@ -9512,13 +9512,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="335.28" y1="243.84" x2="335.28" y2="241.3" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="340.36" y1="129.54" x2="332.74" y2="129.54" width="0.1524" layer="91"/>
-<pinref part="GND18" gate="1" pin="GND"/>
-<wire x1="332.74" y1="129.54" x2="332.74" y2="134.62" width="0.1524" layer="91"/>
-<wire x1="332.74" y1="134.62" x2="327.66" y2="134.62" width="0.1524" layer="91"/>
-<pinref part="CN4" gate="A" pin="1"/>
-</segment>
-<segment>
 <pinref part="C10" gate="G$1" pin="1"/>
 <pinref part="GND19" gate="1" pin="GND"/>
 <wire x1="48.26" y1="246.38" x2="48.26" y2="248.92" width="0.1524" layer="91"/>
@@ -9727,6 +9720,12 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="R17" gate="G$1" pin="2"/>
 <wire x1="259.08" y1="60.96" x2="259.08" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
+</segment>
+<segment>
+<wire x1="340.36" y1="129.54" x2="332.74" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="332.74" y1="129.54" x2="332.74" y2="134.62" width="0.1524" layer="91"/>
+<pinref part="CN4" gate="A" pin="1"/>
+<pinref part="+3V6" gate="G$1" pin="+3V3"/>
 </segment>
 </net>
 <net name="N$16" class="0">
