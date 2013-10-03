@@ -37,7 +37,7 @@ void loop() {
         if (last_character == 0x0D) {
             is_new_line = 1;
         }
-        else if (last_character == 'c') {
+        else if (last_character == 'g') {
             Serial1.end();
             Serial1.begin(115200);
 
@@ -45,7 +45,7 @@ void loop() {
 
             return;
         }
-        else if (last_character == 'C') {
+        else if (last_character == 'G') {
             Serial1.end();
             Serial1.begin(9600);
 
