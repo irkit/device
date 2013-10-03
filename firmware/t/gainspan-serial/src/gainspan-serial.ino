@@ -6,14 +6,14 @@ void setup() {
     // USB serial
     Serial.begin(115200);
 
+    // wait for connection
+    while ( ! Serial ) ;
+
     pinMode( LDO33_ENABLE, OUTPUT );
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // gainspan
     Serial1.begin(9600);
-
-    // wait for connection
-    while ( ! Serial ) ;
 }
 
 void loop() {
@@ -36,6 +36,22 @@ void loop() {
 
         if (last_character == 0x0D) {
             is_new_line = 1;
+        }
+        else if (last_character == 'c') {
+            Serial1.end();
+            Serial1.begin(115200);
+
+            Serial.println("change Serial1 baud to 115200");
+
+            return;
+        }
+        else if (last_character == 'C') {
+            Serial1.end();
+            Serial1.begin(9600);
+
+            Serial.println("change Serial1 baud to 9600");
+
+            return;
         }
 
         // GS module echoes back
