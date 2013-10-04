@@ -43,6 +43,8 @@
 
 //#define GS_ENABLE_HTTPD  // use http server
 //#define GS_ENABLE_WEBSOCKET  // use websocket server (need httpd)
+//#define GS_ENABLE_MDNS
+//#define GS_ENABLE_LIMITEDAP
 
 #define HTTPD_TIMEOUT 15000
 #define HTTPD_HANDLE 10

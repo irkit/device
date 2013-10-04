@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "pgmStrToRAM.h"
+#include "MemoryFree.h"
 #include "GSwifi.h"
 
 GSwifi gs(&Serial1);
@@ -10,25 +11,30 @@ void setup() {
     pinMode( LDO33_ENABLE, OUTPUT );
     digitalWrite( LDO33_ENABLE, HIGH );
 
-    // wait til gs wakes up
-    // sleep_ms( 100 );
-
-    gs.setup();
-
     // USB serial
     Serial.begin(115200);
 
     // wait for connection
     while ( ! Serial );
 
+    reset3V3();
+
+    // wait til gs wakes up
+    delay( 100 );
+
+    gs.setup();
+
     printGuide();
 }
 
 void printGuide() {
     Serial.println(P("Menu:"));
+    Serial.println(P("b) change baud rate to 9600"));
+    Serial.println(P("B) change baud rate to 115200"));
     Serial.println(P("c) connect to wifi"));
-    Serial.println(P("m) start mDNS"));
     Serial.println(P("h) help (this)"));
+    Serial.println(P("R) hardware reset"));
+    Serial.println(P("s) setup"));
     Serial.println(P("Command?"));
 }
 
@@ -46,21 +52,26 @@ void loop() {
             Serial.write(last_character);
         }
         Serial.println();
-        /* Serial.print(P("free memory:    0x")); Serial.println( freeMemory(), HEX ); */
+        Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
         uint8_t status;
         if (last_character == 'c') {
-            gs.connect( GSwifi::GSSEC_WPA2_PSK, "Rhodos", "aaaaaaaaaaaaa" );
+            // gs.connect( GSwifi::GSSEC_WPA2_PSK, PB("Rhodos"), P("aaaaaaaaaaaaa") );
         }
-        else if (last_character == 'm') {
-            gs.mDNSStart();
-            gs.mDNSRegisterHostname("IRKit");
-            gs.mDNSRegisterService("irsend","","_http","_tcp",80);
-            gs.mDNSAnnounceService();
-            gs.mDNSDiscoverService("","_http","_tcp");
+        else if (last_character == 'b') {
+            gs.setBaud(9600);
+        }
+        else if (last_character == 'B') {
+            gs.setBaud(115200);
         }
         else if (last_character == 'h') {
             printGuide();
+        }
+        else if (last_character == 'R') {
+            reset3V3();
+        }
+        else if (last_character == 's') {
+            gs.setup();
         }
         else {
             Serial1.write(last_character);
@@ -79,4 +90,11 @@ void loop() {
         }
         Serial.println();
     }
+}
+
+void reset3V3 () {
+    Serial.println(P("hardware reset"));
+    digitalWrite( LDO33_ENABLE, LOW );
+    delay( 100 );
+    digitalWrite( LDO33_ENABLE, HIGH );
 }

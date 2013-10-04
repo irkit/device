@@ -491,6 +491,7 @@ struct GS_httpd_handler {
     int attach_httpd (const char *uri, onHttpdCgiFunc ponHttpCgi);
 #endif
 
+#ifdef GS_ENABLE_MDNS
     /**
      * mDNS
      */
@@ -501,6 +502,7 @@ struct GS_httpd_handler {
     int8_t mDNSDeregisterService(const char *name, const char *subtype, const char *type, const char *protocol);
     int8_t mDNSAnnounceService();
     int8_t mDNSDiscoverService(const char *subtype, const char *type, const char *protocol);
+#endif // GS_ENABLE_MDNS
 
 #ifdef DEBUG
     void dump ();
