@@ -5,8 +5,17 @@ digraph ir_state {
 
     node [shape=ellipse, fontsize=12, fixedsize=true, width=1.5, height=0.8];
 
-    IDLE  [ label = "IDLE (0)" ];
-    START -> IDLE       [ label = "Initialize", weight = 100 ];
+    DISCONNECTED [ label = "DISCONNECTED (0)" ];
+    START -> DISCONNECTED [ label = "Power Up", weight = 100 ];
+
+    CONNECTED [ label = "CONNECTED (1)" ];
+    IDLE      [ label = "IDLE (2)" ];
+    DISCONNECTED -> CONNECTED    [ label = "Successfully connected" ];
+    DISCONNECTED -> DISCONNECTED [ label = "Connect failed" ];
+    DISCONNECTED -> IDLE         [ label = "Connect failed XX times" ];
+
+    READY     [ label = "READY (3)" ];
+    CONNECTED -> READY           [ label = "Successfully reported to server" ];
 
     subgraph cluster_ir {
         label = "IR -> BLE";
