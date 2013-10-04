@@ -19,6 +19,14 @@ void setup() {
     Serial.print(P("aaa")); Serial.println(freeMemory());
     Serial.print(P("ffffffffffffffffffffffffffffffff")); Serial.println(freeMemory());
     Serial.print(P("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")); Serial.println(freeMemory());
+
+    char cmd1[100];
+    sprintf(cmd1, P("1:%s"),PB("aaa",1));
+    Serial.println(cmd1);
+
+    sprintf(cmd1, P("2:%s"),PB("bbb",1));
+    Serial.println(cmd1);
+
 }
 
 void loop() {
