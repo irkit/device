@@ -742,6 +742,26 @@ e.g. Nichicon F93 series Tantalum Cap. A-case</description>
 <text x="-2.54" y="3.81" size="1.27" layer="21">&gt;NAME</text>
 <text x="-2.54" y="-3.81" size="1.27" layer="21">&gt;VALUE</text>
 </package>
+<package name="STAND-OFF">
+<description>&lt;b&gt;Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<wire x1="0" y1="1.8542" x2="0" y2="-1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="-180"/>
+<circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
+<hole x="0" y="0" drill="3.302"/>
+</package>
+<package name="STAND-OFF-TIGHT">
+<description>&lt;b&gt;Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<wire x1="0" y1="1.8542" x2="0" y2="-1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="41" curve="-180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="180"/>
+<wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="-180"/>
+<circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
+<hole x="0" y="0" drill="3.048"/>
+</package>
 </packages>
 <symbols>
 <symbol name="SN74LVC2G125">
@@ -796,6 +816,9 @@ e.g. Nichicon F93 series Tantalum Cap. A-case</description>
 <pin name="B@3" x="2.54" y="5.08" visible="pad" length="short" direction="pas" rot="R270"/>
 <wire x1="0" y1="-2.54" x2="2.54" y2="-2.54" width="0.254" layer="94"/>
 <wire x1="0" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
+</symbol>
+<symbol name="STAND-OFF">
+<circle x="0" y="0" radius="1.27" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -877,6 +900,25 @@ e.g. Nichicon F93 series Tantalum Cap. A-case</description>
 </device>
 </devices>
 </deviceset>
+<deviceset name="STAND-OFF" prefix="STANDOFF">
+<description>&lt;b&gt;#4 Stand Off&lt;/b&gt;&lt;p&gt;
+This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
+<gates>
+<gate name="G$1" symbol="STAND-OFF" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="STAND-OFF">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="TIGHT" package="STAND-OFF-TIGHT">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
 </devicesets>
 </library>
 </libraries>
@@ -920,6 +962,10 @@ e.g. Nichicon F93 series Tantalum Cap. A-case</description>
 <part name="R3" library="my" deviceset="R" device="" value="1k"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
+<part name="STANDOFF1" library="my" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF2" library="my" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF3" library="my" deviceset="STAND-OFF" device=""/>
+<part name="STANDOFF4" library="my" deviceset="STAND-OFF" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -957,6 +1003,10 @@ PIN1 is connected to GND in V1.1.0</text>
 <instance part="R3" gate="G$1" x="241.3" y="190.5"/>
 <instance part="P+2" gate="1" x="294.64" y="152.4"/>
 <instance part="+3V5" gate="G$1" x="170.18" y="149.86"/>
+<instance part="STANDOFF1" gate="G$1" x="327.66" y="40.64"/>
+<instance part="STANDOFF2" gate="G$1" x="332.74" y="40.64"/>
+<instance part="STANDOFF3" gate="G$1" x="337.82" y="40.64"/>
+<instance part="STANDOFF4" gate="G$1" x="342.9" y="40.64"/>
 </instances>
 <busses>
 </busses>
