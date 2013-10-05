@@ -61,6 +61,9 @@ void loop() {
         else if (lastCharacter == 'y') {
             color.SetLedColor(1,1,0);
         }
+        else if (lastCharacter == 'w') {
+            color.SetLedColor(1,1,1);
+        }
         else if (lastCharacter == 'R') {
             color.SetLedColor(1,0,0,LED_BLINK_INTERVAL);
         }
@@ -78,6 +81,9 @@ void loop() {
         }
         else if (lastCharacter == 'Y') {
             color.SetLedColor(1,1,0,LED_BLINK_INTERVAL);
+        }
+        else if (lastCharacter == 'W') {
+            color.SetLedColor(1,1,1,LED_BLINK_INTERVAL);
         }
     }
 }
