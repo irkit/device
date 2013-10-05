@@ -2735,7 +2735,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <class number="4" name="3.3v" width="0.4064" drill="0">
 </class>
 </classes>
-<designrules name="Fusion_eagle_rule_v1.1 *">
+<designrules name="Fusion_eagle_rule_v1.1">
 <description language="de">&lt;b&gt;EAGLE Design Rules&lt;/b&gt;
 &lt;p&gt;
 Die Standard-Design-Rules sind so gewählt, dass sie für 
