@@ -1,0 +1,35 @@
+msc {
+    # entities
+    User, App, IRKit, Server;
+
+    # space
+    |||;
+
+    IRKit note Server [label = "Successfully connected"];
+
+    IRKit note IRKit  [label = "Started listening on port 80"];
+
+    |||;
+
+    User -> App       [label = "User opens Learn View"];
+
+    App => IRKit      [label = "GET /irsignals (longpoll)"];
+
+    App note IRKit    [label = "Retain connection"];
+
+    |||;
+
+    User -> IRKit     [label = "Send IR signal"];
+
+    App << IRKit      [label = "IR signal in HTTP Response"];
+
+    App -> IRKit      [label = "GET /irsignals (longpoll)"];
+
+    IRKit note IRKit  [label = "HTTP Request Timeout"];
+
+    App -> IRKit      [label = "GET /irsignals (longpoll)"];
+
+    User -> App       [label = "User dismisses Learn View"];
+
+    App note IRKit    [label = "Disconnect"];
+}

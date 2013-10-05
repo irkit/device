@@ -18,4 +18,8 @@
 #define FULLCOLOR_LED_G  9 // pin29 PB5 (PCINT5/OC1A/!OC4B/ADC12)
 #define FULLCOLOR_LED_B  8 // pin28 PB4 (PCINT4/ADC11)
 
+#define LDO33_ENABLE     7 // pin1
+
+#define MICROPHONE      A4 // pin40 (ADC1)PF1
+
 #endif

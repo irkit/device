@@ -1,2 +1,2 @@
 #!/bin/sh
-ino serial -b 115200
+~/src/ino/bin/ino serial -b 115200
