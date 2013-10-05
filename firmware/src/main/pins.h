@@ -20,4 +20,6 @@
 
 #define LDO33_ENABLE     7 // pin1
 
+#define MICROPHONE      A4 // pin40 (ADC1)PF1
+
 #endif
