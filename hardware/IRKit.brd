@@ -751,18 +751,21 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <text x="-2.54" y="-3.81" size="1.27" layer="21">&gt;VALUE</text>
 </package>
 <package name="LED5MMRGB">
-<wire x1="-2.54" y1="1.905" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
-<wire x1="-2.54" y1="1.905" x2="-2.54" y2="-1.905" width="0.127" layer="21" curve="-286.260205"/>
-<wire x1="-1.524" y1="0" x2="0.254" y2="0" width="0.127" layer="25"/>
-<wire x1="0.254" y1="0" x2="0.254" y2="-1.905" width="0.127" layer="25"/>
-<wire x1="0.254" y1="-1.905" x2="-1.524" y2="-1.905" width="0.127" layer="25"/>
-<wire x1="-1.524" y1="-1.905" x2="-1.524" y2="0" width="0.127" layer="25"/>
-<circle x="0" y="0" radius="2.5" width="0.127" layer="21"/>
+<circle x="0" y="0" radius="2.5" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="1.905" x2="-2.54" y2="0" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="0" x2="-2.54" y2="-1.9" width="0.127" layer="21"/>
+<wire x1="-2.54" y1="-1.9" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
+<wire x1="-1.724" y1="0.1" x2="0.454" y2="0.1" width="0.127" layer="25"/>
+<wire x1="0.454" y1="0.1" x2="0.454" y2="-2.005" width="0.127" layer="25"/>
+<wire x1="0.454" y1="-2.005" x2="-1.724" y2="-2.005" width="0.127" layer="25"/>
+<wire x1="-1.724" y1="-2.005" x2="-1.724" y2="0.1" width="0.127" layer="25"/>
 <pad name="1" x="-2.159" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <pad name="2" x="-0.635" y="-0.9684" drill="0.8" diameter="1.6764" shape="octagon" rot="R90"/>
 <pad name="3" x="0.889" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <pad name="4" x="2.159" y="-0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <text x="-3.175" y="3.175" size="1.27" layer="21">&gt;NAME</text>
+<wire x1="-2.54" y1="1.9" x2="3.12" y2="-0.57" width="0.127" layer="21" curve="-153.555674"/>
+<wire x1="-2.54" y1="-1.9" x2="2.48" y2="-1.98" width="0.127" layer="21" curve="104.598939"/>
 </package>
 <package name="3225">
 <description>3216 (1206) Polarized Capacitors ( Tantalum Capacitors )
@@ -4337,12 +4340,12 @@ design rules under a new name.</description>
 <wire x1="6.1" y1="24.2625" x2="7.2125" y2="24.2625" width="0.254" layer="1"/>
 <via x="7.2125" y="24.2625" extent="1-16" drill="0.3048"/>
 <wire x1="7.2125" y1="24.2625" x2="7.7375" y2="24.2625" width="0.254" layer="16"/>
-<via x="9.8" y="22.6" extent="1-16" drill="0.3048"/>
+<via x="9.9" y="22.6" extent="1-16" drill="0.3048"/>
 <wire x1="7.7375" y1="24.2625" x2="7.9375" y2="24.2625" width="0.254" layer="16"/>
-<wire x1="9.8" y1="22.6" x2="9.9" y2="22.5" width="0.254" layer="1"/>
+<wire x1="9.9" y1="22.6" x2="9.9" y2="22.5" width="0.254" layer="1"/>
 <wire x1="16.3" y1="22.4" x2="17" y2="21.7" width="0.254" layer="1"/>
 <wire x1="7.9375" y1="24.2625" x2="8.1375" y2="24.2625" width="0.254" layer="16"/>
-<wire x1="8.1375" y1="24.2625" x2="9.8" y2="22.6" width="0.254" layer="16"/>
+<wire x1="8.1375" y1="24.2625" x2="9.9" y2="22.6" width="0.254" layer="16"/>
 <wire x1="9.9" y1="22.5" x2="16.2" y2="22.5" width="0.254" layer="1"/>
 <wire x1="16.2" y1="22.5" x2="16.3" y2="22.4" width="0.254" layer="1"/>
 <wire x1="27.6" y1="15.4" x2="27.8" y2="15.6" width="0.254" layer="1"/>
@@ -4377,9 +4380,9 @@ design rules under a new name.</description>
 <wire x1="6.1" y1="23.4625" x2="7.225" y2="23.4625" width="0.254" layer="1"/>
 <via x="7.225" y="23.4625" extent="1-16" drill="0.3048"/>
 <wire x1="7.225" y1="23.4625" x2="7.8375" y2="23.4625" width="0.254" layer="16"/>
-<via x="9.2" y="22.1" extent="1-16" drill="0.3048"/>
-<wire x1="7.8375" y1="23.4625" x2="9.2" y2="22.1" width="0.254" layer="16"/>
-<wire x1="9.2" y1="22.1" x2="9.3" y2="22" width="0.254" layer="1"/>
+<via x="9.3" y="22.1" extent="1-16" drill="0.3048"/>
+<wire x1="7.8375" y1="23.4625" x2="9.3" y2="22.1" width="0.254" layer="16"/>
+<wire x1="9.3" y1="22.1" x2="9.3" y2="22" width="0.254" layer="1"/>
 <wire x1="9.3" y1="22" x2="15.9" y2="22" width="0.254" layer="1"/>
 <wire x1="15.9" y1="22" x2="16.1" y2="22" width="0.254" layer="1"/>
 <wire x1="16.1" y1="22" x2="16.5" y2="21.6" width="0.254" layer="1"/>
@@ -4454,14 +4457,7 @@ design rules under a new name.</description>
 <approved hash="19,1,7afb5dc5e7f963b6"/>
 <approved hash="19,1,a979a5d3530a4312"/>
 <approved hash="19,1,793b30e548a4b057"/>
-<approved hash="18,29,54a59800f52704af"/>
-<approved hash="18,29,f22af094f367f79e"/>
-<approved hash="18,29,3937e356025ea66b"/>
-<approved hash="18,29,67dcdac42494998c"/>
-<approved hash="18,29,f7a64ec48228c24a"/>
-<approved hash="18,29,67645bbca5ec9934"/>
 <approved hash="18,29,02a14d114ae200f0"/>
-<approved hash="5,1,b6e0de34b8cb227a"/>
 <approved hash="19,1,cb928b30b51af5cf"/>
 <approved hash="19,1,cbc727e00c22966f"/>
 </errors>

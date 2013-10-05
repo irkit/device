@@ -4078,18 +4078,21 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <text x="-2.54" y="-3.81" size="1.27" layer="21">&gt;VALUE</text>
 </package>
 <package name="LED5MMRGB">
-<wire x1="-2.54" y1="1.905" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
-<wire x1="-2.54" y1="1.905" x2="-2.54" y2="-1.905" width="0.127" layer="21" curve="-286.260205"/>
-<wire x1="-1.524" y1="0" x2="0.254" y2="0" width="0.127" layer="25"/>
-<wire x1="0.254" y1="0" x2="0.254" y2="-1.905" width="0.127" layer="25"/>
-<wire x1="0.254" y1="-1.905" x2="-1.524" y2="-1.905" width="0.127" layer="25"/>
-<wire x1="-1.524" y1="-1.905" x2="-1.524" y2="0" width="0.127" layer="25"/>
-<circle x="0" y="0" radius="2.5" width="0.127" layer="21"/>
+<circle x="0" y="0" radius="2.5" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="1.905" x2="-2.54" y2="0" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="0" x2="-2.54" y2="-1.9" width="0.127" layer="21"/>
+<wire x1="-2.54" y1="-1.9" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
+<wire x1="-1.724" y1="0.1" x2="0.454" y2="0.1" width="0.127" layer="25"/>
+<wire x1="0.454" y1="0.1" x2="0.454" y2="-2.005" width="0.127" layer="25"/>
+<wire x1="0.454" y1="-2.005" x2="-1.724" y2="-2.005" width="0.127" layer="25"/>
+<wire x1="-1.724" y1="-2.005" x2="-1.724" y2="0.1" width="0.127" layer="25"/>
 <pad name="1" x="-2.159" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <pad name="2" x="-0.635" y="-0.9684" drill="0.8" diameter="1.6764" shape="octagon" rot="R90"/>
 <pad name="3" x="0.889" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <pad name="4" x="2.159" y="-0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
 <text x="-3.175" y="3.175" size="1.27" layer="21">&gt;NAME</text>
+<wire x1="-2.54" y1="1.9" x2="3.12" y2="-0.57" width="0.127" layer="21" curve="-153.555674"/>
+<wire x1="-2.54" y1="-1.9" x2="2.48" y2="-1.98" width="0.127" layer="21" curve="104.598939"/>
 </package>
 <package name="3225">
 <description>3216 (1206) Polarized Capacitors ( Tantalum Capacitors )
@@ -5533,11 +5536,11 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <wire x1="3.81" y1="-2.54" x2="2.54" y2="-5.08" width="0.254" layer="94"/>
 <wire x1="2.54" y1="-5.08" x2="5.08" y2="-5.08" width="0.254" layer="94"/>
 <wire x1="5.08" y1="-5.08" x2="3.81" y2="-2.54" width="0.254" layer="94"/>
-<text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
 <pin name="BLUE" x="-7.62" y="-15.24" length="middle" rot="R90"/>
-<pin name="GREEN" x="-3.81" y="-15.24" length="middle" rot="R90"/>
 <pin name="GND" x="0" y="-15.24" length="middle" rot="R90"/>
+<pin name="GREEN" x="-3.81" y="-15.24" length="middle" rot="R90"/>
 <pin name="RED" x="3.81" y="-15.24" length="middle" rot="R90"/>
+<text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
 </symbol>
 <symbol name="CAPACITOR-POL">
 <wire x1="-1.524" y1="-0.889" x2="1.524" y2="-0.889" width="0.254" layer="94"/>
