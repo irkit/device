@@ -21,5 +21,6 @@
 #define LDO33_ENABLE     7 // pin1
 
 #define MICROPHONE      A4 // pin40 (ADC1)PF1
+#define RESET_SWITCH    A5 // pin41 (ADC0)PF0
 
 #endif
