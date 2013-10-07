@@ -4043,7 +4043,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="41" curve="-180"/>
 <wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="180"/>
 <wire x1="0" y1="-1.8542" x2="0" y2="1.8542" width="0.2032" layer="42" curve="-180"/>
-<circle x="0" y="0" radius="2.794" width="0.127" layer="39"/>
+<circle x="0" y="0" radius="2.65" width="0.127" layer="39"/>
 <hole x="0" y="0" drill="3.302"/>
 </package>
 <package name="STAND-OFF-TIGHT">
@@ -4076,23 +4076,6 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <wire x1="1.3" y1="2.75" x2="1.3" y2="1.75" width="0.127" layer="21"/>
 <text x="-2.54" y="3.81" size="1.27" layer="21">&gt;NAME</text>
 <text x="-2.54" y="-3.81" size="1.27" layer="21">&gt;VALUE</text>
-</package>
-<package name="LED5MMRGB">
-<circle x="0" y="0" radius="2.5" width="0.127" layer="51"/>
-<wire x1="-2.54" y1="1.905" x2="-2.54" y2="0" width="0.127" layer="51"/>
-<wire x1="-2.54" y1="0" x2="-2.54" y2="-1.9" width="0.127" layer="21"/>
-<wire x1="-2.54" y1="-1.9" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
-<wire x1="-1.724" y1="0.1" x2="0.454" y2="0.1" width="0.127" layer="25"/>
-<wire x1="0.454" y1="0.1" x2="0.454" y2="-2.005" width="0.127" layer="25"/>
-<wire x1="0.454" y1="-2.005" x2="-1.724" y2="-2.005" width="0.127" layer="25"/>
-<wire x1="-1.724" y1="-2.005" x2="-1.724" y2="0.1" width="0.127" layer="25"/>
-<pad name="1" x="-2.159" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
-<pad name="2" x="-0.635" y="-0.9684" drill="0.8" diameter="1.6764" shape="octagon" rot="R90"/>
-<pad name="3" x="0.889" y="0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
-<pad name="4" x="2.159" y="-0.9684" drill="0.8" diameter="1.6764" rot="R90"/>
-<text x="-3.175" y="3.175" size="1.27" layer="21">&gt;NAME</text>
-<wire x1="-2.54" y1="1.9" x2="3.12" y2="-0.57" width="0.127" layer="21" curve="-153.555674"/>
-<wire x1="-2.54" y1="-1.9" x2="2.48" y2="-1.98" width="0.127" layer="21" curve="104.598939"/>
 </package>
 <package name="3225">
 <description>3216 (1206) Polarized Capacitors ( Tantalum Capacitors )
@@ -5251,6 +5234,23 @@ NS Package M08A</description>
 <rectangle x1="-0.88" y1="2" x2="-0.39" y2="3.1" layer="51"/>
 <rectangle x1="-2.15" y1="2" x2="-1.66" y2="3.1" layer="51"/>
 </package>
+<package name="LED5MMRGB">
+<circle x="0" y="0" radius="2.5" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="1.905" x2="-2.54" y2="0" width="0.127" layer="51"/>
+<wire x1="-2.54" y1="0" x2="-2.54" y2="-1.9" width="0.127" layer="21"/>
+<wire x1="-2.54" y1="-1.9" x2="-2.54" y2="-1.905" width="0.127" layer="21"/>
+<wire x1="-1.7" y1="0" x2="0.3" y2="0" width="0.127" layer="25"/>
+<wire x1="0.3" y1="0" x2="0.3" y2="-2" width="0.127" layer="25"/>
+<wire x1="0.3" y1="-2" x2="-1.7" y2="-2" width="0.127" layer="25"/>
+<wire x1="-1.7" y1="-2" x2="-1.7" y2="0" width="0.127" layer="25"/>
+<pad name="4" x="-2.1" y="1" drill="0.8" diameter="1.6764" rot="R90"/>
+<pad name="3" x="-0.7" y="-1" drill="0.8" diameter="1.6764" shape="octagon" rot="R90"/>
+<pad name="2" x="0.7" y="1" drill="0.8" diameter="1.6764" rot="R90"/>
+<pad name="1" x="2.1" y="-1" drill="0.8" diameter="1.6764" rot="R90"/>
+<text x="-3.175" y="3.175" size="1.27" layer="21">&gt;NAME</text>
+<wire x1="-2.54" y1="1.9" x2="3.12" y2="-0.57" width="0.127" layer="21" curve="-153.555674"/>
+<wire x1="-2.54" y1="-1.9" x2="2.48" y2="-1.98" width="0.127" layer="21" curve="104.598939"/>
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -5510,38 +5510,6 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <wire x1="0" y1="-2.54" x2="2.54" y2="-2.54" width="0.254" layer="94"/>
 <wire x1="0" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
 </symbol>
-<symbol name="RGBLED_CC">
-<wire x1="-3.81" y1="0" x2="-7.62" y2="0" width="0.254" layer="94"/>
-<wire x1="-3.81" y1="0" x2="0" y2="0" width="0.254" layer="94"/>
-<wire x1="0" y1="0" x2="3.81" y2="0" width="0.254" layer="94"/>
-<wire x1="-7.62" y1="0" x2="-7.62" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-7.62" y1="-2.54" x2="-7.62" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="-3.81" y1="0" x2="-3.81" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-3.81" y1="-2.54" x2="-3.81" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="0" y1="0" x2="0" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="3.81" y1="0" x2="3.81" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="3.81" y1="-2.54" x2="3.81" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="-8.89" y1="-2.54" x2="-7.62" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-7.62" y1="-2.54" x2="-6.35" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-5.08" y1="-2.54" x2="-3.81" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-3.81" y1="-2.54" x2="-2.54" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="2.54" y1="-2.54" x2="3.81" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="3.81" y1="-2.54" x2="5.08" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-7.62" y1="-2.54" x2="-8.89" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="-8.89" y1="-5.08" x2="-6.35" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="-6.35" y1="-5.08" x2="-7.62" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="-3.81" y1="-2.54" x2="-5.08" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="-5.08" y1="-5.08" x2="-2.54" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="-2.54" y1="-5.08" x2="-3.81" y2="-2.54" width="0.254" layer="94"/>
-<wire x1="3.81" y1="-2.54" x2="2.54" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="2.54" y1="-5.08" x2="5.08" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="5.08" y1="-5.08" x2="3.81" y2="-2.54" width="0.254" layer="94"/>
-<pin name="BLUE" x="-7.62" y="-15.24" length="middle" rot="R90"/>
-<pin name="GND" x="0" y="-15.24" length="middle" rot="R90"/>
-<pin name="GREEN" x="-3.81" y="-15.24" length="middle" rot="R90"/>
-<pin name="RED" x="3.81" y="-15.24" length="middle" rot="R90"/>
-<text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
-</symbol>
 <symbol name="CAPACITOR-POL">
 <wire x1="-1.524" y1="-0.889" x2="1.524" y2="-0.889" width="0.254" layer="94"/>
 <wire x1="1.524" y1="-0.889" x2="1.524" y2="0" width="0.254" layer="94"/>
@@ -5632,6 +5600,38 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <pin name="VS" x="-2.54" y="7.62" visible="pad" length="short" direction="pwr" rot="R270"/>
 <pin name="GND" x="-2.54" y="-7.62" visible="pad" length="short" direction="pwr" rot="R90"/>
 <pin name="BYPASS" x="2.54" y="-5.08" visible="pad" length="short" direction="pas" rot="R90"/>
+</symbol>
+<symbol name="RGBLED_CC">
+<wire x1="-5.08" y1="0" x2="-10.16" y2="0" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="0" x2="0" y2="0" width="0.254" layer="94"/>
+<wire x1="0" y1="0" x2="5.08" y2="0" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="0" x2="-10.16" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-2.54" x2="-10.16" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="0" x2="-5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="-2.54" x2="-5.08" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="0" y1="0" x2="0" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="5.08" y1="0" x2="5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="5.08" y1="-2.54" x2="5.08" y2="-10.16" width="0.254" layer="94"/>
+<wire x1="-11.43" y1="-2.54" x2="-10.16" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-2.54" x2="-8.89" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-6.35" y1="-2.54" x2="-5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="-2.54" x2="-3.81" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="3.81" y1="-2.54" x2="5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="5.08" y1="-2.54" x2="6.35" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-2.54" x2="-11.43" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="-11.43" y1="-5.08" x2="-8.89" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="-8.89" y1="-5.08" x2="-10.16" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="-2.54" x2="-6.35" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="-6.35" y1="-5.08" x2="-3.81" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="-3.81" y1="-5.08" x2="-5.08" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="5.08" y1="-2.54" x2="3.81" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="3.81" y1="-5.08" x2="6.35" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="6.35" y1="-5.08" x2="5.08" y2="-2.54" width="0.254" layer="94"/>
+<pin name="GREEN" x="-10.16" y="-15.24" length="middle" rot="R90"/>
+<pin name="GND" x="0" y="-15.24" length="middle" rot="R90"/>
+<pin name="BLUE" x="-5.08" y="-15.24" length="middle" rot="R90"/>
+<pin name="RED" x="5.08" y="-15.24" length="middle" rot="R90"/>
+<text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -6674,24 +6674,6 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </device>
 </devices>
 </deviceset>
-<deviceset name="5MMRGBLED">
-<gates>
-<gate name="G$1" symbol="RGBLED_CC" x="-5.08" y="10.16"/>
-</gates>
-<devices>
-<device name="" package="LED5MMRGB">
-<connects>
-<connect gate="G$1" pin="BLUE" pad="1"/>
-<connect gate="G$1" pin="GND" pad="3"/>
-<connect gate="G$1" pin="GREEN" pad="2"/>
-<connect gate="G$1" pin="RED" pad="4"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="CAPACITOR-POL" prefix="C" uservalue="yes">
 <description>Generic Capacitor with Polarity</description>
 <gates>
@@ -7176,6 +7158,24 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </connects>
 <technologies>
 <technology name="1"/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="5MMRGBLED" prefix="LED">
+<gates>
+<gate name="G$1" symbol="RGBLED_CC" x="-5.08" y="10.16"/>
+</gates>
+<devices>
+<device name="" package="LED5MMRGB">
+<connects>
+<connect gate="G$1" pin="BLUE" pad="2"/>
+<connect gate="G$1" pin="GND" pad="3"/>
+<connect gate="G$1" pin="GREEN" pad="1"/>
+<connect gate="G$1" pin="RED" pad="4"/>
+</connects>
+<technologies>
+<technology name=""/>
 </technologies>
 </device>
 </devices>
@@ -8967,14 +8967,12 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
 <part name="R9" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
 <part name="R8" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
-<part name="R5" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="C5" library="my" deviceset="CAPACITOR" device="2012" value="22pF"/>
 <part name="C6" library="my" deviceset="CAPACITOR" device="2012" value="22pF"/>
 <part name="C13" library="my" deviceset="CAPACITOR" device="2012" value="4.7uF"/>
-<part name="LED2" library="my" deviceset="5MMRGBLED" device=""/>
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="IC4" library="my" deviceset="GS1011MXXS" device=""/>
@@ -9064,6 +9062,8 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="C17" library="my" deviceset="CAPACITOR" device="2012" value="0.05uF"/>
 <part name="R20" library="my" deviceset="RESISTOR-US" device="2012" value="10"/>
 <part name="GND18" library="supply1" deviceset="GND" device=""/>
+<part name="LED2" library="my" deviceset="5MMRGBLED" device=""/>
+<part name="R5" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 </parts>
 <sheets>
 <sheet>
@@ -9141,9 +9141,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="GND14" gate="1" x="193.04" y="193.04"/>
 <instance part="P+11" gate="1" x="180.34" y="248.92"/>
 <instance part="+3V3" gate="G$1" x="195.58" y="248.92"/>
-<instance part="R9" gate="G$1" x="77.47" y="52.578"/>
-<instance part="R8" gate="G$1" x="69.85" y="56.134"/>
-<instance part="R5" gate="G$1" x="66.04" y="60.706"/>
+<instance part="R9" gate="G$1" x="63.5" y="53.34"/>
+<instance part="R8" gate="G$1" x="73.66" y="53.34"/>
 <instance part="R1" gate="G$1" x="35.56" y="251.46" rot="R180"/>
 <instance part="P+12" gate="1" x="35.56" y="261.62" rot="MR0"/>
 <instance part="RB2" gate="G$1" x="137.16" y="35.56" smashed="yes" rot="R180">
@@ -9153,10 +9152,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="C5" gate="G$1" x="30.48" y="236.22" rot="R90"/>
 <instance part="C6" gate="G$1" x="30.48" y="226.06" rot="R90"/>
 <instance part="C13" gate="G$1" x="195.58" y="35.56"/>
-<instance part="LED2" gate="G$1" x="73.66" y="27.94" smashed="yes" rot="MR180">
-<attribute name="NAME" x="66.04" y="26.67" size="1.778" layer="94" rot="MR180"/>
-</instance>
-<instance part="GND21" gate="1" x="86.36" y="38.1" rot="MR0"/>
+<instance part="GND21" gate="1" x="86.36" y="35.56" rot="MR0"/>
 <instance part="GND2" gate="1" x="251.46" y="208.28"/>
 <instance part="IC4" gate="G$1" x="284.48" y="226.06"/>
 <instance part="X1" gate="G$1" x="259.08" y="241.3"/>
@@ -9270,6 +9266,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="C17" gate="G$1" x="294.64" y="27.94"/>
 <instance part="R20" gate="G$1" x="294.64" y="17.78"/>
 <instance part="GND18" gate="1" x="294.64" y="7.62"/>
+<instance part="LED2" gate="G$1" x="68.58" y="27.94" rot="R180"/>
+<instance part="R5" gate="G$1" x="78.74" y="53.34"/>
 </instances>
 <busses>
 </busses>
@@ -9494,14 +9492,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="193.04" y1="195.58" x2="193.04" y2="198.12" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="86.36" y1="43.18" x2="86.36" y2="40.64" width="0.1524" layer="91"/>
-<pinref part="GND21" gate="1" pin="GND"/>
-<pinref part="LED2" gate="G$1" pin="GND"/>
-<wire x1="73.66" y1="43.18" x2="73.66" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="45.72" x2="86.36" y2="45.72" width="0.1524" layer="91"/>
-<wire x1="86.36" y1="45.72" x2="86.36" y2="43.18" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="C14" gate="G$1" pin="1"/>
 <pinref part="GND2" gate="1" pin="GND"/>
 <wire x1="251.46" y1="210.82" x2="251.46" y2="213.36" width="0.1524" layer="91"/>
@@ -9655,6 +9645,14 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="R20" gate="G$1" pin="2"/>
 <wire x1="294.64" y1="10.16" x2="294.64" y2="12.7" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="GND21" gate="1" pin="GND"/>
+<wire x1="86.36" y1="43.18" x2="86.36" y2="38.1" width="0.1524" layer="91"/>
+<pinref part="LED2" gate="G$1" pin="GND"/>
+<wire x1="68.58" y1="43.18" x2="68.58" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="45.72" x2="86.36" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="86.36" y1="45.72" x2="86.36" y2="43.18" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="N$10" class="0">
 <segment>
@@ -9760,27 +9758,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="195.58" y1="40.64" x2="195.58" y2="38.1" width="0.1524" layer="91"/>
 <junction x="195.58" y="40.64"/>
 <pinref part="C13" gate="G$1" pin="1"/>
-</segment>
-</net>
-<net name="N$15" class="0">
-<segment>
-<pinref part="R8" gate="G$1" pin="2"/>
-<wire x1="69.85" y1="51.054" x2="69.85" y2="43.18" width="0.1524" layer="91"/>
-<pinref part="LED2" gate="G$1" pin="GREEN"/>
-</segment>
-</net>
-<net name="N$17" class="0">
-<segment>
-<pinref part="R5" gate="G$1" pin="2"/>
-<wire x1="66.04" y1="55.626" x2="66.04" y2="43.18" width="0.1524" layer="91"/>
-<pinref part="LED2" gate="G$1" pin="BLUE"/>
-</segment>
-</net>
-<net name="N$5" class="0">
-<segment>
-<pinref part="LED2" gate="G$1" pin="RED"/>
-<pinref part="R9" gate="G$1" pin="2"/>
-<wire x1="77.47" y1="47.498" x2="77.47" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="D10/IROUT" class="0">
@@ -10296,8 +10273,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="66.04" y1="65.786" x2="66.04" y2="68.58" width="0.1524" layer="91"/>
-<label x="66.04" y="68.58" size="1.778" layer="95" xref="yes"/>
+<wire x1="78.74" y1="58.42" x2="78.74" y2="60.96" width="0.1524" layer="91"/>
+<label x="78.74" y="60.96" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D8/LED_B" class="0">
@@ -10308,8 +10285,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <pinref part="R8" gate="G$1" pin="1"/>
-<wire x1="69.85" y1="61.214" x2="69.85" y2="64.77" width="0.1524" layer="91"/>
-<label x="69.85" y="64.77" size="1.778" layer="95" xref="yes"/>
+<wire x1="73.66" y1="58.42" x2="73.66" y2="63.5" width="0.1524" layer="91"/>
+<label x="73.66" y="63.5" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="D6/LED_R" class="0">
@@ -10320,8 +10297,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <pinref part="R9" gate="G$1" pin="1"/>
-<wire x1="77.47" y1="57.658" x2="77.47" y2="60.706" width="0.1524" layer="91"/>
-<label x="77.47" y="60.706" size="1.778" layer="95" xref="yes"/>
+<wire x1="63.5" y1="58.42" x2="63.5" y2="66.04" width="0.1524" layer="91"/>
+<label x="63.5" y="66.04" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="A5/!RESET_SWITCH" class="0">
@@ -10501,6 +10478,27 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="R20" gate="G$1" pin="1"/>
 <pinref part="C17" gate="G$1" pin="2"/>
 <wire x1="294.64" y1="22.86" x2="294.64" y2="25.4" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$17" class="0">
+<segment>
+<pinref part="R8" gate="G$1" pin="2"/>
+<pinref part="LED2" gate="G$1" pin="BLUE"/>
+<wire x1="73.66" y1="48.26" x2="73.66" y2="43.18" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$41" class="0">
+<segment>
+<pinref part="LED2" gate="G$1" pin="RED"/>
+<pinref part="R9" gate="G$1" pin="2"/>
+<wire x1="63.5" y1="43.18" x2="63.5" y2="48.26" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$5" class="0">
+<segment>
+<pinref part="LED2" gate="G$1" pin="GREEN"/>
+<wire x1="78.74" y1="43.18" x2="78.74" y2="48.26" width="0.1524" layer="91"/>
+<pinref part="R5" gate="G$1" pin="2"/>
 </segment>
 </net>
 </nets>
