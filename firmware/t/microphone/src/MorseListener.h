@@ -7,7 +7,9 @@ class MorseListener {
 public:
     MorseListener(int pin, uint16_t wps);
     void clear();
+    void setup();
     void loop();
+    void enable(bool);
 
     // called when a letter is detected
     void (*letterCallback)(uint8_t letter);
@@ -22,12 +24,12 @@ private:
     int pin_;
     uint16_t wpm_;
     int8_t index_; // index of morseTable
+    bool enabled_;
     bool isOn_;
     bool wordStarted_;
     bool didCallLetterCallback_;
     unsigned long lastChanged_;
 
-    uint16_t minDah_;
     uint16_t minLetterSpace_;
     uint16_t minWordSpace_;
 };

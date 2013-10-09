@@ -1,6 +1,8 @@
 #include "MorseListener.h"
 #include "Global.h"
 
+// #define DEBUG
+
 // 0-1023
 #define ON_MIN_THRESHOLD 700
 
@@ -11,9 +13,10 @@ MorseListener::MorseListener(int pin, uint16_t wpm) :
     wpm_(wpm)
 {
     float t = (float)1200 / (float)wpm_;
-    minDah_         = (uint16_t)( t * 2. );
     minLetterSpace_ = (uint16_t)( t * 2. );
     minWordSpace_   = (uint16_t)( t * 4. );
+
+    enabled_ = false;
 
     clear();
 }
@@ -26,8 +29,26 @@ void MorseListener::clear() {
     lastChanged_           = 0;
 }
 
+void MorseListener::setup() {
+#ifdef DEBUG
+    // when 13:
+    //  minLetterSpace_ 184
+    //  minWordSpace_   369
+    Serial.print("minLetter:"); Serial.println(minLetterSpace_);
+    Serial.print("minWord:");   Serial.println(minWordSpace_);
+#endif
+}
+
 void MorseListener::loop() {
+    if (! enabled_) {
+        return;
+    }
+
     int           input    = analogRead(pin_);
+#ifdef DEBUG
+    Serial.print("input: "); Serial.println(input); // add delay when enabling this
+#endif
+
     unsigned long interval = 0;
 
     // check ON/OFF state change
@@ -67,7 +88,8 @@ void MorseListener::loop() {
         // interval: duration of ON time
 
         index_ = (index_ + 1) * 2;
-        if (interval > minDah_) {
+        // dah length == letter space length
+        if (interval > minLetterSpace_) {
             // dah detected
             index_ ++;
         }
@@ -80,11 +102,19 @@ void MorseListener::loop() {
         // or OFF continuously
 
         // interval: duration of OFF time
-        if ( (! didCallLetterCallback_) && (interval > minLetterSpace_) ) {
+
+        if ( ! wordStarted_ ) {
+            // OFF continously
+        }
+        else if ( (! didCallLetterCallback_) && (interval > minLetterSpace_) ) {
             // detected letter space
             didCallLetterCallback_ = true;
 
-            uint8_t letter = pgm_read_byte_near(index_);
+#ifdef DEBUG
+            Serial.print("index: "); Serial.println(index_);
+#endif
+
+            uint8_t letter = pgm_read_byte_near(morseTable + index_);
 
             letterCallback( letter );
 
@@ -100,4 +130,8 @@ void MorseListener::loop() {
             clear();
         }
     }
+}
+
+void MorseListener::enable(bool enabled) {
+    enabled_ = enabled;
 }

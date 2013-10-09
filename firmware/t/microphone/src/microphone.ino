@@ -8,7 +8,7 @@
 MorseListener listener(MICROPHONE,13);
 
 void letterCallback( uint8_t letter ) {
-    Serial.print(P("letter: ")); Serial.println(letter);
+    Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
 }
 
 void wordCallback() {
@@ -31,10 +31,15 @@ void setup() {
 
     // wait for leonardo
     while ( ! Serial );
+
+    listener.setup();
+    listener.enable(true);
 }
 
 void loop() {
     global.loop(); // always run first
 
     listener.loop();
+
+    delay( 100 );
 }
