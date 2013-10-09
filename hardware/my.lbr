@@ -5691,7 +5691,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </device>
 </devices>
 </deviceset>
-<deviceset name="VARISTOR" prefix="R">
+<deviceset name="VARISTOR" prefix="V">
 <description>&lt;b&gt;VARISTOR&lt;/b&gt;</description>
 <gates>
 <gate name="G$1" symbol="VARISTOR" x="0" y="0"/>
