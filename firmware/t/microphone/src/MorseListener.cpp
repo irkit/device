@@ -1,5 +1,6 @@
 #include "MorseListener.h"
 #include "Global.h"
+#include "pgmStrToRAM.h"
 
 // #define DEBUG
 
@@ -13,7 +14,8 @@ MorseListener::MorseListener(int pin, uint16_t wpm) :
     wpm_(wpm)
 {
     float t = (float)1200 / (float)wpm_;
-    minLetterSpace_ = (uint16_t)( t * 2. );
+    debouncePeriod_ = (uint16_t)( t / 2. );
+    minLetterSpace_ = (uint16_t)( t * 2. ); // TODO: is this too short?
     minWordSpace_   = (uint16_t)( t * 4. );
 
     enabled_ = false;
@@ -27,15 +29,17 @@ void MorseListener::clear() {
     wordStarted_           = false;
     didCallLetterCallback_ = false;
     lastChanged_           = 0;
+    lastOn_                = 0;
 }
 
 void MorseListener::setup() {
-#ifdef DEBUG
     // when 13:
     //  minLetterSpace_ 184
     //  minWordSpace_   369
-    Serial.print("minLetter:"); Serial.println(minLetterSpace_);
-    Serial.print("minWord:");   Serial.println(minWordSpace_);
+#ifdef DEBUG
+    Serial.print(P("minLetterSpace:")); Serial.println(minLetterSpace_);
+    Serial.print(P("minWordSpace:"));   Serial.println(minWordSpace_);
+    Serial.print(P("debouncePeriod:")); Serial.println(debouncePeriod_);
 #endif
 }
 
@@ -44,16 +48,31 @@ void MorseListener::loop() {
         return;
     }
 
-    int           input    = analogRead(pin_);
+    int  raw   = analogRead(pin_);
+    static bool input = false;
 #ifdef DEBUG
-    Serial.print("input: "); Serial.println(input); // add delay when enabling this
+    // Serial.print("raw: "); Serial.println(raw); // add delay when enabling this
 #endif
 
     unsigned long interval = 0;
 
+    // analogRead input is 1kHz audio
+    // we smooth it here
+
+    if ( raw > ON_MIN_THRESHOLD ) {
+        input   = true;
+        lastOn_ = global.now;
+    }
+    else if ( global.now - lastOn_ > debouncePeriod_ ) {
+        input   = false;
+    }
+    else if ( global.now < lastOn_ ) {
+        lastOn_ = 0; // just in case, millis() passed unsigned long limit
+    }
+
     // check ON/OFF state change
 
-    if ( input > ON_MIN_THRESHOLD ) {
+    if ( input ) {
         // ON
         if ( ! isOn_ ) {
             // OFF -> ON
@@ -64,16 +83,27 @@ void MorseListener::loop() {
             isOn_        = true;
             lastChanged_ = global.now;
             wordStarted_ = true;
+
+#ifdef DEBUG
+            Serial.print(P("off->on: ")); Serial.println(interval);
+            Serial.print(P(" raw: ")); Serial.println(raw);
+#endif
         }
     }
     else {
         // OFF
         interval = global.now - lastChanged_;
-        if ( isOn_ ) {
+        if ( isOn_ && wordStarted_ ) {
             // ON -> OFF
             // interval: duration of ON time
-            isOn_        = false;
-            lastChanged_ = global.now;
+            isOn_                  = false;
+            lastChanged_           = global.now;
+            didCallLetterCallback_ = false; // can call again after 1st letter
+
+#ifdef DEBUG
+            Serial.print(P("on->off: ")); Serial.println(interval);
+            Serial.print(P(" raw: ")); Serial.println(raw);
+#endif
         }
         else {
             // OFF continously
@@ -111,7 +141,7 @@ void MorseListener::loop() {
             didCallLetterCallback_ = true;
 
 #ifdef DEBUG
-            Serial.print("index: "); Serial.println(index_);
+            Serial.print(P("index: ")); Serial.println(index_);
 #endif
 
             uint8_t letter = pgm_read_byte_near(morseTable + index_);

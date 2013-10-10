@@ -29,7 +29,11 @@ private:
     bool wordStarted_;
     bool didCallLetterCallback_;
     unsigned long lastChanged_;
+    unsigned long lastOn_;
 
+    // if raw input was higher than threshold more than once per period: it's HIGH
+    // if raw input was always lower than threshold for period: it's LOW
+    uint16_t debouncePeriod_;
     uint16_t minLetterSpace_;
     uint16_t minWordSpace_;
 };

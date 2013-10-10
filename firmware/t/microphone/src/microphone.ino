@@ -40,6 +40,4 @@ void loop() {
     global.loop(); // always run first
 
     listener.loop();
-
-    delay( 100 );
 }
