@@ -2249,13 +2249,13 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <description>2012M 0805</description>
 <wire x1="-0.925" y1="0.6" x2="0.925" y2="0.6" width="0.1016" layer="51"/>
 <wire x1="0.925" y1="-0.6" x2="-0.925" y2="-0.6" width="0.1016" layer="51"/>
-<smd name="1" x="-1" y="0" dx="1.3" dy="1.6" layer="1"/>
-<smd name="2" x="1" y="0" dx="1.3" dy="1.6" layer="1"/>
+<smd name="1" x="-1.1" y="0" dx="1.2" dy="1.2" layer="1"/>
+<smd name="2" x="1.1" y="0" dx="1.2" dy="1.2" layer="1"/>
 <text x="-1" y="0.875" size="1.016" layer="25">&gt;NAME</text>
 <text x="-1" y="-1.9" size="1.016" layer="27">&gt;VALUE</text>
 <rectangle x1="-1" y1="-0.65" x2="-0.5" y2="0.65" layer="51"/>
 <rectangle x1="0.5" y1="-0.65" x2="1" y2="0.65" layer="51"/>
-<rectangle x1="-1.65" y1="-1.25" x2="1.65" y2="1.25" layer="39"/>
+<rectangle x1="-1.8" y1="-1.25" x2="1.8" y2="1.25" layer="39"/>
 <rectangle x1="-0.2" y1="-0.9" x2="0.2" y2="0.9" layer="41"/>
 </package>
 <package name="2012">
@@ -9671,9 +9671,9 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="165.1" y1="50.8" x2="165.1" y2="48.26" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="GND11" gate="1" pin="GND"/>
 <pinref part="T1" gate="G$1" pin="E"/>
-<wire x1="144.78" y1="22.86" x2="144.78" y2="25.4" width="0.1524" layer="91"/>
+<pinref part="GND11" gate="1" pin="GND"/>
+<wire x1="144.78" y1="25.4" x2="144.78" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
