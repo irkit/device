@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="mm" altunit="mm"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -962,16 +962,16 @@ Source: http://ww1.microchip.com/downloads/en/devicedoc/39632c.pdf</description>
 <text x="-3.9" y="-5.525" size="1.27" layer="27">&gt;VALUE</text>
 </package>
 <package name="CRYSTAL-3.2-2.5">
-<wire x1="-1.6" y1="-0.2" x2="-1.6" y2="0.2" width="0.127" layer="21"/>
-<smd name="1" x="-1.25" y="-1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="2" x="1.25" y="-1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="3" x="1.25" y="1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="4" x="-1.25" y="1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
+<wire x1="-1.6" y1="-0.02" x2="-1.6" y2="0.02" width="0.127" layer="21"/>
+<smd name="1" x="-1.1" y="-0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="2" x="1.1" y="-0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="3" x="1.1" y="0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="4" x="-1.1" y="0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
 <text x="-1.65" y="1.6" size="1.27" layer="25">&gt;name</text>
 <text x="-1.6" y="-2.25" size="1.27" layer="27">&gt;value</text>
-<wire x1="-0.3" y1="1.25" x2="0.3" y2="1.25" width="0.127" layer="21"/>
-<wire x1="-0.3" y1="-1.25" x2="0.3" y2="-1.25" width="0.127" layer="21"/>
-<wire x1="1.6" y1="-0.2" x2="1.6" y2="0.2" width="0.127" layer="21"/>
+<wire x1="-0.2" y1="1.25" x2="0.2" y2="1.25" width="0.127" layer="21"/>
+<wire x1="-0.2" y1="-1.25" x2="0.2" y2="-1.25" width="0.127" layer="21"/>
+<wire x1="1.6" y1="-0.02" x2="1.6" y2="0.02" width="0.127" layer="21"/>
 </package>
 <package name="USB-MICROB">
 <wire x1="-2.5654" y1="-0.4318" x2="-2.8194" y2="-0.6858" width="0.127" layer="31" curve="-90"/>

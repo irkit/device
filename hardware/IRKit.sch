@@ -4025,18 +4025,6 @@ Source: WE-TPC 744053220.pdf</description>
 <text x="-3.5" y="3.5" size="1.778" layer="25">&gt;NAME</text>
 <text x="-3.5" y="-5.3" size="1.778" layer="27">&gt;VALUE</text>
 </package>
-<package name="CRYSTAL-3.2-2.5">
-<wire x1="-1.6" y1="-0.2" x2="-1.6" y2="0.2" width="0.127" layer="21"/>
-<smd name="1" x="-1.25" y="-1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="2" x="1.25" y="-1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="3" x="1.25" y="1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<smd name="4" x="-1.25" y="1.025" dx="1.25" dy="1.5" layer="1" rot="R90"/>
-<text x="-1.65" y="1.6" size="1.27" layer="25">&gt;name</text>
-<text x="-1.6" y="-2.25" size="1.27" layer="27">&gt;value</text>
-<wire x1="-0.3" y1="1.25" x2="0.3" y2="1.25" width="0.127" layer="21"/>
-<wire x1="-0.3" y1="-1.25" x2="0.3" y2="-1.25" width="0.127" layer="21"/>
-<wire x1="1.6" y1="-0.2" x2="1.6" y2="0.2" width="0.127" layer="21"/>
-</package>
 <package name="STAND-OFF">
 <description>&lt;b&gt;Stand Off&lt;/b&gt;&lt;p&gt;
 This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
@@ -5252,6 +5240,18 @@ NS Package M08A</description>
 <wire x1="-2.54" y1="1.9" x2="3.12" y2="-0.57" width="0.127" layer="21" curve="-153.555674"/>
 <wire x1="-2.54" y1="-1.9" x2="2.48" y2="-1.98" width="0.127" layer="21" curve="104.598939"/>
 </package>
+<package name="CRYSTAL-3.2-2.5">
+<wire x1="-1.6" y1="-0.02" x2="-1.6" y2="0.02" width="0.127" layer="21"/>
+<smd name="1" x="-1.1" y="-0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="2" x="1.1" y="-0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="3" x="1.1" y="0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<smd name="4" x="-1.1" y="0.8" dx="1.2" dy="1.4" layer="1" rot="R90"/>
+<text x="-1.65" y="1.6" size="1.27" layer="25">&gt;name</text>
+<text x="-1.6" y="-2.25" size="1.27" layer="27">&gt;value</text>
+<wire x1="-0.2" y1="1.25" x2="0.2" y2="1.25" width="0.127" layer="21"/>
+<wire x1="-0.2" y1="-1.25" x2="0.2" y2="-1.25" width="0.127" layer="21"/>
+<wire x1="1.6" y1="-0.02" x2="1.6" y2="0.02" width="0.127" layer="21"/>
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -5462,31 +5462,6 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <text x="-1.4986" y="-3.81" size="1.778" layer="95" rot="R90">&gt;NAME</text>
 <text x="3.302" y="-3.81" size="1.778" layer="96" rot="R90">&gt;VALUE</text>
 </symbol>
-<symbol name="CRYSTAL-KX7">
-<wire x1="1.016" y1="0" x2="2.54" y2="0" width="0.1524" layer="94"/>
-<wire x1="-2.54" y1="0" x2="-1.016" y2="0" width="0.1524" layer="94"/>
-<wire x1="-0.381" y1="1.524" x2="-0.381" y2="-1.524" width="0.254" layer="94"/>
-<wire x1="-0.381" y1="-1.524" x2="0.381" y2="-1.524" width="0.254" layer="94"/>
-<wire x1="0.381" y1="-1.524" x2="0.381" y2="1.524" width="0.254" layer="94"/>
-<wire x1="0.381" y1="1.524" x2="-0.381" y2="1.524" width="0.254" layer="94"/>
-<wire x1="1.016" y1="1.778" x2="1.016" y2="-1.778" width="0.254" layer="94"/>
-<wire x1="-1.016" y1="1.778" x2="-1.016" y2="-1.778" width="0.254" layer="94"/>
-<wire x1="-1.778" y1="1.905" x2="-1.778" y2="2.54" width="0.1524" layer="94"/>
-<wire x1="-1.778" y1="2.54" x2="1.778" y2="2.54" width="0.1524" layer="94"/>
-<wire x1="1.778" y1="2.54" x2="1.778" y2="1.905" width="0.1524" layer="94"/>
-<wire x1="1.778" y1="-1.905" x2="1.778" y2="-2.54" width="0.1524" layer="94"/>
-<wire x1="-1.778" y1="-2.54" x2="1.778" y2="-2.54" width="0.1524" layer="94"/>
-<wire x1="-1.778" y1="-2.54" x2="-1.778" y2="-1.905" width="0.1524" layer="94"/>
-<pin name="C1" x="-2.54" y="0" visible="off" length="point" direction="pas" swaplevel="1"/>
-<pin name="C2" x="2.54" y="0" visible="off" length="point" direction="pas" swaplevel="1" rot="R180"/>
-<pin name="GND@1" x="0" y="-5.08" visible="off" length="short" direction="pas" rot="R90"/>
-<pin name="GND@2" x="0" y="5.08" visible="off" length="short" direction="pas" rot="R270"/>
-<text x="2.54" y="1.016" size="1.778" layer="95">&gt;NAME</text>
-<text x="2.54" y="-2.54" size="1.778" layer="96">&gt;VALUE</text>
-<text x="-2.159" y="-1.143" size="0.8636" layer="93">1</text>
-<text x="1.524" y="-1.143" size="0.8636" layer="93">2</text>
-<text x="1.143" y="2.794" size="0.8636" layer="93" rot="R90">3</text>
-</symbol>
 <symbol name="STAND-OFF">
 <circle x="0" y="0" radius="1.27" width="0.254" layer="94"/>
 </symbol>
@@ -5633,6 +5608,31 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <pin name="BLUE" x="-5.08" y="-15.24" length="middle" rot="R90"/>
 <pin name="RED" x="5.08" y="-15.24" length="middle" rot="R90"/>
 <text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
+</symbol>
+<symbol name="CRYSTAL-KX7">
+<wire x1="1.016" y1="0" x2="2.54" y2="0" width="0.1524" layer="94"/>
+<wire x1="-2.54" y1="0" x2="-1.016" y2="0" width="0.1524" layer="94"/>
+<wire x1="-0.381" y1="1.524" x2="-0.381" y2="-1.524" width="0.254" layer="94"/>
+<wire x1="-0.381" y1="-1.524" x2="0.381" y2="-1.524" width="0.254" layer="94"/>
+<wire x1="0.381" y1="-1.524" x2="0.381" y2="1.524" width="0.254" layer="94"/>
+<wire x1="0.381" y1="1.524" x2="-0.381" y2="1.524" width="0.254" layer="94"/>
+<wire x1="1.016" y1="1.778" x2="1.016" y2="-1.778" width="0.254" layer="94"/>
+<wire x1="-1.016" y1="1.778" x2="-1.016" y2="-1.778" width="0.254" layer="94"/>
+<wire x1="-1.778" y1="1.905" x2="-1.778" y2="2.54" width="0.1524" layer="94"/>
+<wire x1="-1.778" y1="2.54" x2="1.778" y2="2.54" width="0.1524" layer="94"/>
+<wire x1="1.778" y1="2.54" x2="1.778" y2="1.905" width="0.1524" layer="94"/>
+<wire x1="1.778" y1="-1.905" x2="1.778" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="-1.778" y1="-2.54" x2="1.778" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="-1.778" y1="-2.54" x2="-1.778" y2="-1.905" width="0.1524" layer="94"/>
+<pin name="C1" x="-2.54" y="0" visible="off" length="point" direction="pas" swaplevel="1"/>
+<pin name="C2" x="2.54" y="0" visible="off" length="point" direction="pas" swaplevel="1" rot="R180"/>
+<pin name="GND@1" x="0" y="-5.08" visible="off" length="short" direction="pas" rot="R90"/>
+<pin name="GND@2" x="0" y="5.08" visible="off" length="short" direction="pas" rot="R270"/>
+<text x="2.54" y="1.016" size="1.778" layer="95">&gt;NAME</text>
+<text x="2.54" y="-2.54" size="1.778" layer="96">&gt;VALUE</text>
+<text x="-2.159" y="-1.143" size="0.8636" layer="93">1</text>
+<text x="1.524" y="-1.143" size="0.8636" layer="93">2</text>
+<text x="1.143" y="2.794" size="0.8636" layer="93" rot="R90">3</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -6608,24 +6608,6 @@ http://www.ti.com/lit/ds/slvsag6b/slvsag6b.pdf
 </device>
 </devices>
 </deviceset>
-<deviceset name="CRYSTAL-3.2-2.5" prefix="X">
-<gates>
-<gate name="G$1" symbol="CRYSTAL-KX7" x="0" y="0"/>
-</gates>
-<devices>
-<device name="" package="CRYSTAL-3.2-2.5">
-<connects>
-<connect gate="G$1" pin="C1" pad="1"/>
-<connect gate="G$1" pin="C2" pad="3"/>
-<connect gate="G$1" pin="GND@1" pad="2"/>
-<connect gate="G$1" pin="GND@2" pad="4"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
 <deviceset name="STAND-OFF" prefix="STANDOFF">
 <description>&lt;b&gt;#4 Stand Off&lt;/b&gt;&lt;p&gt;
 This is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447</description>
@@ -7174,6 +7156,24 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <connect gate="G$1" pin="GND" pad="3"/>
 <connect gate="G$1" pin="GREEN" pad="1"/>
 <connect gate="G$1" pin="RED" pad="4"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="CRYSTAL-3.2-2.5" prefix="X">
+<gates>
+<gate name="G$1" symbol="CRYSTAL-KX7" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="CRYSTAL-3.2-2.5">
+<connects>
+<connect gate="G$1" pin="C1" pad="1"/>
+<connect gate="G$1" pin="C2" pad="3"/>
+<connect gate="G$1" pin="GND@1" pad="2"/>
+<connect gate="G$1" pin="GND@2" pad="4"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -9027,7 +9027,6 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R3" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
 <part name="R4" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
 <part name="F1" library="my" deviceset="L-EU" device="L1812" value="MF-MSMF075-2"/>
-<part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz"/>
 <part name="R10" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="RB1" library="my" deviceset="RESISTOR-US" device="2012" value="1.8k"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
@@ -9068,6 +9067,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="C13" library="my" deviceset="CAPACITOR" device="2012" value="1uF"/>
 <part name="GND24" library="supply1" deviceset="GND" device=""/>
 <part name="V3" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
+<part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz"/>
 </parts>
 <sheets>
 <sheet>
@@ -9223,9 +9223,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="R3" gate="G$1" x="48.26" y="127"/>
 <instance part="R4" gate="G$1" x="58.42" y="127"/>
 <instance part="F1" gate="G$1" x="76.2" y="119.38" rot="R90"/>
-<instance part="XTAL1" gate="G$1" x="40.64" y="231.14" smashed="yes" rot="R90">
-<attribute name="NAME" x="43.18" y="232.156" size="1.778" layer="95"/>
-</instance>
 <instance part="R10" gate="G$1" x="185.42" y="210.82" rot="R270"/>
 <instance part="RB1" gate="G$1" x="129.54" y="30.48" smashed="yes" rot="R270">
 <attribute name="NAME" x="131.0386" y="33.528" size="1.778" layer="95" rot="R270"/>
@@ -9278,6 +9275,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="NAME" x="67.31" y="99.06" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="72.39" y="96.52" size="1.778" layer="96" rot="R90"/>
 </instance>
+<instance part="XTAL1" gate="G$1" x="40.64" y="231.14" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -9550,7 +9548,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="27.94" y1="236.22" x2="25.4" y2="236.22" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="236.22" x2="22.86" y2="236.22" width="0.1524" layer="91"/>
 <wire x1="22.86" y1="236.22" x2="20.32" y2="236.22" width="0.1524" layer="91"/>
-<pinref part="XTAL1" gate="G$1" pin="GND@1"/>
 <wire x1="45.72" y1="231.14" x2="48.26" y2="231.14" width="0.1524" layer="91"/>
 <wire x1="48.26" y1="231.14" x2="48.26" y2="223.52" width="0.1524" layer="91"/>
 <wire x1="48.26" y1="223.52" x2="22.86" y2="223.52" width="0.1524" layer="91"/>
@@ -9560,10 +9557,11 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="27.94" y1="226.06" x2="25.4" y2="226.06" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="226.06" x2="25.4" y2="231.14" width="0.1524" layer="91"/>
 <junction x="25.4" y="236.22"/>
-<pinref part="XTAL1" gate="G$1" pin="GND@2"/>
 <wire x1="25.4" y1="231.14" x2="25.4" y2="236.22" width="0.1524" layer="91"/>
 <wire x1="35.56" y1="231.14" x2="25.4" y2="231.14" width="0.1524" layer="91"/>
 <junction x="25.4" y="231.14"/>
+<pinref part="XTAL1" gate="G$1" pin="GND@1"/>
+<pinref part="XTAL1" gate="G$1" pin="GND@2"/>
 </segment>
 <segment>
 <pinref part="GND3" gate="1" pin="GND"/>
@@ -10244,7 +10242,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </net>
 <net name="XTAL1" class="0">
 <segment>
-<pinref part="XTAL1" gate="G$1" pin="C2"/>
 <pinref part="C5" gate="G$1" pin="2"/>
 <wire x1="40.64" y1="233.68" x2="40.64" y2="236.22" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="236.22" x2="33.02" y2="236.22" width="0.1524" layer="91"/>
@@ -10253,6 +10250,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="53.34" y1="231.14" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="236.22" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
 <junction x="40.64" y="236.22"/>
+<pinref part="XTAL1" gate="G$1" pin="C2"/>
 </segment>
 </net>
 <net name="XTAL2" class="0">
@@ -10260,10 +10258,10 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="C6" gate="G$1" pin="2"/>
 <pinref part="IC1" gate="G$1" pin="XTAL1"/>
 <wire x1="33.02" y1="226.06" x2="40.64" y2="226.06" width="0.1524" layer="91"/>
-<pinref part="XTAL1" gate="G$1" pin="C1"/>
 <wire x1="40.64" y1="226.06" x2="55.88" y2="226.06" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="228.6" x2="40.64" y2="226.06" width="0.1524" layer="91"/>
 <junction x="40.64" y="226.06"/>
+<pinref part="XTAL1" gate="G$1" pin="C1"/>
 </segment>
 </net>
 <net name="D7/LDO3.3_EN" class="0">
