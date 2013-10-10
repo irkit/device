@@ -2615,6 +2615,7 @@ Source: http://ww1.microchip.com/downloads/en/devicedoc/39632c.pdf</description>
 <smd name="P$1" x="0" y="0" dx="1" dy="1" layer="1" roundness="100"/>
 <text x="-3.81" y="6.985" size="1.778" layer="25">&gt;NAME</text>
 <text x="-4.445" y="-8.7551" size="1.778" layer="27">&gt;VALUE</text>
+<circle x="-5.2" y="5.2" radius="0.2827" width="0.254" layer="21"/>
 </package>
 <package name="QFN44ML7X7">
 <circle x="0" y="0" radius="0.635" width="2.54" layer="29"/>
@@ -6745,7 +6746,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </device>
 </devices>
 </deviceset>
-<deviceset name="VARISTOR" prefix="R">
+<deviceset name="VARISTOR" prefix="V">
 <description>&lt;b&gt;VARISTOR&lt;/b&gt;</description>
 <gates>
 <gate name="G$1" symbol="VARISTOR" x="0" y="0"/>
@@ -9025,7 +9026,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="X25" library="wirepad" deviceset="PAD-N" device="" value="0"/>
 <part name="R3" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
 <part name="R4" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
-<part name="F1" library="my" deviceset="L-EU" device="L1812" value="MF-MSMF050-2"/>
+<part name="F1" library="my" deviceset="L-EU" device="L1812" value="MF-MSMF075-2"/>
 <part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz"/>
 <part name="R10" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="RB1" library="my" deviceset="RESISTOR-US" device="2012" value="1.8k"/>
@@ -9438,11 +9439,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="ICSP" gate="A" pin="6"/>
 </segment>
 <segment>
-<pinref part="GND11" gate="1" pin="GND"/>
-<pinref part="T1" gate="G$1" pin="E"/>
-<wire x1="144.78" y1="22.86" x2="144.78" y2="25.4" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="GND12" gate="1" pin="GND"/>
 <wire x1="190.5" y1="30.48" x2="190.5" y2="27.94" width="0.1524" layer="91"/>
 <pinref part="IR-RECEIVER" gate="1" pin="GND"/>
@@ -9673,6 +9669,11 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="C13" gate="G$1" pin="2"/>
 <pinref part="GND24" gate="1" pin="GND"/>
 <wire x1="165.1" y1="50.8" x2="165.1" y2="48.26" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="GND11" gate="1" pin="GND"/>
+<pinref part="T1" gate="G$1" pin="E"/>
+<wire x1="144.78" y1="22.86" x2="144.78" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
