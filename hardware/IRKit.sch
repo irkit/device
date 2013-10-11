@@ -8971,8 +8971,8 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
 <part name="P+12" library="supply1" deviceset="+5V" device=""/>
 <part name="RB2" library="my" deviceset="RESISTOR-US" device="2012" value="10k"/>
-<part name="C5" library="my" deviceset="CAPACITOR" device="2012" value="22pF"/>
-<part name="C6" library="my" deviceset="CAPACITOR" device="2012" value="22pF"/>
+<part name="C5" library="my" deviceset="CAPACITOR" device="2012" value="12pF"/>
+<part name="C6" library="my" deviceset="CAPACITOR" device="2012" value="12pF"/>
 <part name="C14" library="my" deviceset="CAPACITOR" device="2012" value="4.7uF"/>
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
@@ -9067,7 +9067,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="C13" library="my" deviceset="CAPACITOR" device="2012" value="1uF"/>
 <part name="GND24" library="supply1" deviceset="GND" device=""/>
 <part name="V3" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
-<part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz"/>
+<part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz CL:10pF"/>
 </parts>
 <sheets>
 <sheet>
@@ -9148,7 +9148,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="R5" gate="G$1" x="63.5" y="53.34"/>
 <instance part="R6" gate="G$1" x="73.66" y="53.34"/>
 <instance part="R1" gate="G$1" x="35.56" y="251.46" rot="R180"/>
-<instance part="P+12" gate="1" x="35.56" y="261.62" rot="MR0"/>
+<instance part="P+12" gate="1" x="35.56" y="266.7" rot="MR0"/>
 <instance part="RB2" gate="G$1" x="137.16" y="35.56" smashed="yes" rot="R180">
 <attribute name="NAME" x="139.446" y="34.0614" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="139.446" y="38.862" size="1.778" layer="96" rot="R180"/>
@@ -9199,7 +9199,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </instance>
 <instance part="C12" gate="G$1" x="91.44" y="104.14"/>
 <instance part="IC1" gate="G$1" x="81.28" y="220.98"/>
-<instance part="C10" gate="G$1" x="48.26" y="254" rot="R180"/>
+<instance part="C10" gate="G$1" x="48.26" y="256.54" rot="R180"/>
 <instance part="GND19" gate="1" x="48.26" y="243.84"/>
 <instance part="C7" gate="G$1" x="33.02" y="187.96" smashed="yes" rot="R180">
 <attribute name="NAME" x="29.464" y="190.881" size="1.778" layer="95"/>
@@ -9320,16 +9320,18 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <pinref part="R1" gate="G$1" pin="2"/>
-<wire x1="35.56" y1="259.08" x2="35.56" y2="256.54" width="0.1524" layer="91"/>
 <pinref part="P+12" gate="1" pin="+5V"/>
+<wire x1="35.56" y1="264.16" x2="35.56" y2="261.62" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="G$1" pin="VCC1"/>
+<wire x1="35.56" y1="261.62" x2="35.56" y2="256.54" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="243.84" x2="53.34" y2="243.84" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="243.84" x2="53.34" y2="256.54" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="256.54" x2="48.26" y2="256.54" width="0.1524" layer="91"/>
-<junction x="35.56" y="256.54"/>
+<wire x1="53.34" y1="243.84" x2="53.34" y2="261.62" width="0.1524" layer="91"/>
 <pinref part="C10" gate="G$1" pin="2"/>
-<junction x="48.26" y="256.54"/>
-<wire x1="48.26" y1="256.54" x2="35.56" y2="256.54" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="259.08" x2="48.26" y2="261.62" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="261.62" x2="53.34" y2="261.62" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="261.62" x2="48.26" y2="261.62" width="0.1524" layer="91"/>
+<junction x="35.56" y="261.62"/>
+<junction x="48.26" y="261.62"/>
 </segment>
 <segment>
 <pinref part="C1" gate="G$1" pin="2"/>
@@ -9529,7 +9531,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="C10" gate="G$1" pin="1"/>
 <pinref part="GND19" gate="1" pin="GND"/>
 <wire x1="48.26" y1="246.38" x2="48.26" y2="248.92" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="248.92" x2="48.26" y2="251.46" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="248.92" x2="48.26" y2="254" width="0.1524" layer="91"/>
 <wire x1="50.8" y1="248.92" x2="50.8" y2="241.3" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="G$1" pin="GND3"/>
 <wire x1="50.8" y1="241.3" x2="55.88" y2="241.3" width="0.1524" layer="91"/>
@@ -10242,19 +10244,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </net>
 <net name="XTAL1" class="0">
 <segment>
-<pinref part="C5" gate="G$1" pin="2"/>
-<wire x1="40.64" y1="233.68" x2="40.64" y2="236.22" width="0.1524" layer="91"/>
-<wire x1="40.64" y1="236.22" x2="33.02" y2="236.22" width="0.1524" layer="91"/>
-<pinref part="IC1" gate="G$1" pin="XTAL2"/>
-<wire x1="55.88" y1="231.14" x2="53.34" y2="231.14" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="231.14" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
-<wire x1="40.64" y1="236.22" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
-<junction x="40.64" y="236.22"/>
-<pinref part="XTAL1" gate="G$1" pin="C2"/>
-</segment>
-</net>
-<net name="XTAL2" class="0">
-<segment>
 <pinref part="C6" gate="G$1" pin="2"/>
 <pinref part="IC1" gate="G$1" pin="XTAL1"/>
 <wire x1="33.02" y1="226.06" x2="40.64" y2="226.06" width="0.1524" layer="91"/>
@@ -10523,6 +10512,19 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="C16" gate="G$1" pin="2"/>
 <pinref part="IC3" gate="G$1" pin="+IN"/>
 <wire x1="264.16" y1="35.56" x2="271.78" y2="35.56" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="XTAL2" class="0">
+<segment>
+<pinref part="C5" gate="G$1" pin="2"/>
+<wire x1="40.64" y1="233.68" x2="40.64" y2="236.22" width="0.1524" layer="91"/>
+<wire x1="40.64" y1="236.22" x2="33.02" y2="236.22" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="G$1" pin="XTAL2"/>
+<wire x1="55.88" y1="231.14" x2="53.34" y2="231.14" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="231.14" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
+<wire x1="40.64" y1="236.22" x2="53.34" y2="236.22" width="0.1524" layer="91"/>
+<junction x="40.64" y="236.22"/>
+<pinref part="XTAL1" gate="G$1" pin="C2"/>
 </segment>
 </net>
 </nets>
