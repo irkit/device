@@ -349,8 +349,8 @@ v1.2.0</text>
 <packages>
 <package name="SMD2012">
 <description>2012M 0805</description>
-<wire x1="-0.925" y1="0.6" x2="0.925" y2="0.6" width="0.1016" layer="51"/>
-<wire x1="0.925" y1="-0.6" x2="-0.925" y2="-0.6" width="0.1016" layer="51"/>
+<wire x1="-0.35" y1="0.6" x2="0.35" y2="0.6" width="0.1016" layer="21"/>
+<wire x1="0.35" y1="-0.6" x2="-0.35" y2="-0.6" width="0.1016" layer="21"/>
 <smd name="1" x="-1.1" y="0" dx="1.2" dy="1.2" layer="1"/>
 <smd name="2" x="1.1" y="0" dx="1.2" dy="1.2" layer="1"/>
 <text x="-1" y="0.875" size="1.016" layer="25">&gt;NAME</text>
