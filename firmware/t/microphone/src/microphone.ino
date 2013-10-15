@@ -37,7 +37,44 @@ void setup() {
 }
 
 void loop() {
+    static uint8_t lastCharacter = '0';
+
     global.loop(); // always run first
 
     listener.loop();
+
+    // check for input from the user
+    if (Serial.available()) {
+
+        lastCharacter = Serial.read();
+        Serial.print("0x"); Serial.println( lastCharacter, HEX );
+
+        uint8_t status;
+        if (lastCharacter == '1') {
+            Serial.println(P("WPM set to 13"));
+            listener.setWPM(13);
+            listener.setup(); // for debug output
+        }
+        else if (lastCharacter == '2') {
+            Serial.println(P("WPM set to 20"));
+            listener.setWPM(20);
+            listener.setup(); // for debug output
+        }
+        else if (lastCharacter == '3') {
+            Serial.println(P("WPM set to 40"));
+            listener.setWPM(40);
+            listener.setup(); // for debug output
+        }
+        else if (lastCharacter == '4') {
+            Serial.println(P("WPM set to 100"));
+            listener.setWPM(100);
+            listener.setup(); // for debug output
+        }
+        else if (lastCharacter == '5') {
+            Serial.println(P("WPM set to 1000"));
+            listener.setWPM(1000);
+            listener.setup(); // for debug output
+        }
+    }
+
 }

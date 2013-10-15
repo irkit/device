@@ -7,6 +7,7 @@ class MorseListener {
 public:
     MorseListener(int pin, uint16_t wps);
     void clear();
+    void setWPM(uint16_t wpm);
     void setup();
     void loop();
     void enable(bool);

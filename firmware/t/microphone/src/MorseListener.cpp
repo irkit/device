@@ -5,18 +5,14 @@
 // #define DEBUG
 
 // 0-1023
-#define ON_MIN_THRESHOLD 700
+#define ON_MIN_THRESHOLD 800
 
 prog_uchar morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
 
 MorseListener::MorseListener(int pin, uint16_t wpm) :
-    pin_(pin),
-    wpm_(wpm)
+    pin_(pin)
 {
-    float t = (float)1200 / (float)wpm_;
-    debouncePeriod_ = (uint16_t)( t / 2. );
-    minLetterSpace_ = (uint16_t)( t * 2. ); // TODO: is this too short?
-    minWordSpace_   = (uint16_t)( t * 4. );
+    setWPM(wpm);
 
     enabled_ = false;
 
@@ -32,14 +28,26 @@ void MorseListener::clear() {
     lastOn_                = 0;
 }
 
+void MorseListener::setWPM(uint16_t wpm) {
+    wpm_ = wpm;
+
+    float t = 1200. / (float)wpm_;
+    debouncePeriod_ = (uint16_t)( t / 2. );
+    minLetterSpace_ = (uint16_t)( t * 2. ); // TODO: is this too short?
+    minWordSpace_   = (uint16_t)( t * 4. );
+}
+
 void MorseListener::setup() {
     // when 13:
     //  minLetterSpace_ 184
     //  minWordSpace_   369
 #ifdef DEBUG
-    Serial.print(P("minLetterSpace:")); Serial.println(minLetterSpace_);
-    Serial.print(P("minWordSpace:"));   Serial.println(minWordSpace_);
-    Serial.print(P("debouncePeriod:")); Serial.println(debouncePeriod_);
+    Serial.print(P("t/2 debouncePeriod:")); Serial.println(debouncePeriod_);
+    Serial.print(P("tx2 minLetterSpace:")); Serial.println(minLetterSpace_);
+    Serial.print(P("tx4 minWordSpace:"));   Serial.println(minWordSpace_);
+    float letter = 1200. / (float)wpm_;
+    Serial.print(P("tx1 dit interval:")); Serial.println(letter);
+    Serial.print(P("tx3 dah interval:")); Serial.println(letter * 3);
 #endif
 }
 
