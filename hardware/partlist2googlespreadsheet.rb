@@ -74,9 +74,10 @@ class PartSheet
         }
 
         if found_similar != nil
-          puts "update row[ #{found_similar} ]?"
-          puts "  before: Value=#{ worksheet.list[found_similar]["Value"] } Device=#{ worksheet.list[found_similar]["Device"]}"
-          puts "  after:  Value=#{ csv_row["Value"] } Device=#{ csv_row["Device"] }"
+          found_row = worksheet.list[found_similar]
+          puts "update row[ #{found_similar + 2} ] Part: #{ found_row["Parts"]}?"
+          puts "  before: Value=#{ found_row["Value"] } Device=#{ found_row["Device"]}"
+          puts "  after:  Value=#{ csv_row["Value"] }   Device=#{ csv_row["Device"] }"
           puts "(Y/n)"
           input = STDIN.gets.chomp
           if input != "n"
