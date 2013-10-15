@@ -3110,8 +3110,8 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="12.2" y="50.1" size="1.016" layer="27" rot="R180"/>
 </element>
 <element name="U$1" library="logo" package="IRKIT-LOGO" value="" x="29.9" y="7.8"/>
-<element name="$1_62_$" library="my" package="LED-SPACER" value="LED-SPACER" x="29.625" y="5" rot="R195"/>
-<element name="$1_61_$" library="my" package="LED-SPACER" value="LED-SPACER" x="24.375" y="5" rot="R345"/>
+<element name="SP1" library="my" package="LED-SPACER" value="LA-6" x="29.625" y="5" rot="R195"/>
+<element name="SP2" library="my" package="LED-SPACER" value="LA-6" x="24.375" y="5" rot="R345"/>
 <element name="IC3" library="my" package="MMSOP08" value="LM386MM-1" x="30.6" y="47.5" smashed="yes" rot="R90">
 <attribute name="NAME" x="29.16" y="49.132" size="0.8128" layer="25" ratio="10"/>
 <attribute name="VALUE" x="33.14" y="50.802" size="1.27" layer="27" ratio="10" rot="R180"/>

@@ -7051,7 +7051,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </device>
 </devices>
 </deviceset>
-<deviceset name="LED-SPACER">
+<deviceset name="LED-SPACER" prefix="SP">
 <gates>
 <gate name="G$1" symbol="LED-SPACER" x="0" y="0"/>
 </gates>
@@ -9041,8 +9041,8 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="RC2" library="my" deviceset="R" device="3225" value="10Ω 0.5W"/>
 <part name="V1" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="V2" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
-<part name="$1_62_$" library="my" deviceset="LED-SPACER" device=""/>
-<part name="$1_61_$" library="my" deviceset="LED-SPACER" device=""/>
+<part name="SP1" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
+<part name="SP2" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
 <part name="IC3" library="my" deviceset="LM386?-*" device="MM" technology="1"/>
 <part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0223"/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
@@ -9246,8 +9246,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="NAME" x="57.15" y="99.06" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="62.23" y="96.52" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="$1_62_$" gate="G$1" x="327.66" y="63.5"/>
-<instance part="$1_61_$" gate="G$1" x="332.74" y="63.5"/>
+<instance part="SP1" gate="G$1" x="327.66" y="63.5"/>
+<instance part="SP2" gate="G$1" x="332.74" y="63.5"/>
 <instance part="IC3" gate="G$1" x="279.4" y="33.02"/>
 <instance part="MIC" gate="G$1" x="243.84" y="35.56" rot="R90"/>
 <instance part="GND17" gate="1" x="248.92" y="7.62"/>
