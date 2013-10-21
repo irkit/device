@@ -822,10 +822,11 @@ Source: www.farnell.com/datasheets/49238.pdf</description>
 </package>
 <package name="MIC_SMD_4MM">
 <circle x="0" y="0" radius="1.35" width="1" layer="31"/>
-<circle x="0" y="0" radius="1.35" width="0.9" layer="1"/>
+<circle x="0" y="0" radius="1.35" width="1.1" layer="29"/>
 <circle x="0" y="0" radius="2" width="0.4" layer="21"/>
 <smd name="2" x="0" y="1.4" dx="0.5" dy="0.5" layer="1" roundness="100" stop="no" thermals="no" cream="no"/>
 <pad name="1" x="0" y="0" drill="0.3048" diameter="0.8128"/>
+<circle x="0" y="0" radius="1.35" width="0.9" layer="1"/>
 </package>
 <package name="MMSOP08">
 <description>&lt;b&gt;Molded Mini Small Outline Package&lt;/b&gt; 8 - Lead (0.118" Wide)&lt;p&gt;
