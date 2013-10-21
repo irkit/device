@@ -9,8 +9,9 @@
 char *to_print[3];
 
 char *pgmStrToRAM(PROGMEM char *theString, uint8_t index) {
-	free(to_print[index]);
-	to_print[index]=(char *) malloc(strlen_P(theString));
-	strcpy_P(to_print[index], theString);
-	return (to_print[index]);
+    free( to_print[index] );
+    size_t len = strlen_P( theString );
+    to_print[ index ] = (char *) malloc( len + 1 );
+    strcpy_P( to_print[ index ], theString );
+    return to_print[index];
 }
