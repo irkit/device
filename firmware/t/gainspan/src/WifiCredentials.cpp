@@ -28,23 +28,27 @@ bool WifiCredentials::isValid()
     return (crc == data.crc8) && (WIFICREDENTIALS_VERSION == data.version);
 }
 
-void WifiCredentials::set(uint8_t key, const uint8_t *value, uint8_t length)
+GSwifi::GSSECURITY WifiCredentials::getSecurity()
 {
-    switch (key) {
-    case WIFICREDENTIALS_KEY_SECURITY:
-        data.security = *value;
-        break;
-    case WIFICREDENTIALS_KEY_SSID:
-        memcpy(data.ssid, value, length);
-        data.ssid[length] = '\0';
-        break;
-    case WIFICREDENTIALS_KEY_PASSWORD:
-        memcpy(data.password, value, length);
-        data.password[length] = '\0';
-        break;
-    default:
-        break;
-    }
+    return data.security;
+}
+
+char* WifiCredentials::getSSID()
+{
+    return data.ssid;
+}
+
+char* WifiCredentials::getPassword()
+{
+    return data.password;
+}
+
+void WifiCredentials::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
+{
+    data.security = security;
+    strcpy(data.ssid, ssid);
+    strcpy(data.password, pass);
+    data.isSet = true;
 }
 
 void WifiCredentials::save(void)
@@ -68,17 +72,20 @@ void WifiCredentials::dump(void)
     if (data.isSet) {
         Serial.print(P("security: "));
         switch (data.security) {
-        case WIFICREDENTIALS_SECURITY_OPEN:
+        case GSwifi::GSSEC_AUTO:
+            Serial.println(P("auto/none"));
+            break;
+        case GSwifi::GSSEC_OPEN:
             Serial.println(P("open"));
             break;
-        case WIFICREDENTIALS_SECURITY_WEP:
+        case GSwifi::GSSEC_WEP:
             Serial.println(P("wep"));
             break;
-        case WIFICREDENTIALS_SECURITY_WPAPSK:
-            Serial.println(P("wpapsk"));
+        case GSwifi::GSSEC_WPA_PSK:
+            Serial.println(P("wpa-psk"));
             break;
-        case WIFICREDENTIALS_SECURITY_WPA2PSK:
-            Serial.println(P("wpa2psk"));
+        case GSwifi::GSSEC_WPA2_PSK:
+            Serial.println(P("wpa2-psk"));
             break;
         default:
             break;
@@ -86,9 +93,11 @@ void WifiCredentials::dump(void)
 
         Serial.print(P("ssid: "));
         Serial.write((const char*)data.ssid);
+        Serial.println();
 
         Serial.print(P("password: "));
         Serial.write((const char*)data.password);
+        Serial.println();
     }
     else {
         Serial.println(P("cleared"));

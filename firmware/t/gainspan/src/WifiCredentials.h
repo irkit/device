@@ -2,6 +2,7 @@
 #define __WIFICREDENTIALS_H__
 
 #include <Arduino.h>
+#include "GSwifi.h"
 
 // SSID is max 32 bytes
 // see 7.3.1.2 of IEEE 802.11
@@ -24,10 +25,10 @@
 
 struct SavedData
 {
-    uint8_t ssid[WIFICREDENTIALS_MAX_SSID + 1];
-    uint8_t password[WIFICREDENTIALS_MAX_PASSWORD + 1];
+    char ssid[WIFICREDENTIALS_MAX_SSID + 1];
+    char password[WIFICREDENTIALS_MAX_PASSWORD + 1];
     uint8_t isSet;
-    uint8_t security;
+    GSwifi::GSSECURITY security;
     uint8_t version;
     uint8_t crc8;
 };
@@ -46,8 +47,10 @@ class WifiCredentials {
         WifiCredentials();
 
         bool isValid();
-        uint8_t* get(uint8_t key);
-        void set(uint8_t key, const uint8_t *value, uint8_t length);
+        char* getSSID();
+        char* getPassword();
+        GSwifi::GSSECURITY getSecurity();
+        void set(GSwifi::GSSECURITY security, const char *ssid, const char *pass);
         void save();
         void clear();
         void dump();

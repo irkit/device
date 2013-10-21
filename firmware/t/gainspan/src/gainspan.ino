@@ -30,9 +30,9 @@ void setup() {
         WifiCredentials credentials;
 
         if (credentials.isValid()) {
-            /* gs.connect(credentials.get(WIFICREDENTIALS_KEY_SECURITY), */
-            /*            credentials.get(WIFICREDENTIALS_KEY_SSID), */
-            /*            credentials.get(WIFICREDENTIALS_KEY_PASSWORD)); */
+            gs.connect(credentials.getSecurity(),
+                       credentials.getSSID(),
+                       credentials.getPassword());
             // gs.startup();
         }
     }
@@ -49,6 +49,7 @@ void printGuide() {
     Serial.println(P("h) help (this)"));
     Serial.println(P("R) hardware reset"));
     Serial.println(P("s) setup"));
+    Serial.println(P("y) set EEPROM with dev data"));
     Serial.println(P("z) clear EEPROM(ssid,password)"));
     Serial.println(P("Esc) command mode"));
     Serial.println(P("Command?"));
@@ -94,8 +95,10 @@ void loop() {
         }
         else if (last_character == 'd') {
             WifiCredentials credentials;
+            Serial.println(P("---credentials---"));
             credentials.dump();
 
+            Serial.println(P("---wifi---"));
             gs.dump();
         }
         else if (last_character == 'h') {
@@ -109,10 +112,10 @@ void loop() {
         }
         else if (last_character == 'y') {
             WifiCredentials credentials;
-            uint8_t security = 4;
-            credentials.set(WIFICREDENTIALS_KEY_SECURITY, &security, 1);
-            credentials.set(WIFICREDENTIALS_KEY_SSID,     (const uint8_t*)P("Rhodos"), 6);
-            credentials.set(WIFICREDENTIALS_KEY_PASSWORD, (const uint8_t*)P("aaaaaaaaaaaaa"), 13);
+            uint8_t security = WIFICREDENTIALS_SECURITY_WPA2PSK;
+            credentials.set(GSwifi::GSSEC_WPA2_PSK,
+                            PB("Rhodos",2),
+                            PB("aaaaaaaaaaaaa",3));
             credentials.save();
         }
         else if (last_character == 'z') {
@@ -126,13 +129,13 @@ void loop() {
     if (Serial1.available()) {
         static uint8_t last_character_gainspan = '0';
         last_character_gainspan = Serial1.read();
-        Serial.print(P("< 0x"));
-        Serial.print(last_character_gainspan, HEX);
         if (last_character_gainspan > 0x0D) {
-            Serial.print(P(" "));
             Serial.write(last_character_gainspan);
         }
-        Serial.println();
+        else {
+            Serial.print(" 0x");
+            Serial.println(last_character_gainspan,HEX);
+        }
     }
 }
 
