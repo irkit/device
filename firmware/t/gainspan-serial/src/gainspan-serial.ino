@@ -26,6 +26,7 @@ void loop() {
     if (Serial.available()) {
         static uint8_t is_new_line    = 1;
         static uint8_t last_character = '0';
+        static bool isCommandMode = false;
 
         last_character = Serial.read();
 
@@ -36,6 +37,20 @@ void loop() {
 
         if (last_character == 0x0D) {
             is_new_line = 1;
+        }
+
+        if (isCommandMode) {
+            Serial1.write(last_character);
+
+            if ( last_character == 0x1B ) {
+                isCommandMode = false;
+                Serial.println(P("<< command mode finished !!!!"));
+            }
+        }
+        else if (last_character == 0x1B) {
+            isCommandMode = true;
+            Serial.println(P(">> entered command mode !!!!"));
+            is_new_line = true;
         }
         else if (last_character == 'g') {
             Serial1.end();
@@ -53,9 +68,5 @@ void loop() {
 
             return;
         }
-
-        // GS module echoes back
-        // Serial.write( last_character );
-        Serial1.write( last_character );
     }
 }

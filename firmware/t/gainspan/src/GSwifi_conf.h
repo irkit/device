@@ -10,7 +10,7 @@
 #define GS_DNSNAME "setup.local"
 #define GS_WREGDOMAIN 2 // 0:FCC, 1:ETSI, 2:TELEC
 
-#define GS_TIMEOUT 10000 // ms
+#define GS_TIMEOUT   10000 // ms
 #define GS_TIMEOUT2 130000 // ms
 #define GS_RECONNECT 60 // s
 
@@ -29,12 +29,6 @@
 
 #define GS_SYSLOG // log for stdout
 
-// ----- GSwifi_smtp.cpp -----
-
-#define GS_ENABLE_SMTP  // use smtp client
-
-#define SMTP_TIMEOUT 15000
-
 // ----- GSwifi_http.cpp -----
 
 #define GS_ENABLE_HTTP  // use http client
@@ -42,9 +36,7 @@
 // ----- GSwifi_httpd.cpp -----
 
 //#define GS_ENABLE_HTTPD  // use http server
-//#define GS_ENABLE_WEBSOCKET  // use websocket server (need httpd)
 //#define GS_ENABLE_MDNS
-//#define GS_ENABLE_LIMITEDAP
 
 #define HTTPD_TIMEOUT 15000
 #define HTTPD_HANDLE 10

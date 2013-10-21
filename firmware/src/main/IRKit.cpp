@@ -208,6 +208,8 @@ void IRKit_loop() {
 
     if (Serial.available()) {
         static uint8_t last_character = '0';
+        last_character = Serial.read();
+
         if (last_character == 'h') {
             printGuide();
         }

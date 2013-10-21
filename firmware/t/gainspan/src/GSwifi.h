@@ -23,6 +23,8 @@
 #ifndef _GSWIFI_H_
 #define _GSWIFI_H_
 
+#define DEBUG
+
 #include "Arduino.h"
 #include "CBuffer.h"
 // #include "GSFunctionPointer.h"
@@ -48,8 +50,6 @@ enum GSSECURITY {
     GSSEC_WPA2_PSK = 8,
     GSSEC_WPA_ENT = 16,
     GSSEC_WPA2_ENT = 32,
-    GSSEC_WPS_BUTTON = 64,
-    GSSEC_WPS_PIN,
 };
 
 /**
@@ -75,7 +75,6 @@ enum GSRESPONCE {
     GSRES_NONE,
     GSRES_NORMAL,
     GSRES_CONNECT,
-    GSRES_WPS,
     GSRES_MACADDRESS,
     GSRES_DHCP,
     GSRES_DNSLOOKUP,
@@ -141,13 +140,6 @@ struct GS_httpd {
     int length;  // content-length
     int keepalive;
     Host host;
-#ifdef GS_ENABLE_WEBSOCKET
-    int websocket;
-    char *websocket_key;
-    int websocket_flg;
-    char websocket_mask[4];
-    int websocket_payload;
-#endif
 };
 
 typedef void (*onHttpdCgiFunc)(int cid, GS_httpd *gshttpd);
@@ -189,7 +181,7 @@ struct GS_httpd_handler {
     void waitResponse (uint32_t ms);
     /**
      * associate infrastructure
-     * @param sec GSSEC_OPEN, GSSEC_WEP, GSSEC_WPA_PSK, GSSEC_WPA2_PSK, GSSEC_WPS_BUTTON
+     * @param sec GSSEC_OPEN, GSSEC_WEP, GSSEC_WPA_PSK, GSSEC_WPA2_PSK
      * @param ssid SSID
      * @param pass pass phrase
      * @param dhcp 0:static ip, 1:dhcp
@@ -199,30 +191,6 @@ struct GS_httpd_handler {
      * @retval -1 failure
      */
     int connect (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, int reconnect = GS_RECONNECT, char *name = NULL);
-    /**
-     * adhock
-     * @param sec GSSEC_OPEN or GSSEC_WEP
-     * @param ssid SSID
-     * @param pass 10 or 26 hexadecimal digits
-     * @param ipaddr my ip address
-     * @param netmask subnet mask
-     * @retval 0 success
-     * @retval -1 failure
-     */
-    int adhock (GSSECURITY sec, const char *ssid, const char *pass, IpAddr ipaddr, IpAddr netmask);
-    /**
-     * limited AP
-     * @param sec GSSEC_OPEN or GSSEC_WEP
-     * @param ssid SSID
-     * @param pass 10 or 26 hexadecimal digits
-     * @param ipaddr my ip address (dhcp start address)
-     * @param netmask subnet mask
-     * @param dns my host name
-     * @retval 0 success
-     * @retval -1 failure
-     * firmware: s2w-secureweb, s2w-web, s2w-wpsweb
-     */
-    int limitedap (GSSECURITY sec, const char *ssid, const char *pass, IpAddr ipaddr, IpAddr netmask, char *dns = NULL);
     /**
      * unassociate
      */
@@ -453,23 +421,6 @@ struct GS_httpd_handler {
     int urldecode (char *str, char *buf, int len);
 #endif
 
-#ifdef GS_ENABLE_SMTP
-// ----- GSwifi_smtp.cpp -----
-    /**
-     * send mail (smtp)
-     * @param host SMTP server
-     * @param to To address
-     * @param from From address
-     * @param subject Subject
-     * @param mesg Message
-     * @param user username (SMTP Auth)
-     * @param pwd password (SMTP Auth)
-     * @retval 0 success
-     * @retval -1 failure
-     */
-    int mail (Host &host, const char *to, const char *from, const char *subject, const char *mesg, const char *user = NULL, const char *pwd = NULL);
-#endif
-
 #ifdef GS_ENABLE_HTTPD
 // ----- GSwifi_httpd.cpp -----
     /**
@@ -506,10 +457,6 @@ struct GS_httpd_handler {
 
 #ifdef DEBUG
     void dump ();
-    void test ();
-    int getc();
-    void putc(char c);
-    int readable();
 #endif
 
 protected:
@@ -546,10 +493,6 @@ protected:
     }
 
     int wait_ws (int cid, int code);
-
-#ifdef GS_ENABLE_SMTP
-    int wait_smtp (int cid, int code);
-#endif
 
 #ifdef GS_ENABLE_HTTPD
     int get_handler (char *uri);
@@ -595,10 +538,6 @@ private:
     int _handler_count;
 
     void poll_httpd (int cid, int len);
-#ifdef GS_ENABLE_WEBSOCKET
-    void poll_websocket (int cid, int len);
-    void send_websocket_accept (int cid);
-#endif
 #endif
 
     uint32_t timeout_start_;
