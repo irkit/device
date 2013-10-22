@@ -1,12 +1,20 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "FullColorLed.h"
+#include "FlexiTimer2.h"
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 #define LED_BLINK_INTERVAL 200
 
+void timerFired() {
+    color.toggleBlink();
+}
+
 void setup() {
-    color.SetLedColor( 1, 1, 1 );
+    FlexiTimer2::set( LED_BLINK_INTERVAL, &timerFired );
+    FlexiTimer2::start();
+
+    color.setLedColor( 1, 1, 1 );
 
     // USB serial
     Serial.begin(115200);
@@ -31,8 +39,6 @@ void setup() {
 void loop() {
     static uint8_t lastCharacter = '0';
 
-    color.Loop();
-
     // check for input from the user
     if (Serial.available()) {
 
@@ -41,49 +47,49 @@ void loop() {
 
         uint8_t status;
         if (lastCharacter == 'k') {
-            color.LedOff();
+            color.off();
         }
         else if (lastCharacter == 'r') {
-            color.SetLedColor(1,0,0);
+            color.setLedColor(1,0,0);
         }
         else if (lastCharacter == 'g') {
-            color.SetLedColor(0,1,0);
+            color.setLedColor(0,1,0);
         }
         else if (lastCharacter == 'b') {
-            color.SetLedColor(0,0,1);
+            color.setLedColor(0,0,1);
         }
         else if (lastCharacter == 'c') {
-            color.SetLedColor(0,1,1);
+            color.setLedColor(0,1,1);
         }
         else if (lastCharacter == 'm') {
-            color.SetLedColor(1,0,1);
+            color.setLedColor(1,0,1);
         }
         else if (lastCharacter == 'y') {
-            color.SetLedColor(1,1,0);
+            color.setLedColor(1,1,0);
         }
         else if (lastCharacter == 'w') {
-            color.SetLedColor(1,1,1);
+            color.setLedColor(1,1,1);
         }
         else if (lastCharacter == 'R') {
-            color.SetLedColor(1,0,0,LED_BLINK_INTERVAL);
+            color.setLedColor(1,0,0,true);
         }
         else if (lastCharacter == 'G') {
-            color.SetLedColor(0,1,0,LED_BLINK_INTERVAL);
+            color.setLedColor(0,1,0,true);
         }
         else if (lastCharacter == 'B') {
-            color.SetLedColor(0,0,1,LED_BLINK_INTERVAL);
+            color.setLedColor(0,0,1,true);
         }
         else if (lastCharacter == 'C') {
-            color.SetLedColor(0,1,1,LED_BLINK_INTERVAL);
+            color.setLedColor(0,1,1,true);
         }
         else if (lastCharacter == 'M') {
-            color.SetLedColor(1,0,1,LED_BLINK_INTERVAL);
+            color.setLedColor(1,0,1,true);
         }
         else if (lastCharacter == 'Y') {
-            color.SetLedColor(1,1,0,LED_BLINK_INTERVAL);
+            color.setLedColor(1,1,0,true);
         }
         else if (lastCharacter == 'W') {
-            color.SetLedColor(1,1,1,LED_BLINK_INTERVAL);
+            color.setLedColor(1,1,1,true);
         }
     }
 }

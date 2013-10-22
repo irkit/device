@@ -5,10 +5,10 @@ class FullColorLed
 {
 public:
     FullColorLed(int pinR, int pinG, int pinB);
-    void SetLedColor(bool colorR, bool colorG, bool colorB);
-    void SetLedColor(bool colorR, bool colorG, bool colorB, unsigned long cycle);
-    void LedOff();
-    void Loop();
+    void setLedColor(bool colorR, bool colorG, bool colorB);
+    void setLedColor(bool colorR, bool colorG, bool colorB, bool blink);
+    void off();
+    void toggleBlink();
 
 private:
     int pinR_;
@@ -17,9 +17,8 @@ private:
     bool colorR_;
     bool colorG_;
     bool colorB_;
-    bool blinkOn_;
-    unsigned long nextMillis_;
-    unsigned long cycleMillis_;
+    bool isBlinking_; // defaults to off
+    volatile bool blinkOn_; // altered inside timer ISR
 };
 
 #endif // __FULLCOLORLED_H__

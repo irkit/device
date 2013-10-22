@@ -6,62 +6,44 @@ FullColorLed::FullColorLed(int pinR, int pinG, int pinB) :
     pinG_(pinG),
     pinB_(pinB),
     blinkOn_(0),
-    cycleMillis_(0),
-    nextMillis_(0)
+    isBlinking_(false)
 {
     pinMode(pinR_, OUTPUT);
     pinMode(pinG_, OUTPUT);
     pinMode(pinB_, OUTPUT);
 }
 
-void FullColorLed::SetLedColor(bool colorR, bool colorG, bool colorB)
-{
-    SetLedColor(colorR, colorG, colorB, 0);
+void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB) {
+    setLedColor(colorR, colorG, colorB, false);
 }
 
-// blink cycleMillis[ms] ON, and cycleMillis[ms] OFF
-void FullColorLed::SetLedColor(bool colorR, bool colorG, bool colorB, unsigned long cycleMillis)
-{
+void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink) {
     colorR_      = colorR;
     colorG_      = colorG;
     colorB_      = colorB;
-    cycleMillis_ = cycleMillis;
+    isBlinking_  = blink;
 
     digitalWrite(pinR_, colorR);
     digitalWrite(pinG_, colorG);
     digitalWrite(pinB_, colorB);
 }
 
-void FullColorLed::LedOff()
-{
-    cycleMillis_ = 0;
-
-    digitalWrite(pinR_, LOW);
-    digitalWrite(pinG_, LOW);
-    digitalWrite(pinB_, LOW);
+void FullColorLed::off() {
+    setLedColor( 0, 0, 0, false );
 }
 
-void FullColorLed::Loop()
-{
-    if ( ! cycleMillis_ ) {
-        return;
+void FullColorLed::toggleBlink() {
+    blinkOn_ != blinkOn_;
+
+    if ( ! isBlinking_ || blinkOn_ ) {
+        // not blinking = always on
+        digitalWrite(pinR_, colorR_);
+        digitalWrite(pinG_, colorG_);
+        digitalWrite(pinB_, colorB_);
     }
-    unsigned long now = millis();
-    if (now > nextMillis_) {
-        nextMillis_ = now + cycleMillis_;
-        if (blinkOn_) {
-            blinkOn_ = 0;
-            // on -> off
-            digitalWrite(pinR_, LOW);
-            digitalWrite(pinG_, LOW);
-            digitalWrite(pinB_, LOW);
-        }
-        else {
-            blinkOn_ = 1;
-            // off -> on
-            digitalWrite(pinR_, colorR_);
-            digitalWrite(pinG_, colorG_);
-            digitalWrite(pinB_, colorB_);
-        }
+    else {
+        digitalWrite(pinR_, LOW);
+        digitalWrite(pinG_, LOW);
+        digitalWrite(pinB_, LOW);
     }
 }
