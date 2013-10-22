@@ -61,7 +61,7 @@ void loop() {
     // usb
     if (Serial.available()) {
         static uint8_t last_character = '0';
-        static bool isCommandMode = false;
+        static bool is_command_mode = false;
 
         last_character = Serial.read();
 
@@ -72,16 +72,16 @@ void loop() {
 
 
         uint8_t status;
-        if (isCommandMode) {
+        if (is_command_mode) {
             Serial1.write(last_character);
 
             if ( last_character == 0x1B ) {
-                isCommandMode = false;
+                is_command_mode = false;
                 Serial.println(P("<< command mode finished !!!!"));
             }
         }
         else if (last_character == 0x1B) {
-            isCommandMode = true;
+            is_command_mode = true;
             Serial.println(P(">> entered command mode !!!!"));
         }
         else if (last_character == 'c') {
