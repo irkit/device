@@ -24,6 +24,7 @@
 #include "pgmStrToRAM.h"
 #include "GSwifi.h"
 #include "MemoryFree.h"
+#include "convert.h"
 
 GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial),
@@ -72,6 +73,24 @@ void GSwifi::newSock (int cid, GSTYPE type, GSPROTOCOL pro) {
     _gs_sock[cid].onGsReceive.detach();
 }
 
+int8_t GSwifi::close (int cid) {
+    char cmd[GS_CMD_SIZE];
+
+    if (! _gs_sock[cid].connect) {
+        return -1;
+    }
+
+    _gs_sock[cid].connect = false;
+    delete _gs_sock[cid].data;
+    _gs_sock[cid].data = NULL;
+    sprintf(cmd, P("AT+NCLOSE=%X"), cid);
+    command(cmd, GSRES_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
 void GSwifi::reset () {
 
     memset(&_gs_sock, 0, sizeof(_gs_sock));
@@ -90,9 +109,7 @@ void GSwifi::reset () {
 }
 
 void GSwifi::loop() {
-    while ( _serial->available() ) {
-        parse( _serial->read() );
-    }
+    checkActivity( 0 );
 }
 
 // received a character from UART
@@ -106,7 +123,6 @@ void GSwifi::parse(uint8_t dat) {
 
     static int len, mode;
     static char tmp[20];
-    // char dat;
 
     switch (_gs_mode) {
     case GSMODE_COMMAND: // command responce
@@ -561,13 +577,11 @@ bool GSwifi::setBusy(bool busy) {
 }
 
 uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
-    uint16_t character;
-
-    while ( (character = _serial->read()) < 256 &&
+    while ( _serial->available() &&
             ( (timeout_ms == 0) ||
               millis() - timeout_start_ < timeout_ms ) ) {
 
-        parse(character);
+        parse( _serial->read() );
 
         if ( (_gs_ok || _gs_failure) &&
              (_gs_flg == -1 || _gs_res == GSRES_NONE) ) {
@@ -975,38 +989,6 @@ int8_t GSwifi::mDNSDiscoverService(const char *subtype, const char *type, const 
     return 0;
 }
 #endif // GS_ENABLE_MDNS
-
-int GSwifi::from_hex (int ch) {
-  return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
-
-int GSwifi::to_hex (int code) {
-  static char hex[] = "0123456789abcdef";
-  return hex[code & 15];
-}
-
-int GSwifi::x2i (char c) {
-    if (c >= '0' && c <= '9') {
-        return c - '0';
-    } else
-    if (c >= 'A' && c <= 'F') {
-        return c - 'A' + 10;
-    } else
-    if (c >= 'a' && c <= 'f') {
-        return c - 'a' + 10;
-    }
-    return 0;
-}
-
-char GSwifi::i2x (int i) {
-    if (i >= 0 && i <= 9) {
-        return i + '0';
-    } else
-    if (i >= 10 && i <= 15) {
-        return i - 10 + 'A';
-    }
-    return '0';
-}
 
 // for test
 void GSwifi::dump () {

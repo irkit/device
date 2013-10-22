@@ -113,6 +113,7 @@ void IRKit_setup() {
 
             color.setLedColor( 1, 0, 0 );
         }
+
         if (gs.isConnected()) {
             gs.startup();
         }
