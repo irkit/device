@@ -27,7 +27,7 @@
 
 #include "Arduino.h"
 #include "CBuffer.h"
-// #include "GSFunctionPointer.h"
+#include "GSFunctionPointer.h"
 #include "host.h"
 #include "ipaddr.h"
 #include "GSwifi_conf.h"
@@ -113,8 +113,7 @@ struct GS_Socket {
     CircBuffer<char> *data;
     int lcid;
     bool received;
-//    onGsReceiveFunc onGsReceive;
-//    GSFunctionPointer onGsReceive;
+    GSFunctionPointer onGsReceive;
 };
 
 #ifdef GS_ENABLE_HTTPD
@@ -338,27 +337,6 @@ struct GS_httpd_handler {
         return cid;
     }
     /**
-     * tcp/udp server
-     * @return CID, -1:failure
-     */
-    int listen (int port, GSPROTOCOL pro);
-
-    int listen (int port, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive) {
-        int cid = listen(port, pro);
-        // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(ponGsReceive);
-        return cid;
-    }
-    template<typename T>
-    int listen (int port, GSPROTOCOL pro, T *object, void (T::*member)(int, int)) {
-        int cid = listen(port, pro);
-        // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(object, member);
-        return cid;
-    }
-    /**
-     * close client/server
-     */
-    int close (int cid);
-    /**
      * send data tcp(s/c), udp(c)
      */
     int send (int cid, const char *buf, int len);
@@ -483,15 +461,14 @@ protected:
     int to_hex (int code);
 
     void newSock (int cid, GSTYPE type, GSPROTOCOL pro);
-
     void newSock (int cid, GSTYPE type, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive) {
         newSock(cid, type, pro);
-        // _gs_sock[cid].onGsReceive.attach(ponGsReceive);
+        _gs_sock[cid].onGsReceive.attach(ponGsReceive);
     }
     template<typename T>
     void newSock (int cid, GSTYPE type, GSPROTOCOL pro, T *object, void (T::*member)(int, int)) {
         newSock(cid, type, pro);
-        // _gs_sock[cid].onGsReceive.attach(object, member);
+        _gs_sock[cid].onGsReceive.attach(object, member);
     }
 
     int wait_ws (int cid, int code);
@@ -499,13 +476,13 @@ protected:
 #ifdef GS_ENABLE_HTTPD
     int get_handler (char *uri);
     int httpd_request (int cid, GS_httpd *gshttpd, char *dir);
-    char *mimetype (char *file);
+    // char *mimetype (char *file);
     int strnicmp (const char *p1, const char *p2, int n);
 #endif
 
 private:
     HardwareSerial* _serial;
-    bool _rts;
+    // bool _rts;
 #if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
     LPC_UART1_TypeDef *_uart;
 #elif defined(TARGET_LPC11U24)
@@ -535,8 +512,8 @@ private:
     unsigned long _reconnect_time;
 
 #ifdef GS_ENABLE_HTTPD
-    struct GS_httpd _httpd[16];
-    struct GS_httpd_handler _handler[10];
+    struct GS_httpd _httpd[GS_HTTPD_PORT_COUNT];
+    struct GS_httpd_handler _handler[GS_HTTPD_REQUEST_HANDLER_COUNT];
     int _handler_count;
 
     void poll_httpd (int cid, int len);

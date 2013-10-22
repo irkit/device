@@ -16,14 +16,7 @@
 
 #define GS_CMD_SIZE 100
 
-#if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
-//#define GS_DATA_SIZE 1500
-#define GS_DATA_SIZE 1024
-#elif defined(TARGET_LPC11U24)
 #define GS_DATA_SIZE 256
-#elif defined(TARGET_KL25Z)
-#define GS_DATA_SIZE 512
-#endif
 
 #ifndef GS_LIB_TINY
 
@@ -35,7 +28,10 @@
 
 // ----- GSwifi_httpd.cpp -----
 
-//#define GS_ENABLE_HTTPD  // use http server
+#define GS_ENABLE_HTTPD  // use http server
+#define GS_HTTPD_PORT_COUNT 1
+#define GS_HTTPD_REQUEST_HANDLER_COUNT 2
+
 //#define GS_ENABLE_MDNS
 
 #define HTTPD_TIMEOUT 15000

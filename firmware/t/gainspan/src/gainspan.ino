@@ -33,6 +33,8 @@ void setup() {
             gs.connect(credentials.getSecurity(),
                        credentials.getSSID(),
                        credentials.getPassword());
+        }
+        if (gs.isConnected()) {
             gs.startup();
         }
     }
@@ -129,7 +131,8 @@ void loop() {
     if (Serial1.available()) {
         static uint8_t last_character_gainspan = '0';
         last_character_gainspan = Serial1.read();
-        if (last_character_gainspan > 0x0D) {
+        if (last_character_gainspan >= 0x0D ||
+            last_character_gainspan == 0x0A) {
             Serial.write(last_character_gainspan);
         }
         else {
