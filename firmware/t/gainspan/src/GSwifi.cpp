@@ -65,18 +65,22 @@ int8_t GSwifi::setup() {
     return 0;
 }
 
+int8_t GSwifi::startup() {
+
+}
+
 void GSwifi::reset () {
 
     memset(&_gs_sock, 0, sizeof(_gs_sock));
     memset(&_mac, 0, sizeof(_mac));
-    _connect = false;
-    _status  = GSSTAT_READY;
-    _escape  = false;
+    _connect        = false;
+    _power_status   = GSPOWERSTATUS_READY;
+    _escape         = false;
     resetResponse(GSRES_NONE);
-    _gs_mode = GSMODE_COMMAND;
-    _dhcp    = false;
-    _ssid    = NULL;
-    _pass    = NULL;
+    _gs_mode        = GSMODE_COMMAND;
+    _dhcp           = false;
+    _ssid           = NULL;
+    _pass           = NULL;
     _reconnect      = 0;
     _reconnect_time = 0;
     _buf_cmd.flush();
@@ -368,27 +372,27 @@ void GSwifi::parseResponse () {
           strncmp(buf, "APP Reset-APP SW Reset", 22) == 0 ||
           strncmp(buf, "APP Reset-Wlan Except", 21) == 0 ) {
             Serial.println("disassociate");
-            _connect = false;
-            _status = GSSTAT_READY;
-            _escape = false;
+            _connect      = false;
+            _power_status = GSPOWERSTATUS_READY;
+            _escape       = false;
             resetResponse(GSRES_NONE);
-            _gs_mode = GSMODE_COMMAND;
+            _gs_mode      = GSMODE_COMMAND;
             for (i = 0; i < 16; i ++) {
                 _gs_sock[i].connect = false;
             }
         } else
         if (strncmp(buf, "Out of StandBy-Timer", 20) == 0 ||
           strncmp(buf, "Out of StandBy-Alarm", 20) == 0) {
-            if (_status == GSSTAT_STANDBY) {
-                _status = GSSTAT_WAKEUP;
+            if (_power_status == GSPOWERSTATUS_STANDBY) {
+                _power_status = GSPOWERSTATUS_WAKEUP;
             }
         } else
         if (strncmp(buf, "Out of Deep Sleep", 17) == 0 ) {
-            if (_status == GSSTAT_DEEPSLEEP) {
-                _status = GSSTAT_READY;
+            if (_power_status == GSPOWERSTATUS_DEEPSLEEP) {
+                _power_status = GSPOWERSTATUS_READY;
             }
         }
-        // Serial.print(P("status: ")); Serial.println(_status, HEX);
+        // Serial.print(P("status: ")); Serial.println(_power_status, HEX);
     }
 }
 
@@ -611,7 +615,7 @@ int GSwifi::connect (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     int r;
     char cmd[GS_CMD_SIZE];
 
-    if (_connect || _status != GSSTAT_READY) return -1;
+    if (_connect || _power_status != GSPOWERSTATUS_READY) return -1;
 
     if (getMacAddress(_mac)) {
         return -1;
@@ -731,7 +735,7 @@ int GSwifi::reconnect () {
     int r;
     char cmd[GS_CMD_SIZE];
 
-    if (_connect || _status != GSSTAT_READY) return -1;
+    if (_connect || _power_status != GSPOWERSTATUS_READY) return -1;
     if (!_ssid) return -1;
 
     switch (_sec) {
@@ -819,7 +823,7 @@ int GSwifi::getMacAddress (char *mac) {
 int GSwifi::getHostByName (const char* name, IpAddr &addr) {
     char cmd[GS_CMD_SIZE];
 
-    if (! _connect || _status != GSSTAT_READY) return -1;
+    if (! _connect || _power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), name);
     command(cmd, GSRES_DNSLOOKUP);
@@ -834,7 +838,7 @@ int GSwifi::getHostByName (const char* name, IpAddr &addr) {
 int GSwifi::getHostByName (Host &host) {
     char cmd[GS_CMD_SIZE];
 
-    if (! _connect || _status != GSSTAT_READY) return -1;
+    if (! _connect || _power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), host.getName());
     command(cmd, GSRES_DNSLOOKUP);
@@ -848,15 +852,15 @@ int GSwifi::getHostByName (Host &host) {
 
 bool GSwifi::isConnected () {
 /*
-    if (_status == GSSTAT_READY) {
+    if (_power_status == GSPOWERSTATUS_READY) {
         command("AT+WSTATUS", GSRES_STATUS);
     }
 */
     return _connect;
 }
 
-GSwifi::GSSTATUS GSwifi::getStatus () {
-    return _status;
+GSwifi::GSPOWERSTATUS GSwifi::getPowerStatus () {
+    return _power_status;
 }
 
 int GSwifi::getRssi () {
@@ -874,7 +878,7 @@ int GSwifi::getRssi () {
 int8_t GSwifi::setBaud (uint32_t baud) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY) {
+    if (_power_status != GSPOWERSTATUS_READY) {
         return -1;
     }
 
@@ -898,7 +902,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 int GSwifi::setRegion (int reg) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY) return -1;
+    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+WREGDOMAIN=%d"), reg);
     command(cmd, GSRES_NORMAL);
@@ -919,7 +923,7 @@ int GSwifi::setRFPower (int power) {
 int GSwifi::powerSave (int active, int save) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY) return -1;
+    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+WRXACTIVE=%d"), active);
     command(cmd, GSRES_NORMAL);
@@ -932,9 +936,9 @@ int GSwifi::standby (int msec) {
     int i;
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY && _status != GSSTAT_WAKEUP) return -1;
+    if (_power_status != GSPOWERSTATUS_READY && _power_status != GSPOWERSTATUS_WAKEUP) return -1;
 
-    if (_status == GSSTAT_READY) {
+    if (_power_status == GSPOWERSTATUS_READY) {
 //        command("AT+WRXACTIVE=0", GSRES_NORMAL);
         command(PB("AT+STORENWCONN",1), GSRES_NORMAL, 100);
     } else {
@@ -946,7 +950,7 @@ int GSwifi::standby (int msec) {
     for (i = 0; i < 16; i ++) {
         _gs_sock[i].connect = false;
     }
-    _status = GSSTAT_STANDBY;
+    _power_status = GSPOWERSTATUS_STANDBY;
     sprintf(cmd, P("AT+PSSTBY=%d,0,0,0"), msec); // go standby
     command(cmd, GSRES_NORMAL, 0);
     return did_timeout_;
@@ -954,12 +958,12 @@ int GSwifi::standby (int msec) {
 
 int GSwifi::wakeup () {
 
-//     if (_status == GSSTAT_STANDBY && _alarm != NULL) {
+//     if (_power_status == GSPOWERSTATUS_STANDBY && _alarm != NULL) {
 //         Timer timeout;
 //         _alarm->output(); // low
 //         _alarm->write(0);
 //         timeout.start();
-//         while (_status != GSSTAT_WAKEUP && timeout.read() < GS_TIMEOUT) {
+//         while (_power_status != GSPOWERSTATUS_WAKEUP && timeout.read() < GS_TIMEOUT) {
 //             poll();
 //         }
 //         timeout.stop();
@@ -967,8 +971,8 @@ int GSwifi::wakeup () {
 //         _alarm->mode(PullUp);
 //     }
 
-//     if (_status == GSSTAT_WAKEUP) {
-//         _status = GSSTAT_READY;
+//     if (_power_status == GSPOWERSTATUS_WAKEUP) {
+//         _power_status = GSPOWERSTATUS_READY;
 //         command("ATE0", GSRES_NORMAL);
 //         if (_rts) {
 //             command("AT&R1", GSRES_NORMAL);
@@ -981,8 +985,8 @@ int GSwifi::wakeup () {
 // //        return command("AT+WRXACTIVE=1", GSRES_NORMAL);
 //         return r;
 //     } else
-//     if (_status == GSSTAT_DEEPSLEEP) {
-//         _status = GSSTAT_READY;
+//     if (_power_status == GSPOWERSTATUS_DEEPSLEEP) {
+//         _power_status = GSPOWERSTATUS_READY;
 //         return command("AT", GSRES_NORMAL);
 //     }
     return -1;
@@ -990,9 +994,9 @@ int GSwifi::wakeup () {
 
 int GSwifi::deepSleep () {
 
-    if (_status != GSSTAT_READY) return -1;
+    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
-    _status = GSSTAT_DEEPSLEEP;
+    _power_status = GSPOWERSTATUS_DEEPSLEEP;
     command(PB("AT+PSDPSLEEP",1), GSRES_NORMAL, 0); // go deep sleep
     return did_timeout_;
 }
@@ -1000,7 +1004,7 @@ int GSwifi::deepSleep () {
 int GSwifi::ntpdate (Host host, int sec) {
     char cmd[GS_CMD_SIZE];
 
-    if (! _connect || _status != GSSTAT_READY) return -1;
+    if (! _connect || _power_status != GSPOWERSTATUS_READY) return -1;
 
     if (host.getIp().isNull()) {
         if (getHostByName(host)) {
@@ -1023,7 +1027,7 @@ int GSwifi::ntpdate (Host host, int sec) {
 //     char cmd[GS_CMD_SIZE];
 //     struct tm *t;
 
-//     if (_status != GSSTAT_READY) return -1;
+//     if (_power_status != GSPOWERSTATUS_READY) return -1;
 
 //     t = localtime(&time);
 //     sprintf(cmd, "AT+SETTIME=%d/%d/%d,%d:%d:%d", t->tm_mday, t->tm_mon + 1, t->tm_year + 1900, t->tm_hour, t->tm_min, t->tm_sec);
@@ -1041,7 +1045,7 @@ int GSwifi::ntpdate (Host host, int sec) {
 int GSwifi::gpioOut (int port, int out) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY) return -1;
+    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+DGPIO=%d,%d"), port, out);
     command(cmd, GSRES_NORMAL);
@@ -1051,7 +1055,7 @@ int GSwifi::gpioOut (int port, int out) {
 int GSwifi::certAdd (const char *name, const char *cert, int len) {
     char cmd[GS_CMD_SIZE];
 
-    if (! _connect || _status != GSSTAT_READY) return -1;
+    if (! _connect || _power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+TCERTADD=%s,1,%d,1"), name, len);  // Hex, ram
     command(cmd, GSRES_NORMAL);
@@ -1069,7 +1073,7 @@ int GSwifi::certAdd (const char *name, const char *cert, int len) {
 int GSwifi::provisioning (char *user, char *pass) {
     char cmd[GS_CMD_SIZE];
 
-    if (_status != GSSTAT_READY) return -1;
+    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+WEBPROV=%s,%s"), user, pass);
     command(cmd, GSRES_NORMAL);
@@ -1187,7 +1191,7 @@ char GSwifi::i2x (int i) {
 // for test
 void GSwifi::dump () {
     Serial.print(P("_connect:")); Serial.println(_connect);
-    Serial.print(P("_status:"));  Serial.println(_status);
+    Serial.print(P("_power_status:"));  Serial.println(_power_status);
     Serial.print(P("did_timeout_:")); Serial.println(did_timeout_);
     Serial.print(P("_gs_flg:"));      Serial.println(_gs_flg);
 

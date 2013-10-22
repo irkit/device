@@ -33,7 +33,7 @@ void setup() {
             gs.connect(credentials.getSecurity(),
                        credentials.getSSID(),
                        credentials.getPassword());
-            // gs.startup();
+            gs.startup();
         }
     }
 

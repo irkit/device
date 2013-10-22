@@ -93,11 +93,11 @@ enum GSMODE {
     GSMODE_DATA_RXHTTP,
 };
 
-enum GSSTATUS {
-    GSSTAT_READY,
-    GSSTAT_STANDBY,
-    GSSTAT_WAKEUP,
-    GSSTAT_DEEPSLEEP,
+enum GSPOWERSTATUS {
+    GSPOWERSTATUS_READY,
+    GSPOWERSTATUS_STANDBY,
+    GSPOWERSTATUS_WAKEUP,
+    GSPOWERSTATUS_DEEPSLEEP,
 };
 
 /**
@@ -162,6 +162,8 @@ struct GS_httpd_handler {
      * setup call once after initialization
      */
     int8_t setup();
+
+    int8_t startup();
 
     /**
      * polling
@@ -242,9 +244,9 @@ struct GS_httpd_handler {
     bool isConnected ();
     /**
      * status
-     * @return GSSTATUS
+     * @return GSPOWERSTATUS
      */
-    GSSTATUS getStatus ();
+    GSPOWERSTATUS getPowerStatus ();
     /**
      * RSSI
      * @return RSSI (dBm)
@@ -512,7 +514,7 @@ private:
     // DigitalInOut _reset;
     // DigitalInOut *_alarm;
     volatile bool _connect, _dhcp;
-    volatile GSSTATUS _status;
+    volatile GSPOWERSTATUS _power_status;
     volatile bool _gs_ok, _gs_failure;
     volatile int _gs_flg;
     volatile GSRESPONCE _gs_res;
