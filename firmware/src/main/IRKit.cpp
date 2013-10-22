@@ -7,6 +7,7 @@
 #include "version.h"
 #include "GSwifi.h"
 #include "WifiCredentials.h"
+#include "FlexiTimer2.h"
 
 #define LED_BLINK_INTERVAL 200
 
@@ -55,6 +56,10 @@ void ir_recv_loop(void) {
     // }
 }
 
+void onTimer() {
+    color.toggleBlink();
+}
+
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("h) Print this guide"));
@@ -66,7 +71,11 @@ void printGuide(void) {
 }
 
 void IRKit_setup() {
-    color.SetLedColor( 0, 1, 0 );
+    //--- initialize LED
+
+    FlexiTimer2::set( LED_BLINK_INTERVAL, &onTimer );
+    FlexiTimer2::start();
+    color.setLedColor( 0, 1, 0 );
 
     //--- initialize IR
 
@@ -92,7 +101,7 @@ void IRKit_setup() {
         WifiCredentials credentials;
 
         if (credentials.isValid()) {
-            color.SetLedColor( 1, 0, 0, LED_BLINK_INTERVAL );
+            color.setLedColor( 1, 0, 0, true );
 
             gs.connect(credentials.getSecurity(),
                        credentials.getSSID(),
@@ -102,7 +111,7 @@ void IRKit_setup() {
             Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
             credentials.clear();
 
-            color.SetLedColor( 1, 0, 0 );
+            color.setLedColor( 1, 0, 0 );
         }
         if (gs.isConnected()) {
             gs.startup();
@@ -117,9 +126,6 @@ void IRKit_loop() {
 
     // check if received
     ir_recv_loop();
-
-    // blink
-    color.Loop();
 
     // wifi
     if ( ! is_command_mode ) {
