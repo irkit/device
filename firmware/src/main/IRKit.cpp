@@ -5,7 +5,7 @@
 #include "IrCtrl.h"
 #include "FullColorLed.h"
 #include "version.h"
-#include "GSwifi.h"
+// #include "GSwifi.h"
 #include "WifiCredentials.h"
 #include "FlexiTimer2.h"
 
@@ -15,7 +15,7 @@
 #define VALID_IR_LEN_MIN   5
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-GSwifi gs(&Serial1);
+// GSwifi gs(&Serial1);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
@@ -60,6 +60,14 @@ void onTimer() {
     color.toggleBlink();
 }
 
+void onGet(int cid, GSwifi::GS_httpd *httpd) {
+    Serial.println(P("onGet"));
+}
+
+void onPost(int cid, GSwifi::GS_httpd *httpd) {
+    Serial.println(P("onPost"));
+}
+
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("h) Print this guide"));
@@ -94,7 +102,7 @@ void IRKit_setup() {
     // wait til gs wakes up
     delay( 100 );
 
-    gs.setup();
+    // gs.setup();
 
     // load wifi credentials from EEPROM
     {
@@ -103,9 +111,9 @@ void IRKit_setup() {
         if (credentials.isValid()) {
             color.setLedColor( 1, 0, 0, true );
 
-            gs.connect(credentials.getSecurity(),
-                       credentials.getSSID(),
-                       credentials.getPassword());
+            // gs.connect(credentials.getSecurity(),
+            //            credentials.getSSID(),
+            //            credentials.getPassword());
         }
         else {
             Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
@@ -114,9 +122,13 @@ void IRKit_setup() {
             color.setLedColor( 1, 0, 0 );
         }
 
-        if (gs.isConnected()) {
-            gs.startup();
-        }
+        // if (gs.isConnected()) {
+            // start http server
+            // gs.httpd(80);
+
+            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPGET,  &onGet );
+            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPPOST, &onPost );
+        // }
     }
 
     printGuide();
@@ -129,14 +141,14 @@ void IRKit_loop() {
     ir_recv_loop();
 
     // wifi
-    if ( ! is_command_mode ) {
-        gs.loop();
-    }
-    else {
-        if (Serial1.available()) {
-            Serial.write(Serial1.read());
-        }
-    }
+    // if ( ! is_command_mode ) {
+    //     gs.loop();
+    // }
+    // else {
+    //     if (Serial1.available()) {
+    //         Serial.write(Serial1.read());
+    //     }
+    // }
 
     // Wifi UART interface test
     if (Serial.available()) {
@@ -169,7 +181,7 @@ void IRKit_loop() {
             credentials.dump();
 
             Serial.println(P("---wifi---"));
-            gs.dump();
+            // gs.dump();
         }
         else if (last_character == 'v') {
             Serial.print(P("version: "));

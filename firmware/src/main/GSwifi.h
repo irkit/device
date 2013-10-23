@@ -129,7 +129,7 @@ public:
 
     struct GS_httpd {
         GSHTTPDMODE  mode;
-        int          type;
+        GSPROTOCOL   type;
         char        *buf;       // body
         int          len;       // length of buf
         char        *uri;
@@ -144,6 +144,7 @@ public:
 
     struct GS_httpd_handler {
         char *uri;
+        GSPROTOCOL method;
         onHttpdCgiFunc onHttpCgi;
     };
 
@@ -158,8 +159,6 @@ public:
      * setup call once after initialization
      */
     int8_t setup();
-
-    int8_t startup();
 
     void loop();
 
@@ -318,11 +317,11 @@ public:
      */
     int httpd (int port = 80);
 
-    void send_httpd_error (int cid, int err);
+    void sendErrorResponse (int cid, int err);
     /**
-     * attach uri to cgi handler
+     * attach uri, http method pair to function
      */
-    int attach_httpd (const char *uri, onHttpdCgiFunc ponHttpCgi);
+    int handleRequest (const char *uri, GSPROTOCOL pro, onHttpdCgiFunc ponHttpCgi);
 
 #ifdef GS_ENABLE_MDNS
     /**
@@ -347,21 +346,20 @@ protected:
     void parseResponse ();
     void parseCmdResponse (char *buf);
 
-    void newSock (int cid, GSTYPE type, GSPROTOCOL pro);
-    void newSock (int cid, GSTYPE type, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive) {
-        newSock(cid, type, pro);
-        _gs_sock[cid].onGsReceive.attach(ponGsReceive);
-    }
-    template<typename T>
-    void newSock (int cid, GSTYPE type, GSPROTOCOL pro, T *object, void (T::*member)(int, int)) {
-        newSock(cid, type, pro);
-        _gs_sock[cid].onGsReceive.attach(object, member);
-    }
+    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro);
+    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive) {
+    //     newSock(cid, type, pro);
+    //     _gs_sock[cid].onGsReceive.attach(ponGsReceive);
+    // }
+    // template<typename T>
+    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro, T *object, void (T::*member)(int, int)) {
+    //     newSock(cid, type, pro);
+    //     _gs_sock[cid].onGsReceive.attach(object, member);
+    // }
 
     int8_t close(int cid);
 
-    int get_handler (char *uri);
-    int httpd_request (int cid, GS_httpd *gshttpd, char *dir);
+    int getHandler (GSPROTOCOL method, char *uri);
     int strnicmp (const char *p1, const char *p2, int n);
 
 private:
@@ -387,10 +385,10 @@ private:
     // time_t _reconnect_time;
     unsigned long     _reconnect_time;
 
-    struct GS_httpd         _httpd[GS_HTTPD_PORT_COUNT];
-    struct GS_httpd_handler _handler[GS_HTTPD_REQUEST_HANDLER_COUNT];
-    int                     _handler_count;
-    void                    poll_httpd (int cid, int len);
+    // struct GS_httpd         _httpd[GS_HTTPD_PORT_COUNT];
+    // struct GS_httpd_handler _handler[GS_HTTPD_REQUEST_HANDLER_COUNT];
+    // int                     _handler_count;
+    // void                    poll_httpd (int cid, int len);
 
     uint32_t timeout_start_;
     bool     busy_;
