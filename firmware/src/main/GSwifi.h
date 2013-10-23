@@ -26,11 +26,11 @@
 #define DEBUG
 
 #include "Arduino.h"
-#include "CBuffer.h"
 #include "GSFunctionPointer.h"
 #include "host.h"
 #include "ipaddr.h"
 #include "GSwifi_conf.h"
+#include "ringbuffer.h"
 
 /**
  * GSwifi class
@@ -42,25 +42,25 @@ public:
      * Wi-Fi security
      */
     enum GSSECURITY {
-        GSSEC_AUTO     = 0,
-        GSSEC_NONE     = 0,
-        GSSEC_OPEN     = 1,
-        GSSEC_WEP      = 2,
-        GSSEC_WPA_PSK  = 4,
-        GSSEC_WPA2_PSK = 8,
-        GSSEC_WPA_ENT  = 16,
-        GSSEC_WPA2_ENT = 32,
+        GSSECURITY_AUTO     = 0,
+        GSSECURITY_NONE     = 0,
+        GSSECURITY_OPEN     = 1,
+        GSSECURITY_WEP      = 2,
+        GSSECURITY_WPA_PSK  = 4,
+        GSSECURITY_WPA2_PSK = 8,
     };
 
     /**
      * TCP/IP protocol
      */
     enum GSPROTOCOL {
-        GSPROT_UDP = 0,
-        GSPROT_TCP = 1,
-        GSPROT_HTTPGET,
-        GSPROT_HTTPPOST,
-        GSPROT_HTTPD,
+        GSPROTOCOL_UDP = 0,
+        GSPROTOCOL_TCP = 1,
+    };
+
+    enum GSMETHOD {
+        GSMETHOD_HTTPGET = 0,
+        GSMETHOD_HTTPPOST = 1,
     };
 
     /**
@@ -110,7 +110,7 @@ public:
         GSPROTOCOL protocol;
         bool connect;
         Host host;
-        CircBuffer<char> *data;
+        // CircBuffer<char> *data;
         int lcid;
         bool received;
         GSFunctionPointer onGsReceive;
@@ -130,11 +130,11 @@ public:
     struct GS_httpd {
         GSHTTPDMODE  mode;
         GSPROTOCOL   type;
-        char        *buf;       // body
+        // char        *buf;       // body
         int          len;       // length of buf
         char        *uri;
-        char        *file;
-        char        *query;
+        // char        *file;
+        // char        *query;
         int          length;    // content-length
         int          keepalive;
         Host         host;
@@ -180,20 +180,15 @@ public:
      * @param ssid SSID
      * @param pass pass phrase
      * @param dhcp 0:static ip, 1:dhcp
-     * @param reconnect auto re-connect time
      * @param name my host name
      * @retval 0 success
      * @retval -1 failure
      */
-    int connect (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, int reconnect = GS_RECONNECT, char *name = NULL);
+    int join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, char *name = NULL);
     /**
      * unassociate
      */
     int disconnect ();
-    /**
-     * re-connect
-     */
-    int reconnect ();
     /**
      * main polling
      */
@@ -234,7 +229,7 @@ public:
     /**
      * wifi connected
      */
-    bool isConnected ();
+    bool isJoined ();
     /**
      * status
      * @return GSPOWERSTATUS
@@ -245,13 +240,6 @@ public:
      * @return RSSI (dBm)
      */
     int getRssi ();
-
-    char *getSsid () {
-        return _ssid;
-    }
-    char *getPass () {
-        return _pass;
-    }
 
 // ----- GSwifi_sock.cpp -----
     /**
@@ -363,41 +351,33 @@ protected:
     int strnicmp (const char *p1, const char *p2, int n);
 
 private:
-    HardwareSerial* _serial;
-    volatile bool          _connect, _dhcp;
-    volatile GSPOWERSTATUS _power_status;
-    volatile bool          _gs_ok, _gs_failure;
-    volatile int           _gs_flg;
-    volatile GSRESPONCE    _gs_res;
-    volatile GSMODE        _gs_mode;
-    volatile bool          _escape;
-    volatile int           _cid, _rssi;
-    IpAddr            _ipaddr, _netmask, _gateway, _nameserver, _resolv;
-    Host              _from, _to;
-    char              _mac[6];
-    CircBuffer<char>  _buf_cmd;
-    struct GS_Socket  _gs_sock[16];
-    // time_t _time;
-    unsigned long     _time;
-    GSSECURITY        _sec;
-    char             *_ssid, *_pass;
-    int               _reconnect;
-    // time_t _reconnect_time;
-    unsigned long     _reconnect_time;
+    HardwareSerial*    _serial;
+    bool               _joined, _dhcp;
+    GSPOWERSTATUS      _power_status;
+    bool               _gs_ok, _gs_failure;
+    int                _gs_response_lines;
+    GSRESPONCE         _gs_expected_response;
+    GSMODE             _gs_mode;
+    bool               _escape;
+    int                _cid, _rssi;
+    IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
+    Host               _from, _to;
+    char               _mac[6];
+    struct RingBuffer *_buf_cmd;
+    // struct GS_Socket  _gs_sock[16];
 
     // struct GS_httpd         _httpd[GS_HTTPD_PORT_COUNT];
     // struct GS_httpd_handler _handler[GS_HTTPD_REQUEST_HANDLER_COUNT];
     // int                     _handler_count;
     // void                    poll_httpd (int cid, int len);
 
-    uint32_t timeout_start_;
-    bool     busy_;
-    bool     did_timeout_;
-    void (*onTimeout_)();
-    bool     connected_;
-    uint8_t  checkActivity(uint32_t timeout_ms);
-    bool     setBusy(bool busy);
-    void     parse(uint8_t dat);
+    uint32_t           timeout_start_;
+    bool               busy_;
+    bool               did_timeout_;
+    void               (*onTimeout_)();
+    uint8_t            checkActivity(uint32_t timeout_ms);
+    bool               setBusy(bool busy);
+    void               parse(uint8_t dat);
 };
 
 #endif // __GSWIFI_H__

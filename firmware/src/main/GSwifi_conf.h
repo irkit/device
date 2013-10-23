@@ -13,9 +13,9 @@
 #define GS_TIMEOUT2  60000 // ms
 #define GS_RECONNECT 60 // s
 
-#define GS_CMD_SIZE 100
+#define GS_CMD_SIZE 64
 
-#define GS_DATA_SIZE 256
+// #define GS_DATA_SIZE 256
 
 // ----- GSwifi_http.cpp -----
 
@@ -31,8 +31,8 @@
 
 #define HTTPD_TIMEOUT 15000
 
-#define HTTPD_BUF_SIZE 200
-#define HTTPD_URI_SIZE 100
+// #define HTTPD_BUF_SIZE 200
+// #define HTTPD_URI_SIZE 100
 
 #define HTTPD_KEEPALIVE 10 // request count
 

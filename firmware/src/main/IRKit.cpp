@@ -15,15 +15,18 @@
 #define VALID_IR_LEN_MIN   5
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-// GSwifi gs(&Serial1);
+GSwifi gs(&Serial1);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 void reset3V3 () {
     Serial.println(P("hardware reset"));
     digitalWrite( LDO33_ENABLE, LOW );
-    delay( 100 );
+    delay( 1000 );
     digitalWrite( LDO33_ENABLE, HIGH );
+
+    // wait til gs wakes up
+    delay( 1000 );
 }
 
 void ir_recv_loop(void) {
@@ -72,7 +75,10 @@ void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("h) Print this guide"));
 
+    Serial.println(P("b) change baud rate to 9600"));
+    Serial.println(P("B) change baud rate to 115200"));
     Serial.println(P("d) dump"));
+    Serial.println(P("s) set credentials"));
     Serial.println(P("v) version"));
 
     Serial.println(P("Command?"));
@@ -99,10 +105,7 @@ void IRKit_setup() {
 
     reset3V3();
 
-    // wait til gs wakes up
-    delay( 100 );
-
-    // gs.setup();
+    gs.setup();
 
     // load wifi credentials from EEPROM
     {
@@ -111,9 +114,9 @@ void IRKit_setup() {
         if (credentials.isValid()) {
             color.setLedColor( 1, 0, 0, true );
 
-            // gs.connect(credentials.getSecurity(),
-            //            credentials.getSSID(),
-            //            credentials.getPassword());
+            gs.join(credentials.getSecurity(),
+                    credentials.getSSID(),
+                    credentials.getPassword());
         }
         else {
             Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
@@ -122,13 +125,15 @@ void IRKit_setup() {
             color.setLedColor( 1, 0, 0 );
         }
 
-        // if (gs.isConnected()) {
+        if (gs.isJoined()) {
+            color.setLedColor( 0, 1, 0, true );
+
             // start http server
             // gs.httpd(80);
 
             // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPGET,  &onGet );
             // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPPOST, &onPost );
-        // }
+        }
     }
 
     printGuide();
@@ -141,14 +146,14 @@ void IRKit_loop() {
     ir_recv_loop();
 
     // wifi
-    // if ( ! is_command_mode ) {
-    //     gs.loop();
-    // }
-    // else {
-    //     if (Serial1.available()) {
-    //         Serial.write(Serial1.read());
-    //     }
-    // }
+    if ( ! is_command_mode ) {
+        gs.loop();
+    }
+    else {
+        if (Serial1.available()) {
+            Serial.write(Serial1.read());
+        }
+    }
 
     // Wifi UART interface test
     if (Serial.available()) {
@@ -175,13 +180,33 @@ void IRKit_loop() {
         else if (last_character == 'h') {
             printGuide();
         }
+        else if (last_character == 'b') {
+            gs.setBaud(9600);
+        }
+        else if (last_character == 'B') {
+            gs.setBaud(115200);
+        }
         else if (last_character == 'd') {
             WifiCredentials credentials;
             Serial.println(P("---credentials---"));
             credentials.dump();
+            Serial.println();
 
             Serial.println(P("---wifi---"));
-            // gs.dump();
+            gs.dump();
+            Serial.println();
+
+            Serial.println(P("---ir---"));
+            IR_dump();
+            Serial.println();
+        }
+        else if (last_character == 's') {
+            Serial.println(P("setting credentials in EEPROM"));
+            WifiCredentials credentials;
+            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
+                            PB("Rhodos",2),
+                            PB("aaaaaaaaaaaaa",3));
+            credentials.save();
         }
         else if (last_character == 'v') {
             Serial.print(P("version: "));
