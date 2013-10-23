@@ -7,6 +7,7 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 #define LED_BLINK_INTERVAL 200
 
 void timerFired() {
+    Serial.println(".");
     color.toggleBlink();
 }
 
@@ -18,6 +19,9 @@ void setup() {
 
     // USB serial
     Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial ) ;
 
     Serial.println("Operations Menu:");
     Serial.println("r) R");

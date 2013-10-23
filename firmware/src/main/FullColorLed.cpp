@@ -33,9 +33,9 @@ void FullColorLed::off() {
 }
 
 void FullColorLed::toggleBlink() {
-    blinkOn_ != blinkOn_;
+    blinkOn_ = ! blinkOn_;
 
-    if ( ! isBlinking_ || blinkOn_ ) {
+    if ( blinkOn_ || ! isBlinking_ ) {
         // not blinking = always on
         digitalWrite(pinR_, colorR_);
         digitalWrite(pinG_, colorG_);
