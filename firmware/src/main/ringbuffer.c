@@ -48,6 +48,10 @@ uint8_t ring_isfull (struct RingBuffer *ring) {
     return ring_used( ring ) == (ring->size - 1);
 }
 
+uint8_t ring_isempty (struct RingBuffer *ring) {
+    return ring_used( ring ) == 0;
+}
+
 void ring_clear (struct RingBuffer *ring) {
     ring->addr_w = 0;
     ring->addr_r = 0;

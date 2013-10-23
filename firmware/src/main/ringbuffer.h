@@ -8,11 +8,12 @@ extern "C" {
 typedef unsigned char uint8_t;
 
 extern struct RingBuffer *ring_new (uint8_t p_size);
-extern void    ring_put (struct RingBuffer *ring, char dat);
-extern uint8_t ring_get (struct RingBuffer *ring, char *dat, uint8_t len);
-extern uint8_t ring_used (struct RingBuffer *ring);
+extern void    ring_put     (struct RingBuffer *ring, char dat);
+extern uint8_t ring_get     (struct RingBuffer *ring, char *dat, uint8_t len);
+extern uint8_t ring_used    (struct RingBuffer *ring);
 extern uint8_t ring_isfull  (struct RingBuffer *ring);
-extern void    ring_clear (struct RingBuffer *ring);
+extern uint8_t ring_isempty (struct RingBuffer *ring);
+extern void    ring_clear   (struct RingBuffer *ring);
 
 #ifdef __cplusplus
 }
