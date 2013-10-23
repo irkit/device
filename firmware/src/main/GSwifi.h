@@ -185,6 +185,11 @@ public:
      * @retval -1 failure
      */
     int join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, char *name = NULL);
+    bool isJoined ();
+
+    int listen (GSPROTOCOL protocol,uint16_t port);
+    bool isListening ();
+
     /**
      * unassociate
      */
@@ -226,10 +231,6 @@ public:
      * @param host.ipaddr resolved ip address
      */
     int getHostByName (Host &host);
-    /**
-     * wifi connected
-     */
-    bool isJoined ();
     /**
      * status
      * @return GSPOWERSTATUS
@@ -352,14 +353,14 @@ protected:
 
 private:
     HardwareSerial*    _serial;
-    bool               _joined, _dhcp;
+    bool               _joined, _listening, _dhcp;
     GSPOWERSTATUS      _power_status;
     bool               _gs_ok, _gs_failure;
     int                _gs_response_lines;
     GSRESPONCE         _gs_expected_response;
     GSMODE             _gs_mode;
     bool               _escape;
-    int                _cid, _rssi;
+    int                _rssi;
     IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
     Host               _from, _to;
     char               _mac[6];

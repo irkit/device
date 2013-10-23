@@ -29,6 +29,12 @@
 
 #define RESPONSE_LINES_ENDED -1
 
+#define NEXT_EXPECTED_CID    0
+#define NEXT_EXPECTED_IP     1
+#define NEXT_EXPECTED_PORT   2
+#define NEXT_EXPECTED_LENGTH 3
+#define NEXT_EXPECTED_DATA   4
+
 GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial)
 {
@@ -94,6 +100,7 @@ void GSwifi::reset () {
     // memset(&_gs_sock, 0, sizeof(_gs_sock));
     memset(&_mac, 0, sizeof(_mac));
     _joined         = false;
+    _listening      = false;
     _power_status   = GSPOWERSTATUS_READY;
     _escape         = false;
     resetResponse(GSRES_NONE);
@@ -108,14 +115,14 @@ void GSwifi::loop() {
 
 // received a character from UART
 void GSwifi::parse(uint8_t dat) {
-    // Serial.print(dat, HEX);
-    // if (dat > 0x0D) {
-    //     Serial.print(" ");
-    //     Serial.write(dat);
-    // }
-    // Serial.println();
+    Serial.print(dat, HEX);
+    if (dat > 0x0D) {
+        Serial.print(" ");
+        Serial.write(dat);
+    }
+    Serial.println();
 
-    static int len, mode;
+    static int len, next_expected_type;
     static char tmp[20];
 
     switch (_gs_mode) {
@@ -134,23 +141,23 @@ void GSwifi::parse(uint8_t dat) {
             case 'S':
                 Serial.println("GSMODE_DATA_RX");
                 _gs_mode = GSMODE_DATA_RX;
-                mode = 0;
+                next_expected_type = NEXT_EXPECTED_CID;
                 break;
             case 'u':
                 Serial.println("GSMODE_DATA_RXUDP");
                 _gs_mode = GSMODE_DATA_RXUDP;
-                mode = 0;
+                next_expected_type = NEXT_EXPECTED_CID;
                 break;
             case 'Z':
             case 'H':
                 Serial.println("GSMODE_DATA_RX_BULK");
                 _gs_mode = GSMODE_DATA_RX_BULK;
-                mode = 0;
+                next_expected_type = NEXT_EXPECTED_CID;
                 break;
             case 'y':
                 Serial.println("GSMODE_DATA_RXUDP_BULK");
                 _gs_mode = GSMODE_DATA_RXUDP_BULK;
-                mode = 0;
+                next_expected_type = NEXT_EXPECTED_CID;
                 break;
             default:
                 Serial.print("unknown [ESC] 0x"); Serial.println(dat,HEX);
@@ -180,24 +187,24 @@ void GSwifi::parse(uint8_t dat) {
 
     case GSMODE_DATA_RX:
     case GSMODE_DATA_RXUDP:
-        if (mode == 0) {
+        if (next_expected_type == NEXT_EXPECTED_CID) {
             // cid
-            _cid = x2i(dat);
+            // _cid = x2i(dat);
             // _gs_sock[_cid].received = false;
-            mode ++;
+            next_expected_type = NEXT_EXPECTED_IP;
             if (_gs_mode == GSMODE_DATA_RX) {
-                mode = 3;
+                next_expected_type = NEXT_EXPECTED_LENGTH;
             }
             len = 0;
-        } else
-        if (mode == 1) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_IP) {
             // ip
             if ((dat < '0' || dat > '9') && dat != '.') {
                 int ip1, ip2, ip3, ip4;
                 tmp[len] = 0;
                 sscanf(tmp, "%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
                 _from.setIp(IpAddr(ip1, ip2, ip3, ip4));
-                mode ++;
+                next_expected_type = NEXT_EXPECTED_PORT;
                 len = 0;
                 break;
             }
@@ -205,13 +212,13 @@ void GSwifi::parse(uint8_t dat) {
                 tmp[len] = dat;
                 len ++;
             }
-        } else
-        if (mode == 2) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_PORT) {
             // port
             if (dat < '0' || dat > '9') {
                 tmp[len] = 0;
                 _from.setPort(atoi(tmp));
-                mode ++;
+                next_expected_type = NEXT_EXPECTED_LENGTH;
                 len = 0;
                 break;
             }
@@ -219,8 +226,8 @@ void GSwifi::parse(uint8_t dat) {
                 tmp[len] = dat;
                 len ++;
             }
-        } else
-        if (_escape) {
+        }
+        else if (_escape) {
             // esc
             switch (dat) {
             case 'E':
@@ -240,10 +247,12 @@ void GSwifi::parse(uint8_t dat) {
                 break;
             }
             _escape = false;
-        } else {
+        }
+        else {
             if (dat == 0x1b) {
                 _escape = true;
-            } else {
+            }
+            else {
                 // data
                 // if (_gs_sock[_cid].data != NULL) {
                 //     _gs_sock[_cid].data->queue(dat);
@@ -261,58 +270,58 @@ void GSwifi::parse(uint8_t dat) {
 
     case GSMODE_DATA_RX_BULK:
     case GSMODE_DATA_RXUDP_BULK:
-        if (mode == 0) {
+        if (next_expected_type == NEXT_EXPECTED_CID) {
             // cid
-            _cid = x2i(dat);
+            // _cid = x2i(dat);
             // _gs_sock[_cid].received = false;
-            mode ++;
+            next_expected_type     = NEXT_EXPECTED_IP;
             if (_gs_mode == GSMODE_DATA_RX_BULK) {
-                mode = 3;
+                next_expected_type = NEXT_EXPECTED_LENGTH;
             }
             len = 0;
-        } else
-        if (mode == 1) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_IP) {
             // ip
             if ((dat < '0' || dat > '9') && dat != '.') {
                 int ip1, ip2, ip3, ip4;
-                tmp[len] = 0;
+                tmp[len]           = 0;
                 sscanf(tmp, "%d.%d.%d.%d", &ip1, &ip2, &ip3, &ip4);
                 _from.setIp(IpAddr(ip1, ip2, ip3, ip4));
-                mode ++;
-                len = 0;
+                next_expected_type = NEXT_EXPECTED_PORT;
+                len                = 0;
                 break;
             }
             if (len < sizeof(tmp) - 1) {
                 tmp[len] = dat;
                 len ++;
             }
-        } else
-        if (mode == 2) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_PORT) {
             // port
             if (dat < '0' || dat > '9') {
-                tmp[len] = 0;
+                tmp[len]           = 0;
                 _from.setPort(atoi(tmp));
-                mode ++;
-                len = 0;
+                next_expected_type = NEXT_EXPECTED_LENGTH;
+                len                = 0;
                 break;
             }
             if (len < sizeof(tmp) - 1) {
                 tmp[len] = dat;
                 len ++;
             }
-        } else
-        if (mode == 3) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_LENGTH) {
             // length
             tmp[len] = dat;
             len ++;
             if (len >= 4) {
-                tmp[len] = 0;
-                len = atoi(tmp);
-                mode ++;
+                tmp[len]           = 0;
+                len                = atoi(tmp);
+                next_expected_type = NEXT_EXPECTED_DATA;
                 break;
             }
-        } else
-            if (mode == 4) {
+        }
+        else if (next_expected_type == NEXT_EXPECTED_DATA) {
                 // data
                 // if (_gs_sock[_cid].data != NULL) {
                 //     _gs_sock[_cid].data->queue(dat);
@@ -363,6 +372,8 @@ void GSwifi::parseResponse () {
         parseCmdResponse(buf);
 
         if (strncmp(buf, "CONNECT ", 8) == 0 && buf[8] >= '0' && buf[8] <= 'F' && buf[9] != 0) {
+            // connect from client
+            // CONNECT 0 1 192.168.2.1 63632
             int cid = x2i(buf[8]);
             // if (_gs_sock[cid].type == GSTYPE_SERVER) {
             //     // fork (server socket)
@@ -392,7 +403,8 @@ void GSwifi::parseResponse () {
         if (strncmp(buf, "DISASSOCIATED", 13) == 0 ||
           strncmp(buf, "Disassociated", 13) == 0 ||
           strncmp(buf, "Disassociation Event", 20) == 0 ) {
-            _joined = false;
+            _joined    = false;
+            _listening = false;
             // for (i = 0; i < 16; i ++) {
             //     _gs_sock[i].connect = false;
             // }
@@ -401,7 +413,8 @@ void GSwifi::parseResponse () {
           strncmp(buf, "APP Reset-APP SW Reset", 22) == 0 ||
           strncmp(buf, "APP Reset-Wlan Except", 21) == 0 ) {
             Serial.println("disassociate");
-            _joined      = false;
+            _joined       = false;
+            _listening    = false;
             _power_status = GSPOWERSTATUS_READY;
             _escape       = false;
             resetResponse(GSRES_NONE);
@@ -443,7 +456,8 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSRES_CONNECT:
         if (strncmp(buf, "CONNECT ", 8) == 0 && buf[9] == 0) {
-            _cid = x2i(buf[8]);
+            // server started listening
+            // _cid               = x2i(buf[8]);
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -488,7 +502,7 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSRES_HTTP:
         if (buf[0] >= '0' && buf[0] <= 'F' && buf[1] == 0) {
-            _cid = x2i(buf[0]);
+            // _cid = x2i(buf[0]);
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -500,7 +514,8 @@ void GSwifi::parseCmdResponse (char *buf) {
     //     break;
     case GSRES_STATUS:
         if (_gs_response_lines == 0 && strncmp(buf, "NOT ASSOCIATED", 14) == 0) {
-            _joined = false;
+            _joined    = false;
+            _listening = false;
             // for (int i = 0; i < 16; i ++) {
             //     _gs_sock[i].connect = false;
             // }
@@ -696,10 +711,39 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
     return 0;
 }
 
+int GSwifi::listen(GSPROTOCOL protocol, uint16_t port) {
+    char cmd[GS_CMD_SIZE];
+
+    if ( (! _joined) ||
+         (_power_status != GSPOWERSTATUS_READY) ) {
+        return -1;
+    }
+    if (port == 0) {
+        return -1;
+    }
+
+    if (protocol == GSPROTOCOL_UDP) {
+        sprintf(cmd, P("AT+NSUDP=%d"), port);
+    } else {
+        sprintf(cmd, P("AT+NSTCP=%d"), port);
+    }
+    command(cmd, GSRES_CONNECT);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    _listening = true;
+
+    // assume CID is 0 for server (only listen on 1 port)
+
+    return 0;
+}
+
 int GSwifi::disconnect () {
     int i;
 
-    _joined = false;
+    _joined    = false;
+    _listening = false;
     // for (i = 0; i < 16; i ++) {
     //     _gs_sock[i].connect = false;
     // }
@@ -796,6 +840,10 @@ int GSwifi::getHostByName (Host &host) {
 
 bool GSwifi::isJoined () {
     return _joined;
+}
+
+bool GSwifi::isListening () {
+    return _listening;
 }
 
 GSwifi::GSPOWERSTATUS GSwifi::getPowerStatus () {

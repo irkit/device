@@ -89,7 +89,7 @@ void IRKit_setup() {
 
     FlexiTimer2::set( LED_BLINK_INTERVAL, &onTimer );
     FlexiTimer2::start();
-    color.setLedColor( 0, 1, 0 );
+    color.setLedColor( 1, 0, 0 );
 
     //--- initialize IR
 
@@ -129,10 +129,14 @@ void IRKit_setup() {
             color.setLedColor( 0, 1, 0, true );
 
             // start http server
-            // gs.httpd(80);
+            gs.listen(GSwifi::GSPROTOCOL_TCP, 80);
 
             // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPGET,  &onGet );
             // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPPOST, &onPost );
+        }
+
+        if (gs.isListening()) {
+            color.setLedColor( 0, 1, 0 );
         }
     }
 
