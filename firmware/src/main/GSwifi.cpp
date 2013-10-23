@@ -658,11 +658,6 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
         }
         sprintf(cmd, P("AT+WA=%s"), ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        if (did_timeout_) {
-            Serial.println(P("retry"));
-            // wait_ms(1000);
-            command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        }
         break;
     case GSSECURITY_WPA_PSK:
         command(PB("AT+WAUTH=0",1), GSRES_NORMAL);
@@ -672,11 +667,6 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
 
         sprintf(cmd, P("AT+WA=%s"), ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        if (did_timeout_) {
-            Serial.println(P("retry"));
-            // wait_ms(1000);
-            command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        }
         break;
     case GSSECURITY_WPA2_PSK:
         command(PB("AT+WAUTH=0",1), GSRES_NORMAL);
@@ -685,11 +675,6 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
 
         sprintf(cmd, P("AT+WA=%s"), ssid);
         command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        if (did_timeout_) {
-            Serial.println(P("retry"));
-            // wait_ms(1000);
-            command(cmd, GSRES_DHCP, GS_TIMEOUT2);
-        }
         break;
     default:
         Serial.println(P("Can't use security"));
