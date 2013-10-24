@@ -38,9 +38,6 @@
 class GSwifi {
 public:
 
-    /**
-     * Wi-Fi security
-     */
     enum GSSECURITY {
         GSSECURITY_AUTO     = 0,
         GSSECURITY_NONE     = 0,
@@ -50,38 +47,15 @@ public:
         GSSECURITY_WPA2_PSK = 8,
     };
 
-    /**
-     * TCP/IP protocol
-     */
     enum GSPROTOCOL {
         GSPROTOCOL_UDP = 0,
         GSPROTOCOL_TCP = 1,
     };
 
     enum GSMETHOD {
-        GSMETHOD_HTTPGET = 0,
-        GSMETHOD_HTTPPOST = 1,
-    };
-
-    /**
-     * Client/Server
-     */
-    enum GSTYPE {
-        GSTYPE_CLIENT = 0,
-        GSTYPE_SERVER = 1,
-    };
-
-    enum GSRESPONCE {
-        GSRES_NONE,
-        GSRES_NORMAL,
-        GSRES_CONNECT,
-        GSRES_MACADDRESS,
-        GSRES_DHCP,
-        GSRES_DNSLOOKUP,
-        GSRES_HTTP,
-        GSRES_RSSI,
-        GSRES_TIME,
-        GSRES_STATUS,
+        GSMETHOD_GET     = 0,
+        GSMETHOD_POST    = 1,
+        GSMETHOD_UNKNOWN = 2,
     };
 
     enum GSMODE {
@@ -91,6 +65,19 @@ public:
         GSMODE_DATA_RX_BULK,
         GSMODE_DATA_RXUDP_BULK,
         GSMODE_DATA_RXHTTP,
+    };
+
+    enum GSCOMMANDMODE {
+        GSCOMMANDMODE_NONE,
+        GSCOMMANDMODE_NORMAL,
+        GSCOMMANDMODE_CONNECT,
+        GSCOMMANDMODE_MACADDRESS,
+        GSCOMMANDMODE_DHCP,
+        GSCOMMANDMODE_DNSLOOKUP,
+        GSCOMMANDMODE_HTTP,
+        GSCOMMANDMODE_RSSI,
+        GSCOMMANDMODE_TIME,
+        GSCOMMANDMODE_STATUS,
     };
 
     enum GSPOWERSTATUS {
@@ -103,49 +90,28 @@ public:
     /**
      * data receive callback function
      */
-    typedef void (*onGsReceiveFunc)(int cid, int len);
+    typedef void (*onGsReceiveFunc)(int8_t cid, int len);
 
-    struct GS_Socket {
-        GSTYPE type;
-        GSPROTOCOL protocol;
-        bool connect;
-        Host host;
-        // CircBuffer<char> *data;
-        int lcid;
-        bool received;
-        GSFunctionPointer onGsReceive;
+    enum GSHTTPSTATE {
+        GSHTTPSTATE_PREPARE, // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
+        GSHTTPSTATE_HEAD1, // 1st line ex: "GET / HTTP/1.1"
+        GSHTTPSTATE_HEAD2, // 2nd line and after
+        GSHTTPSTATE_BODY,
+        GSHTTPSTATE_RECEIVED, // received whole HTTP request successfully
+        GSHTTPSTATE_ERROR,
+        GSHTTPSTATE_RECEIVED_ERROR, // received error HTTP request successfully
     };
 
-    enum GSHTTPDMODE {
-        GSHTTPDMODE_REQUEST,
-        GSHTTPDMODE_HEAD,
-        GSHTTPDMODE_SPACE,
-        GSHTTPDMODE_BODY,
-        GSHTTPDMODE_ERROR,
-        GSHTTPDMODE_WEBSOCKET,
-        GSHTTPDMODE_WEBSOCKET_MASK,
-        GSHTTPDMODE_WEBSOCKET_BODY,
+    struct GSServerRequest {
+        int8_t      cid; // can be 1 <= cid, because cid == 0 is our http server
+        int8_t      routeid;
+        GSHTTPSTATE state;
+        uint16_t    length;
     };
 
-    struct GS_httpd {
-        GSHTTPDMODE  mode;
-        GSPROTOCOL   type;
-        // char        *buf;       // body
-        int          len;       // length of buf
-        char        *uri;
-        // char        *file;
-        // char        *query;
-        int          length;    // content-length
-        int          keepalive;
-        Host         host;
-    };
-
-    typedef void (*onHttpdCgiFunc)(int cid, GS_httpd *gshttpd);
-
-    struct GS_httpd_handler {
-        char *uri;
-        GSPROTOCOL method;
-        onHttpdCgiFunc onHttpCgi;
+    struct GSRoute {
+        GSMETHOD method;
+        char path[GS_MAX_PATH_LENGTH + 1];
     };
 
     // ----- GSwifi.cpp -----
@@ -165,11 +131,11 @@ public:
     /**
      * send command
      */
-    void command (const char *cmd, GSRESPONCE res, uint32_t timeout = GS_TIMEOUT);
+    void command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout = GS_TIMEOUT);
     /**
      * reset recv responce
      */
-    void resetResponse (GSRESPONCE res);
+    void resetResponse (GSCOMMANDMODE res);
     /**
      * wait recv responce
      */
@@ -250,38 +216,38 @@ public:
     int open (Host &host, GSPROTOCOL pro, int port = 0);
 
     int open (Host &host, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive, int port = 0) {
-        int cid = open(host, pro, port);
+        int8_t cid = open(host, pro, port);
         // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(ponGsReceive);
         return cid;
     }
     template<typename T>
-    int open (Host &host, GSPROTOCOL pro, T *object, void (T::*member)(int, int), int port = 0) {
-        int cid = open(host, pro, port);
+    int8_t open (Host &host, GSPROTOCOL pro, T *object, void (T::*member)(int, int), int port = 0) {
+        int8_t cid = open(host, pro, port);
         // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(object, member);
         return cid;
     }
     /**
      * send data tcp(s/c), udp(c)
      */
-    int send (int cid, const char *buf, int len);
+    int send (int8_t cid, const char *buf, int len);
     /**
      * send data udp(s)
      */
-    int send (int cid, const char *buf, int len, Host &host);
+    int send (int8_t cid, const char *buf, int len, Host &host);
     /**
      * recv data tcp(s/c), udp(c)
      * @return length
      */
-    int recv (int cid, char *buf, int len);
+    int recv (int8_t cid, char *buf, int len);
     /**
      * recv data udp(s)
      * @return length
      */
-    int recv (int cid, char *buf, int len, Host &host);
+    int recv (int8_t cid, char *buf, int len, Host &host);
     /**
      * tcp/udp connected
      */
-    bool isConnected (int cid);
+    bool isConnected (int8_t cid);
 
 // ----- GSwifi_http.cpp -----
     /**
@@ -306,11 +272,20 @@ public:
      */
     int httpd (int port = 80);
 
-    void sendErrorResponse (int cid, int err);
+    void sendErrorResponse (int8_t cid, int err);
     /**
      * attach uri, http method pair to function
      */
-    int handleRequest (const char *uri, GSPROTOCOL pro, onHttpdCgiFunc ponHttpCgi);
+    typedef int8_t (*GSRequestHandler)();
+    int8_t registerRoute (GSMETHOD method, const char *path);
+    void setRequestHandler (GSRequestHandler handler);
+    void writeHead (uint16_t status_code);
+    void write (const char *data);
+    void end (const char *data);
+
+    // TODO make accessor or rename
+    struct RingBuffer *_buf_cmd;
+    struct GSServerRequest _request;
 
 #ifdef GS_ENABLE_MDNS
     /**
@@ -332,24 +307,16 @@ public:
 protected:
     void reset ();
 
-    void parseResponse ();
+    int8_t parseRequestLine (char *token, uint8_t token_size);
+    void parseLine ();
     void parseCmdResponse (char *buf);
+    int8_t router (GSMETHOD method, const char *path);
 
-    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro);
-    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive) {
-    //     newSock(cid, type, pro);
-    //     _gs_sock[cid].onGsReceive.attach(ponGsReceive);
-    // }
-    // template<typename T>
-    // void newSock (int cid, GSTYPE type, GSPROTOCOL pro, T *object, void (T::*member)(int, int)) {
-    //     newSock(cid, type, pro);
-    //     _gs_sock[cid].onGsReceive.attach(object, member);
-    // }
-
-    int8_t close(int cid);
+    int8_t close(int8_t cid);
 
     int getHandler (GSPROTOCOL method, char *uri);
     int strnicmp (const char *p1, const char *p2, int n);
+    GSMETHOD x2method(const char *method);
 
 private:
     HardwareSerial*    _serial;
@@ -357,20 +324,17 @@ private:
     GSPOWERSTATUS      _power_status;
     bool               _gs_ok, _gs_failure;
     int                _gs_response_lines;
-    GSRESPONCE         _gs_expected_response;
     GSMODE             _gs_mode;
+    GSCOMMANDMODE      _gs_commandmode;
     bool               _escape;
     int                _rssi;
     IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
     Host               _from, _to;
     char               _mac[6];
-    struct RingBuffer *_buf_cmd;
-    // struct GS_Socket  _gs_sock[16];
 
-    // struct GS_httpd         _httpd[GS_HTTPD_PORT_COUNT];
-    // struct GS_httpd_handler _handler[GS_HTTPD_REQUEST_HANDLER_COUNT];
-    // int                     _handler_count;
-    // void                    poll_httpd (int cid, int len);
+    struct GSRoute     _routes[GS_MAX_ROUTES];
+    uint8_t            _route_count;
+    GSRequestHandler   _handler;
 
     uint32_t           timeout_start_;
     bool               busy_;
@@ -378,7 +342,8 @@ private:
     void               (*onTimeout_)();
     uint8_t            checkActivity(uint32_t timeout_ms);
     bool               setBusy(bool busy);
-    void               parse(uint8_t dat);
+    void               parseByte(uint8_t dat);
+    int8_t             dispatchRequestHandler();
 };
 
 #endif // __GSWIFI_H__

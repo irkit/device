@@ -63,13 +63,35 @@ void onTimer() {
     color.toggleBlink();
 }
 
-void onGet(int cid, GSwifi::GS_httpd *httpd) {
-    Serial.println(P("onGet"));
+int8_t onRequest() {
+    Serial.println(P("onRequest"));
+    while (!ring_isempty(gs._buf_cmd)) {
+        char temp;
+        ring_get(gs._buf_cmd, &temp, 1);
+
+        Serial.print(temp, HEX);
+        if (temp > 0x0D) {
+            Serial.print(" ");
+            Serial.write(temp);
+        }
+        Serial.println();
+    }
+
+    switch (gs._request.routeid) {
+    case 0: // GET /recent
+        gs.writeHead(200);
+        gs.write(P("{}"));
+        gs.end(P(""));
+        break;
+    case 1: // POST /send
+
+        break;
+    }
 }
 
-void onPost(int cid, GSwifi::GS_httpd *httpd) {
-    Serial.println(P("onPost"));
-}
+// void onPost(int cid, GSwifi::GS_httpd *httpd) {
+//     Serial.println(P("onPost"));
+// }
 
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
@@ -131,8 +153,13 @@ void IRKit_setup() {
             // start http server
             gs.listen(GSwifi::GSPROTOCOL_TCP, 80);
 
-            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPGET,  &onGet );
-            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPPOST, &onPost );
+            // 0
+            gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
+
+            // 1
+            gs.registerRoute( GSwifi::GSMETHOD_POST, P("/send") );
+
+            gs.setRequestHandler( &onRequest );
         }
 
         if (gs.isListening()) {

@@ -15,17 +15,8 @@
 
 #define GS_CMD_SIZE 64
 
-// #define GS_DATA_SIZE 256
-
-// ----- GSwifi_http.cpp -----
-
-#define GS_ENABLE_HTTP  // use http client
-
-// ----- GSwifi_httpd.cpp -----
-
-#define GS_ENABLE_HTTPD  // use http server
-#define GS_HTTPD_PORT_COUNT 1
-#define GS_HTTPD_REQUEST_HANDLER_COUNT 2
+#define GS_MAX_ROUTES 2
+#define GS_MAX_PATH_LENGTH 6
 
 //#define GS_ENABLE_MDNS
 
