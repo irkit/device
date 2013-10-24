@@ -1,11 +1,10 @@
-#include <SoftwareSerial.h>
 #include "pins.h"
 #include "MemoryFree.h"
 #include "pgmStrToRAM.h"
 #include "IrCtrl.h"
 #include "FullColorLed.h"
 #include "version.h"
-// #include "GSwifi.h"
+#include "GSwifi.h"
 #include "WifiCredentials.h"
 #include "FlexiTimer2.h"
 
@@ -152,7 +151,7 @@ void IRKit_setup() {
             color.setLedColor( 0, 1, 0, true );
 
             // start http server
-            gs.listen(GSwifi::GSPROTOCOL_TCP, 80);
+            gs.listen(80);
 
             // 0
             gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
@@ -183,7 +182,11 @@ void IRKit_loop() {
     }
     else {
         if (Serial1.available()) {
-            Serial.write(Serial1.read());
+            while (Serial1.available()) {
+                uint8_t ch = Serial1.read();
+                Serial.print(P("< 0x"));
+                Serial.print(ch, HEX); Serial.print(P(" ")); Serial.write(ch); Serial.println();
+            }
         }
     }
 
@@ -194,12 +197,13 @@ void IRKit_loop() {
 
         Serial.print(P("> 0x"));
         Serial.print(last_character, HEX);
+        Serial.print(P(" "));
+        Serial.write(last_character);
         Serial.println();
         Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
         if (is_command_mode) {
             Serial1.write(last_character);
-
             if ( last_character == 0x1B ) {
                 is_command_mode = false;
                 Serial.println(P("<< command mode finished !!!!"));

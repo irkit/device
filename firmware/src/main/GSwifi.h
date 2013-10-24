@@ -26,7 +26,6 @@
 #define DEBUG
 
 #include "Arduino.h"
-#include "GSFunctionPointer.h"
 #include "host.h"
 #include "ipaddr.h"
 #include "GSwifi_conf.h"
@@ -47,11 +46,6 @@ public:
         GSSECURITY_WPA2_PSK = 8,
     };
 
-    enum GSPROTOCOL {
-        GSPROTOCOL_UDP = 0,
-        GSPROTOCOL_TCP = 1,
-    };
-
     enum GSMETHOD {
         GSMETHOD_GET     = 0,
         GSMETHOD_POST    = 1,
@@ -61,9 +55,7 @@ public:
     enum GSMODE {
         GSMODE_COMMAND,
         GSMODE_DATA_RX,
-        GSMODE_DATA_RXUDP,
         GSMODE_DATA_RX_BULK,
-        GSMODE_DATA_RXUDP_BULK,
         GSMODE_DATA_RXHTTP,
     };
 
@@ -154,7 +146,7 @@ public:
     int join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, char *name = NULL);
     bool isJoined ();
 
-    int listen (GSPROTOCOL protocol,uint16_t port);
+    int listen (uint16_t port);
     bool isListening ();
 
     /**
@@ -203,54 +195,7 @@ public:
      * @return GSPOWERSTATUS
      */
     GSPOWERSTATUS getPowerStatus ();
-    /**
-     * RSSI
-     * @return RSSI (dBm)
-     */
-    int getRssi ();
 
-// ----- GSwifi_sock.cpp -----
-    /**
-     * tcp/udp client
-     * @return CID, -1:failure
-     */
-    int open (Host &host, GSPROTOCOL pro, int port = 0);
-
-    int open (Host &host, GSPROTOCOL pro, onGsReceiveFunc ponGsReceive, int port = 0) {
-        int8_t cid = open(host, pro, port);
-        // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(ponGsReceive);
-        return cid;
-    }
-    template<typename T>
-    int8_t open (Host &host, GSPROTOCOL pro, T *object, void (T::*member)(int, int), int port = 0) {
-        int8_t cid = open(host, pro, port);
-        // if (cid >= 0) _gs_sock[cid].onGsReceive.attach(object, member);
-        return cid;
-    }
-    /**
-     * send data tcp(s/c), udp(c)
-     */
-    int send (int8_t cid, const char *buf, int len);
-    /**
-     * send data udp(s)
-     */
-    int send (int8_t cid, const char *buf, int len, Host &host);
-    /**
-     * recv data tcp(s/c), udp(c)
-     * @return length
-     */
-    int recv (int8_t cid, char *buf, int len);
-    /**
-     * recv data udp(s)
-     * @return length
-     */
-    int recv (int8_t cid, char *buf, int len, Host &host);
-    /**
-     * tcp/udp connected
-     */
-    bool isConnected (int8_t cid);
-
-// ----- GSwifi_http.cpp -----
     /**
      * http request (GET method)
      */
@@ -266,14 +211,6 @@ public:
         return httpPost (host, uri, body, NULL, NULL, ssl, ponGsReceive);
     }
 
-// ----- GSwifi_httpd.cpp -----
-    /**
-     * start http server
-     * @param port
-     */
-    int httpd (int port = 80);
-
-    void sendErrorResponse (int8_t cid, int err);
     /**
      * attach uri, http method pair to function
      */
@@ -315,8 +252,6 @@ protected:
 
     int8_t close(int8_t cid);
 
-    int getHandler (GSPROTOCOL method, char *uri);
-    int strnicmp (const char *p1, const char *p2, int n);
     GSMETHOD x2method(const char *method);
 
 private:
@@ -328,9 +263,7 @@ private:
     GSMODE             _gs_mode;
     GSCOMMANDMODE      _gs_commandmode;
     bool               _escape;
-    int                _rssi;
     IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
-    Host               _from, _to;
     char               _mac[6];
 
     struct GSRoute     _routes[GS_MAX_ROUTES];
