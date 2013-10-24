@@ -81,8 +81,9 @@ int8_t onRequest() {
     case 0: // GET /recent
         gs.writeHead(200);
         gs.write(P("{}"));
-        gs.end(P(""));
+        gs.end();
         break;
+
     case 1: // POST /send
 
         break;

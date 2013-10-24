@@ -16,7 +16,7 @@
 #define GS_CMD_SIZE 64
 
 #define GS_MAX_ROUTES 2
-#define GS_MAX_PATH_LENGTH 6
+#define GS_MAX_PATH_LENGTH 7 // max: "/abcdef"
 
 //#define GS_ENABLE_MDNS
 

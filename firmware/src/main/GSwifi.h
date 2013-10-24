@@ -99,7 +99,6 @@ public:
         GSHTTPSTATE_BODY,
         GSHTTPSTATE_RECEIVED, // received whole HTTP request successfully
         GSHTTPSTATE_ERROR,
-        GSHTTPSTATE_RECEIVED_ERROR, // received error HTTP request successfully
     };
 
     struct GSServerRequest {
@@ -107,6 +106,7 @@ public:
         int8_t      routeid;
         GSHTTPSTATE state;
         uint16_t    length;
+        uint16_t    error_code; // status code when error occured
     };
 
     struct GSRoute {
@@ -132,6 +132,7 @@ public:
      * send command
      */
     void command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout = GS_TIMEOUT);
+    void escape (const char *sequence, uint32_t timeout = GS_TIMEOUT);
     /**
      * reset recv responce
      */
@@ -279,9 +280,9 @@ public:
     typedef int8_t (*GSRequestHandler)();
     int8_t registerRoute (GSMETHOD method, const char *path);
     void setRequestHandler (GSRequestHandler handler);
-    void writeHead (uint16_t status_code);
+    int8_t writeHead (uint16_t status_code);
     void write (const char *data);
-    void end (const char *data);
+    int8_t end ();
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
