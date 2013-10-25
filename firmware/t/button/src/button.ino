@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "LongPressButton.h"
+#include "Global.h"
 
 LongPressButton button( RESET_SWITCH, 3000 );
 
@@ -18,10 +19,9 @@ void setup() {
 }
 
 void loop() {
-    while (1) {
-        button.loop();
+    global.loop();
+    button.loop();
 
-        delay(100);
-        Serial.print(".");
-    }
+    delay(100);
+    Serial.print(".");
 }
