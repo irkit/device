@@ -31,10 +31,10 @@ void MorseListener::clear() {
 void MorseListener::setWPM(uint16_t wpm) {
     wpm_ = wpm;
 
-    float t = 1200. / (float)wpm_;
-    debouncePeriod_ = (uint16_t)( t / 2. );
-    minLetterSpace_ = (uint16_t)( t * 2. ); // TODO: is this too short?
-    minWordSpace_   = (uint16_t)( t * 4. );
+    uint16_t t = 1200 / wpm_;
+    debouncePeriod_ = t / 2;
+    minLetterSpace_ = t * 2; // TODO: is this too short?
+    minWordSpace_   = t * 4;
 }
 
 void MorseListener::setup() {

@@ -31,6 +31,22 @@ void setup() {
 
 void loop() {
 }
+** only Serial.print(float) 6398
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    Serial.print(3.14);
+}
+
+void loop() {
+}
 ** only Serial.print(int) 4838
 #include "Arduino.h"
 #include "pgmStrToRAM.h"
@@ -64,7 +80,7 @@ void setup() {
 void loop() {
 }
 
-** no Serial.print 4270
+** only Serial.print(char) 4296
 #include "Arduino.h"
 #include "pgmStrToRAM.h"
 
@@ -75,7 +91,7 @@ void setup() {
     // wait for leonardo
     while ( ! Serial );
 
-    // Serial.print("3");
+    Serial.print('3');
 }
 
 void loop() {
