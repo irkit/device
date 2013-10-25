@@ -1,0 +1,82 @@
+* flash memory
+** base 4270
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+}
+
+void loop() {
+}
+
+** overload Serial.print 6452
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    Serial.print(3);
+    Serial.print(3.14);
+}
+
+void loop() {
+}
+** only Serial.print(int) 4838
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    Serial.print(3);
+}
+
+void loop() {
+}
+** only Serial.print(char*) 4344
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    Serial.print("3");
+}
+
+void loop() {
+}
+
+** no Serial.print 4270
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    // Serial.print("3");
+}
+
+void loop() {
+}

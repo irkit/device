@@ -1,0 +1,1 @@
+../freememory/build.sh

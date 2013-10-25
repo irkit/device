@@ -25,6 +25,8 @@ def main (filename, max_flash_size)
   if size > max_flash_size then
     STDERR.puts "#{filename} is #{size} bytes, bigger than max #{max_flash_size} bytes !!"
     exit 1;
+  else
+    puts "#{filename} is #{size} bytes"
   end
 end
 
