@@ -9,10 +9,10 @@
 
 
 namespace FlexiTimer2 {
-	extern unsigned long time_units;
+	extern uint16_t time_units;
 	extern void (*func)();
 
-	void set(unsigned long ms, void (*f)());
+	void set(uint16_t ms, void (*f)());
 	void start();
 	void stop();
 	void _overflow();

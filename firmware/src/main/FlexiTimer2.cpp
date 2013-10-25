@@ -28,10 +28,10 @@
 
 #include "FlexiTimer2.h"
 
-unsigned long FlexiTimer2::time_units;
+uint16_t FlexiTimer2::time_units;
 void (*FlexiTimer2::func)();
 
-void FlexiTimer2::set(unsigned long ms, void (*f)()) {
+void FlexiTimer2::set(uint16_t ms, void (*f)()) {
 	// fix to ms timer
 
 	time_units = ms;
@@ -61,7 +61,7 @@ void FlexiTimer2::stop() {
 
 void FlexiTimer2::_overflow() {
 	static uint8_t overflowing = 0;
-	static unsigned long count = 0;
+	static uint16_t count = 0;
 
 	count += 1;
 
