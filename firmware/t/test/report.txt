@@ -96,3 +96,33 @@ void setup() {
 
 void loop() {
 }
+
+** sprintf 6666
+#include "Arduino.h"
+#include "pgmStrToRAM.h"
+#include "tinyprint.h"
+
+void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for leonardo
+    while ( ! Serial );
+
+    // Serial.print("3");
+    tinyprint_int(3);
+}
+
+void loop() {
+}
+--- tinyprint.cpp
+#include "Arduino.h"
+#include "tinyprint.h"
+#include "pgmStrToRAM.h"
+
+size_t tinyprint_int(int n) {
+    // -32767 - 32767
+    char tmp[7];
+    sprintf( tmp, P("%d"), n );
+    return Serial.print( tmp );
+}
