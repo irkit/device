@@ -529,37 +529,37 @@ void GSwifi::parseCmdResponse (char *buf) {
             _gs_response_lines ++;
         } else
         if (_gs_response_lines == 1) {
-            int ip1, ip2, ip3, ip4;
-            char *tmp = buf + 1;
-            sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            _ipaddr = IpAddr(ip1, ip2, ip3, ip4);
-            tmp = strstr(tmp, ":") + 2;
-            sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            _netmask = IpAddr(ip1, ip2, ip3, ip4);
-            tmp = strstr(tmp, ":") + 2;
-            sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            _gateway = IpAddr(ip1, ip2, ip3, ip4);
+            // int ip1, ip2, ip3, ip4;
+            // char *tmp = buf + 1;
+            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+            // _ipaddr = IpAddr(ip1, ip2, ip3, ip4);
+            // tmp = strstr(tmp, ":") + 2;
+            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+            // _netmask = IpAddr(ip1, ip2, ip3, ip4);
+            // tmp = strstr(tmp, ":") + 2;
+            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+            // _gateway = IpAddr(ip1, ip2, ip3, ip4);
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
     case GSCOMMANDMODE_MACADDRESS:
         if (buf[2] == ':' && buf[5] == ':') {
-            int mac1, mac2, mac3, mac4, mac5, mac6;
-            sscanf(buf, P("%x:%x:%x:%x:%x:%x"), &mac1, &mac2, &mac3, &mac4, &mac5, &mac6);
-            _mac[0] = mac1;
-            _mac[1] = mac2;
-            _mac[2] = mac3;
-            _mac[3] = mac4;
-            _mac[4] = mac5;
-            _mac[5] = mac6;
+            // int mac1, mac2, mac3, mac4, mac5, mac6;
+            // sscanf(buf, P("%x:%x:%x:%x:%x:%x"), &mac1, &mac2, &mac3, &mac4, &mac5, &mac6);
+            // _mac[0] = mac1;
+            // _mac[1] = mac2;
+            // _mac[2] = mac3;
+            // _mac[3] = mac4;
+            // _mac[4] = mac5;
+            // _mac[5] = mac6;
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
-            int ip1, ip2, ip3, ip4;
-            sscanf(&buf[3], P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            _resolv = IpAddr(ip1, ip2, ip3, ip4);
+            // int ip1, ip2, ip3, ip4;
+            // sscanf(&buf[3], P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+            // _resolv = IpAddr(ip1, ip2, ip3, ip4);
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
