@@ -63,7 +63,6 @@ public:
         GSCOMMANDMODE_NONE,
         GSCOMMANDMODE_NORMAL,
         GSCOMMANDMODE_CONNECT,
-        GSCOMMANDMODE_MACADDRESS,
         GSCOMMANDMODE_DHCP,
         GSCOMMANDMODE_DNSLOOKUP,
         GSCOMMANDMODE_HTTP,
@@ -175,10 +174,6 @@ public:
      */
     int getAddress (IpAddr &ipaddr, IpAddr &netmask, IpAddr &gateway, IpAddr &nameserver);
     /**
-     * get mac address
-     */
-    int getMacAddress (char *mac);
-    /**
      * resolv hostname
      * @param name hostname
      * @param addr resolved ip address
@@ -264,7 +259,6 @@ private:
     GSCOMMANDMODE      _gs_commandmode;
     bool               _escape;
     IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
-    char               _mac[6];
 
     struct GSRoute     _routes[GS_MAX_ROUTES];
     uint8_t            _route_count;

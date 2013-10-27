@@ -83,8 +83,6 @@ int8_t GSwifi::close (uint8_t cid) {
 
 void GSwifi::reset () {
 
-    // memset(&_gs_sock, 0, sizeof(_gs_sock));
-    memset(&_mac, 0, sizeof(_mac));
     _joined         = false;
     _listening      = false;
     _power_status   = GSPOWERSTATUS_READY;
@@ -505,19 +503,6 @@ void GSwifi::parseCmdResponse (char *buf) {
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
-    case GSCOMMANDMODE_MACADDRESS:
-        if (buf[2] == ':' && buf[5] == ':') {
-            // int mac1, mac2, mac3, mac4, mac5, mac6;
-            // sscanf(buf, P("%x:%x:%x:%x:%x:%x"), &mac1, &mac2, &mac3, &mac4, &mac5, &mac6);
-            // _mac[0] = mac1;
-            // _mac[1] = mac2;
-            // _mac[2] = mac3;
-            // _mac[3] = mac4;
-            // _mac[4] = mac5;
-            // _mac[5] = mac6;
-            _gs_response_lines = RESPONSE_LINES_ENDED;
-        }
-        break;
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
             // int ip1, ip2, ip3, ip4;
@@ -637,10 +622,6 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
     char cmd[GS_CMD_SIZE];
 
     if (_joined || _power_status != GSPOWERSTATUS_READY) return -1;
-
-    if (getMacAddress(_mac)) {
-        return -1;
-    }
 
     command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
@@ -782,17 +763,6 @@ int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr na
         command(cmd, GSCOMMANDMODE_NORMAL);
     }
     return did_timeout_;
-}
-
-int GSwifi::getMacAddress (char *mac) {
-    Serial.println(P("getMacAddress"));
-
-    command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MACADDRESS);
-    if (_mac[0] || _mac[1] || _mac[2] || _mac[3] || _mac[4] || _mac[5]) {
-        memcpy(mac, _mac, 6);
-        return 0;
-    }
-    return -1;
 }
 
 int GSwifi::getHostByName (const char* name, IpAddr &addr) {
