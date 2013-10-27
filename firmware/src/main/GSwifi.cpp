@@ -113,8 +113,7 @@ void GSwifi::parseByte(uint8_t dat) {
     static char tmp[20];
     static uint8_t continous_newlines = 0;
 
-    switch (_gs_mode) {
-    case GSMODE_COMMAND: // command responce
+    if (_gs_mode == GSMODE_COMMAND) {
         if (_escape) {
             // esc
             switch (dat) {
@@ -156,46 +155,12 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
             }
         }
-        break;
-
-    case GSMODE_DATA_RX_BULK:
+    }
+    else if (_gs_mode == GSMODE_DATA_RX_BULK) {
         if (next_token == NEXT_TOKEN_CID) {
             // cid
-            if (_gs_mode == GSMODE_DATA_RX_BULK) {
-                next_token = NEXT_TOKEN_LENGTH;
-            }
-            else {
-                next_token = NEXT_TOKEN_IP;
-            }
-            len = 0;
-        }
-        else if (next_token == NEXT_TOKEN_IP) {
-            // ip
-            if ((dat < '0' || dat > '9') && dat != '.') {
-                // ignore ip
-                tmp[len]   = 0;
-                next_token = NEXT_TOKEN_PORT;
-                len        = 0;
-                break;
-            }
-            if (len < sizeof(tmp) - 1) {
-                tmp[len] = dat;
-                len ++;
-            }
-        }
-        else if (next_token == NEXT_TOKEN_PORT) {
-            // port
-            if (dat < '0' || dat > '9') {
-                // ignore port
-                tmp[len]   = 0;
-                next_token = NEXT_TOKEN_LENGTH;
-                len        = 0;
-                break;
-            }
-            if (len < sizeof(tmp) - 1) {
-                tmp[len] = dat;
-                len ++;
-            }
+            next_token = NEXT_TOKEN_LENGTH;
+            len        = 0;
         }
         else if (next_token == NEXT_TOKEN_LENGTH) {
             // Data Length is 4 ascii char represents decimal value i.e. 1400 byte (0x31 0x34 0x30 0x30)
@@ -209,7 +174,6 @@ void GSwifi::parseByte(uint8_t dat) {
                 ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
 
                 Serial.print(P("bulk length:")); Serial.println(len, DEC);
-                break;
             }
         }
         else if (next_token == NEXT_TOKEN_DATA) {
@@ -303,9 +267,8 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 _request.cid = CID_UNDEFINED;
             }
-        }
-        break;
-    }
+        } // (next_token == NEXT_TOKEN_DATA)
+    } // (_gs_mode == GSMODE_DATA_RX_BULK)
 }
 
 int8_t GSwifi::parseRequestLine (char *token, uint8_t token_size) {
