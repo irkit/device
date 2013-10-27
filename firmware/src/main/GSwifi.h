@@ -82,7 +82,7 @@ public:
     /**
      * data receive callback function
      */
-    typedef void (*onGsReceiveFunc)(int8_t cid, int len);
+    typedef void (*onGsReceiveFunc)(uint8_t cid, int len);
 
     enum GSHTTPSTATE {
         GSHTTPSTATE_PREPARE, // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
@@ -94,7 +94,7 @@ public:
     };
 
     struct GSServerRequest {
-        int8_t      cid; // can be 1 <= cid, because cid == 0 is our http server
+        uint8_t     cid; // can be 1 <= cid, because cid == 0 is our http server
         int8_t      routeid;
         GSHTTPSTATE state;
         uint16_t    length;
@@ -250,7 +250,7 @@ protected:
     void parseCmdResponse (char *buf);
     int8_t router (GSMETHOD method, const char *path);
 
-    int8_t close(int8_t cid);
+    int8_t close(uint8_t cid);
 
     GSMETHOD x2method(const char *method);
 

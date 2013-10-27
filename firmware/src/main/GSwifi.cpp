@@ -35,7 +35,7 @@
 #define NEXT_TOKEN_LENGTH 3
 #define NEXT_TOKEN_DATA   4
 
-#define CID_UNDEFINED    -1
+#define CID_UNDEFINED     0xFF
 
 #define ESCAPE           0x1B
 
@@ -70,7 +70,7 @@ int8_t GSwifi::setup() {
     return 0;
 }
 
-int8_t GSwifi::close (int8_t cid) {
+int8_t GSwifi::close (uint8_t cid) {
     char *cmd = P("AT+CLOSE=0");
     cmd[ 9 ]  = cid + '0';
 
@@ -173,7 +173,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 _request.state = GSHTTPSTATE_HEAD1;
                 ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
 
-                Serial.print(P("bulk length:")); Serial.println(len, DEC);
+                Serial.print(P("bulk length:")); Serial.println(tmp);
             }
         }
         else if (next_token == NEXT_TOKEN_DATA) {
@@ -192,7 +192,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     uint8_t path_size   = GS_MAX_PATH_LENGTH;
                     int8_t  result      = parseRequestLine((char*)method, method_size);
                     if ( result == 0 ) {
-                        Serial.print(P("method:")); Serial.write(method); Serial.println();
+                        Serial.print(P("method:")); Serial.println(method);
                         result = parseRequestLine((char*)path, path_size);
                     }
                     if ( result != 0 ) {
@@ -203,7 +203,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         Serial.println(P("error400"));
                         break;
                     }
-                    Serial.print(P("path:")); Serial.write(path); Serial.println();
+                    Serial.print(P("path:")); Serial.println(path);
                     GSMETHOD gsmethod = x2method(method);
 
                     int8_t routeid = router(gsmethod, path);
@@ -323,7 +323,7 @@ int8_t GSwifi::dispatchRequestHandler () {
 }
 
 int8_t GSwifi::writeHead (uint16_t status_code) {
-    Serial.print(P("writeHead>")); Serial.println(_request.cid);
+    Serial.print(P("writeHead>"));
 
     char *cmd = P("S0");
     cmd[ 1 ]  = _request.cid + '0';
@@ -334,26 +334,25 @@ int8_t GSwifi::writeHead (uint16_t status_code) {
     }
 
     _serial->print(P("HTTP/1.0 "));
-    _serial->print(status_code);
+    char *msg;
     switch (status_code) {
     case 200:
-        _serial->println(P(" OK"));
+        msg = P("200 OK");
         break;
     case 400:
-        _serial->println(P(" Bad Request"));
+        msg = P("400 Bad Request");
         break;
     case 404:
-        _serial->println(P(" Not Found"));
+        msg = P("404 Not Found");
         break;
     case 500:
     default:
-        _serial->println(P(" Internal Server Error"));
+        msg = P("500 Internal Server Error");
         break;
     }
 
-    _serial->println(P("Content-Type: text/plain"));
-
-    _serial->println();
+    _serial->println(msg);
+    _serial->println(P("Content-Type: text/plain\r\n"));
 }
 
 void GSwifi::write (const char *data) {
@@ -410,7 +409,7 @@ void GSwifi::parseLine () {
             // next line will be "[ESC]Z10140GET / ..."
 
             Serial.println(buf);
-            int8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
+            uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
 
             if ( (_request.cid != CID_UNDEFINED) &&
                  (_request.cid != cid) ){
@@ -425,7 +424,7 @@ void GSwifi::parseLine () {
             // ignore client's IP and port
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
-            int8_t cid = x2i(buf[11]);
+            uint8_t cid = x2i(buf[11]);
             Serial.println(P("disconnect ")); Serial.println(cid);
             // _gs_sock[cid].connect = false;
             // _gs_sock[cid].onGsReceive.call(cid, -1); // event disconnected
