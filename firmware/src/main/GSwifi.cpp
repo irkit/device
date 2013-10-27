@@ -71,9 +71,9 @@ int8_t GSwifi::setup() {
 }
 
 int8_t GSwifi::close (int8_t cid) {
-    char cmd[GS_CMD_SIZE];
+    char *cmd = P("AT+CLOSE=0");
+    cmd[ 9 ]  = cid + '0';
 
-    sprintf(cmd, P("AT+NCLOSE=%X"), cid);
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
@@ -325,8 +325,9 @@ int8_t GSwifi::dispatchRequestHandler () {
 int8_t GSwifi::writeHead (uint16_t status_code) {
     Serial.print(P("writeHead>")); Serial.println(_request.cid);
 
-    char cmd[3];
-    sprintf( cmd, P("S%d"), _request.cid );
+    char *cmd = P("S0");
+    cmd[ 1 ]  = _request.cid + '0';
+
     escape( cmd );
     if (did_timeout_) {
         return -1;
