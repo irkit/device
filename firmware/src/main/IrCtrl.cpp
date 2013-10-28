@@ -21,12 +21,7 @@
 #include <Arduino.h>
 #include "IrCtrl.h"
 #include "pgmStrToRAM.h"
-
-// we use ATmega328P-AU
-// avr/iom32u4.h
-#define WGM10 0
-#define WGM11 1
-#define WGM12 3
+#include "Global.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -405,6 +400,8 @@ void IR_initialize (void)
 {
     IR_INIT_TIMER();
     IR_INIT_XMIT();
+
+    IrCtrl.buff = (uint16_t*)gBuffer;
 
     IR_state( IR_IDLE );
 }

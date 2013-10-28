@@ -43,7 +43,7 @@ typedef struct _irstruct {
     unsigned long recvStart;     // recv started at millis()
     uint16_t len;                // Size of buff used
     uint16_t txIndex;            // 0 < txIndex < len
-    uint16_t buff[IR_BUFF_SIZE]; // Data buffer 16Byte x 8bit/Byte x 2(HIGH and LOW) x uint16_t
+    uint16_t *buff;              // pointer to global buffer
 } IR_STRUCT;
 
 /* The work area for IR_CTRL is defined in ir_ctrl.c */
