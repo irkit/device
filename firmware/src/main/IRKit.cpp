@@ -9,6 +9,7 @@
 #include "FlexiTimer2.h"
 #include "Global.h"
 #include "MorseListener.h"
+#include "IrJsonParser.h"
 
 #define LED_BLINK_INTERVAL 200
 
@@ -63,70 +64,83 @@ void ir_recv_loop(void) {
 
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
-
-    // if (ble112.current_bond_handle != INVALID_BOND_HANDLE) {
-    //     // notify only when connected & authenticated
-    //     ble112.writeAttributeUnreadStatus( 1 );
-    // }
 }
 
 void onTimer() {
     color.toggleBlink();
 }
 
+int8_t onGetRecent() {
+    if (gs._request.state != GSwifi::GSHTTPSTATE_RECEIVED) {
+        Serial.println(P("GET with body??"));
+        return -1;
+    }
+    gs.writeHead(200);
+    if (IrCtrl.len <= 0) {
+        // if no data
+        gs.write(P("[]"));
+        gs.end();
+        return 0;
+    }
+    gs.write(P("[{"));
+    gs.write(P("\"format\":\"raw\",")); // format fixed to "raw" for now
+    gs.write(P("\"freq\":"));
+    gs.write(IrCtrl.freq);
+    gs.write(P(","));
+    gs.write(P("\"data\":["));
+    for (uint16_t i=0; i<IrCtrl.len; i++) {
+        gs.write(IrCtrl.buff[i]);
+        if (i != IrCtrl.len - 1) {
+            gs.write(P(","));
+        }
+    }
+    Serial.print(P(" "));
+    gs.write(P("]}]"));
+    gs.end();
+    return 0;
+}
+
+void jsonDetectedStart() {
+    Serial.println(P("json start"));
+}
+
+void jsonDetectedData( uint8_t key, uint16_t value ) {
+    Serial.print(P("json data: ")); Serial.println(value);
+}
+
+void jsonDetectedEnd() {
+    Serial.println(P("json end"));
+    // IR_xmit();
+}
+
+int8_t onPostSend() {
+    while (!ring_isempty(gs._buf_cmd)) {
+        char letter;
+        ring_get(gs._buf_cmd, &letter, 1);
+
+        irjson_parse( letter,
+                      &jsonDetectedStart,
+                      &jsonDetectedData,
+                      &jsonDetectedEnd );
+    }
+    return 0;
+}
+
 int8_t onRequest() {
     Serial.println(P("onRequest"));
-    while (!ring_isempty(gs._buf_cmd)) {
-        char temp;
-        ring_get(gs._buf_cmd, &temp, 1);
-
-        // Serial.print(temp, HEX);
-        // if (temp > 0x0D) {
-        //     Serial.print(" ");
-        //     Serial.write(temp);
-        // }
-        // Serial.println();
-    }
 
     switch (gs._request.routeid) {
     case 0: // GET /recent
-        if (gs._request.state != GSwifi::GSHTTPSTATE_RECEIVED) {
-            Serial.println(P("GET with body??"));
-            return -1;
-        }
-        gs.writeHead(200);
-        if (IrCtrl.len <= 0) {
-            // if no data
-            gs.write(P("[]"));
-            gs.end();
-            break;
-        }
-        gs.write(P("[{"));
-        gs.write(P("\"format\":\"raw\","));
-        gs.write(P("\"freq\":"));
-        gs.write(IrCtrl.freq);
-        gs.write(P(","));
-        gs.write(P("\"data\":["));
-        for (uint16_t i=0; i<IrCtrl.len; i++) {
-            gs.write(IrCtrl.buff[i]);
-            if (i != IrCtrl.len - 1) {
-                gs.write(P(","));
-            }
-        }
-        Serial.print(P(" "));
-        gs.write(P("]}]"));
-        gs.end();
-        break;
+        return onGetRecent();
 
     case 1: // POST /send
+        return onPostSend();
 
+    default:
         break;
     }
+    return -1;
 }
-
-// void onPost(int cid, GSwifi::GS_httpd *httpd) {
-//     Serial.println(P("onPost"));
-// }
 
 void connect() {
     if (credentials.isValid()) {

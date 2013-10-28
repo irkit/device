@@ -348,7 +348,7 @@ int8_t GSwifi::writeHead (uint16_t status_code) {
     }
 
     _serial->println(msg);
-    _serial->println(P("Content-Type: text/plain\r\n"));
+    _serial->println(P("Content-Type: text/plain\r\n")); // TODO json
 }
 
 void GSwifi::write (const char *data) {
