@@ -107,7 +107,7 @@ int8_t onRequest() {
 
 void connect() {
     if (credentials.isValid()) {
-        color.setLedColor( 1, 0, 0, true );
+        color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid credentials
 
         gs.join(credentials.getSecurity(),
                 credentials.getSSID(),
@@ -117,7 +117,7 @@ void connect() {
         Serial.println(P("!!! CLEAR EEPROM, ENABLE MORSE !!!"));
         credentials.clear();
 
-        color.setLedColor( 1, 0, 0 );
+        color.setLedColor( 1, 0, 0, false );
 
         listener.enable(true);
     }
@@ -137,7 +137,7 @@ void connect() {
     }
 
     if (gs.isListening()) {
-        color.setLedColor( 0, 1, 0 );
+        color.setLedColor( 0, 1, 0, false );
 
         gBufferMode = GBufferModeUnused;
         IR_state( IR_IDLE );
@@ -151,6 +151,11 @@ void letterCallback( char letter ) {
     if ( result != 0 ) {
         credentials.clear();
         Serial.println(P("cleared"));
+
+        color.setLedColor( 1, 0, 0, false ); // red
+    }
+    else {
+        color.setLedColor( 1, 0, 0, true ); // red blink
     }
 }
 
@@ -160,6 +165,8 @@ void wordCallback() {
     if ( result != 0 ) {
         credentials.clear();
         Serial.println(P("cleared"));
+
+        color.setLedColor( 1, 0, 0, false ); // red
     }
     else {
         Serial.println(P("let's try connecting to wifi"));
@@ -172,6 +179,8 @@ void wordCallback() {
 void errorCallback() {
     Serial.println(P("error"));
     credentials.clear();
+
+    color.setLedColor( 1, 0, 0, false ); // red
 }
 
 void printGuide(void) {
@@ -192,7 +201,7 @@ void IRKit_setup() {
 
     FlexiTimer2::set( LED_BLINK_INTERVAL, &onTimer );
     FlexiTimer2::start();
-    color.setLedColor( 1, 0, 0 );
+    color.setLedColor( 1, 0, 0, false );
 
     //--- initialize morse listener
 
