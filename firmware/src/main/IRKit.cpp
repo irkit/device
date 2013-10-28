@@ -22,6 +22,8 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 MorseListener listener(MICROPHONE,13);
 
+WifiCredentials credentials;
+
 void reset3V3 () {
     Serial.println(P("hardware reset"));
     digitalWrite( LDO33_ENABLE, LOW );
@@ -103,6 +105,75 @@ int8_t onRequest() {
 //     Serial.println(P("onPost"));
 // }
 
+void connect() {
+    if (credentials.isValid()) {
+        color.setLedColor( 1, 0, 0, true );
+
+        gs.join(credentials.getSecurity(),
+                credentials.getSSID(),
+                credentials.getPassword());
+    }
+    else {
+        Serial.println(P("!!! CLEAR EEPROM, ENABLE MORSE !!!"));
+        credentials.clear();
+
+        color.setLedColor( 1, 0, 0 );
+
+        listener.enable(true);
+    }
+
+    if (gs.isJoined()) {
+        color.setLedColor( 0, 1, 0, true );
+
+        // 0
+        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
+        // 1
+        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/send") );
+
+        gs.setRequestHandler( &onRequest );
+
+        // start http server
+        gs.listen(80);
+    }
+
+    if (gs.isListening()) {
+        color.setLedColor( 0, 1, 0 );
+
+        gBufferMode = GBufferModeUnused;
+        IR_state( IR_IDLE );
+    }
+
+}
+
+void letterCallback( char letter ) {
+    Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
+    int8_t result = credentials.put( letter );
+    if ( result != 0 ) {
+        credentials.clear();
+        Serial.println(P("cleared"));
+    }
+}
+
+void wordCallback() {
+    Serial.println(P("word"));
+    int8_t result = credentials.putDone();
+    if ( result != 0 ) {
+        credentials.clear();
+        Serial.println(P("cleared"));
+    }
+    else {
+        Serial.println(P("let's try connecting to wifi"));
+        credentials.dump();
+        credentials.save();
+        connect();
+    }
+}
+
+void errorCallback() {
+    Serial.println(P("error"));
+    credentials.clear();
+}
+
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("h) Print this guide"));
@@ -114,18 +185,6 @@ void printGuide(void) {
     Serial.println(P("v) version"));
 
     Serial.println(P("Command?"));
-}
-
-void letterCallback( uint8_t letter ) {
-    Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
-}
-
-void wordCallback() {
-    Serial.println(P("word"));
-}
-
-void errorCallback() {
-    Serial.println(P("error"));
 }
 
 void IRKit_setup() {
@@ -143,7 +202,6 @@ void IRKit_setup() {
     listener.wordCallback   = &wordCallback;
     listener.errorCallback  = &errorCallback;
     listener.setup();
-    listener.enable(true);
 
     //--- initialize IR
 
@@ -162,42 +220,10 @@ void IRKit_setup() {
     gs.setup();
 
     // load wifi credentials from EEPROM
-    {
-        WifiCredentials credentials;
+    gBufferMode = GBufferModeWifiCredentials;
+    credentials.load();
 
-        if (credentials.isValid()) {
-            color.setLedColor( 1, 0, 0, true );
-
-            gs.join(credentials.getSecurity(),
-                    credentials.getSSID(),
-                    credentials.getPassword());
-        }
-        else {
-            Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
-            credentials.clear();
-
-            color.setLedColor( 1, 0, 0 );
-        }
-
-        if (gs.isJoined()) {
-            color.setLedColor( 0, 1, 0, true );
-
-            // start http server
-            gs.listen(80);
-
-            // 0
-            gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
-
-            // 1
-            gs.registerRoute( GSwifi::GSMETHOD_POST, P("/send") );
-
-            gs.setRequestHandler( &onRequest );
-        }
-
-        if (gs.isListening()) {
-            color.setLedColor( 0, 1, 0 );
-        }
-    }
+    connect();
 
     printGuide();
 }
@@ -261,7 +287,6 @@ void IRKit_loop() {
             gs.setBaud(115200);
         }
         else if (last_character == 'd') {
-            WifiCredentials credentials;
             Serial.println(P("---credentials---"));
             credentials.dump();
             Serial.println();
@@ -276,7 +301,6 @@ void IRKit_loop() {
         }
         else if (last_character == 's') {
             Serial.println(P("setting credentials in EEPROM"));
-            WifiCredentials credentials;
             credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
                             PB("Rhodos",2),
                             PB("aaaaaaaaaaaaa",3));

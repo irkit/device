@@ -392,6 +392,10 @@ void IR_state (uint8_t nextState)
         IrCtrl.txIndex = 0;
         IrCtrl.xmitStart = millis();
         break;
+    case IR_DISABLED:
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
+        break;
     }
     IrCtrl.state = nextState;
 }
@@ -403,7 +407,7 @@ void IR_initialize (void)
 
     IrCtrl.buff = (uint16_t*)gBuffer;
 
-    IR_state( IR_IDLE );
+    IR_state( IR_DISABLED );
 }
 
 void IR_dump (void)

@@ -33,8 +33,10 @@
 #define IR_READING     4    /* BLE central is reading IR data, can't receive IR */
 #define IR_WRITING     10   /* BLE central is wrinting IR data, can't receive IR */
 #define IR_XMITTING    11   /* IR transmission is in progress */
+#define IR_DISABLED    0xFF /* disabled */
 
 typedef struct _irstruct {
+    uint8_t enabled;
     uint8_t state;               // Communication state
     uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
     uint8_t freq;                // carrier wave freq in kHz
