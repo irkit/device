@@ -30,12 +30,12 @@ void setup() {
         WifiCredentials credentials;
 
         if (credentials.isValid()) {
-            gs.connect(credentials.getSecurity(),
-                       credentials.getSSID(),
-                       credentials.getPassword());
+            gs.join(credentials.getSecurity(),
+                    credentials.getSSID(),
+                    credentials.getPassword());
         }
-        if (gs.isConnected()) {
-            gs.startup();
+        if (gs.isJoined()) {
+            // gs.startup();
         }
     }
 
@@ -85,9 +85,9 @@ void loop() {
             Serial.println(P(">> entered command mode !!!!"));
         }
         else if (last_character == 'c') {
-            gs.connect( GSwifi::GSSEC_WPA2_PSK,
-                        PB("Rhodos",2),
-                        PB("aaaaaaaaaaaaa",3) );
+            gs.join( GSwifi::GSSECURITY_WPA2_PSK,
+                     PB("Rhodos",2),
+                     PB("aaaaaaaaaaaaa",3) );
         }
         else if (last_character == 'b') {
             gs.setBaud(9600);
@@ -115,7 +115,7 @@ void loop() {
         else if (last_character == 'y') {
             WifiCredentials credentials;
             uint8_t security = WIFICREDENTIALS_SECURITY_WPA2PSK;
-            credentials.set(GSwifi::GSSEC_WPA2_PSK,
+            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
                             PB("Rhodos",2),
                             PB("aaaaaaaaaaaaa",3));
             credentials.save();

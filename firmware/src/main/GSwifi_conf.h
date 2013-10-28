@@ -13,26 +13,17 @@
 #define GS_TIMEOUT2  60000 // ms
 #define GS_RECONNECT 60 // s
 
-#define GS_CMD_SIZE 100
+#define GS_CMD_SIZE 64
 
-#define GS_DATA_SIZE 256
-
-// ----- GSwifi_http.cpp -----
-
-#define GS_ENABLE_HTTP  // use http client
-
-// ----- GSwifi_httpd.cpp -----
-
-#define GS_ENABLE_HTTPD  // use http server
-#define GS_HTTPD_PORT_COUNT 1
-#define GS_HTTPD_REQUEST_HANDLER_COUNT 2
+#define GS_MAX_ROUTES 2
+#define GS_MAX_PATH_LENGTH 7 // max: "/abcdef"
 
 //#define GS_ENABLE_MDNS
 
 #define HTTPD_TIMEOUT 15000
 
-#define HTTPD_BUF_SIZE 200
-#define HTTPD_URI_SIZE 100
+// #define HTTPD_BUF_SIZE 200
+// #define HTTPD_URI_SIZE 100
 
 #define HTTPD_KEEPALIVE 10 // request count
 

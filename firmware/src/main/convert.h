@@ -5,10 +5,7 @@
 extern "C" {
 #endif
 
-extern int  x2i (char c);
-extern char i2x (int i);
-extern int  from_hex (int ch);
-extern int  to_hex (int code);
+extern uint8_t x2i (char c);
 
 #ifdef  __cplusplus
 }

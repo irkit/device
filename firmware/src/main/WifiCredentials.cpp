@@ -72,19 +72,19 @@ void WifiCredentials::dump(void)
     if (data.isSet) {
         Serial.print(P("security: "));
         switch (data.security) {
-        case GSwifi::GSSEC_AUTO:
+        case GSwifi::GSSECURITY_AUTO:
             Serial.println(P("auto/none"));
             break;
-        case GSwifi::GSSEC_OPEN:
+        case GSwifi::GSSECURITY_OPEN:
             Serial.println(P("open"));
             break;
-        case GSwifi::GSSEC_WEP:
+        case GSwifi::GSSECURITY_WEP:
             Serial.println(P("wep"));
             break;
-        case GSwifi::GSSEC_WPA_PSK:
+        case GSwifi::GSSECURITY_WPA_PSK:
             Serial.println(P("wpa-psk"));
             break;
-        case GSwifi::GSSEC_WPA2_PSK:
+        case GSwifi::GSSECURITY_WPA2_PSK:
             Serial.println(P("wpa2-psk"));
             break;
         default:

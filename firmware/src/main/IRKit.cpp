@@ -1,13 +1,14 @@
-#include <SoftwareSerial.h>
 #include "pins.h"
 #include "MemoryFree.h"
 #include "pgmStrToRAM.h"
 #include "IrCtrl.h"
 #include "FullColorLed.h"
 #include "version.h"
-// #include "GSwifi.h"
+#include "GSwifi.h"
 #include "WifiCredentials.h"
 #include "FlexiTimer2.h"
+#include "Global.h"
+#include "MorseListener.h"
 
 #define LED_BLINK_INTERVAL 200
 
@@ -15,18 +16,24 @@
 #define VALID_IR_LEN_MIN   5
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-// GSwifi gs(&Serial1);
+GSwifi gs(&Serial1);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+
+MorseListener listener(MICROPHONE,13);
 
 void reset3V3 () {
     Serial.println(P("hardware reset"));
     digitalWrite( LDO33_ENABLE, LOW );
-    delay( 100 );
+    delay( 1000 );
     digitalWrite( LDO33_ENABLE, HIGH );
+
+    // wait til gs wakes up
+    delay( 1000 );
 }
 
 void ir_recv_loop(void) {
+    char tmp[10];
     if ( IRDidRecvTimeout() ) {
         Serial.println(P("!!!\tIR recv timeout"));
         IR_state(IR_IDLE);
@@ -43,9 +50,14 @@ void ir_recv_loop(void) {
 
     // can't receive here
 
-    Serial.print(P("overflowed: "));  Serial.println( IrCtrl.overflowed );
-    Serial.print(P("free:"));         Serial.println( freeMemory() );
-    Serial.print(P("received len:")); Serial.println(IrCtrl.len,HEX);
+    sprintf( tmp, P("%lu"), IrCtrl.overflowed );
+    Serial.print(P("overflowed: "));  Serial.println( tmp );
+
+    sprintf( tmp, P("%d"), freeMemory() );
+    Serial.print(P("free:"));         Serial.println( tmp );
+
+    sprintf( tmp, P("%x"), IrCtrl.len );
+    Serial.print(P("received len:")); Serial.println( tmp );
 
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
@@ -60,22 +72,60 @@ void onTimer() {
     color.toggleBlink();
 }
 
-void onGet(int cid, GSwifi::GS_httpd *httpd) {
-    Serial.println(P("onGet"));
+int8_t onRequest() {
+    Serial.println(P("onRequest"));
+    while (!ring_isempty(gs._buf_cmd)) {
+        char temp;
+        ring_get(gs._buf_cmd, &temp, 1);
+
+        // Serial.print(temp, HEX);
+        // if (temp > 0x0D) {
+        //     Serial.print(" ");
+        //     Serial.write(temp);
+        // }
+        // Serial.println();
+    }
+
+    switch (gs._request.routeid) {
+    case 0: // GET /recent
+        gs.writeHead(200);
+        gs.write(P("{}"));
+        gs.end();
+        break;
+
+    case 1: // POST /send
+
+        break;
+    }
 }
 
-void onPost(int cid, GSwifi::GS_httpd *httpd) {
-    Serial.println(P("onPost"));
-}
+// void onPost(int cid, GSwifi::GS_httpd *httpd) {
+//     Serial.println(P("onPost"));
+// }
 
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("h) Print this guide"));
 
+    Serial.println(P("b) change baud rate to 9600"));
+    Serial.println(P("B) change baud rate to 115200"));
     Serial.println(P("d) dump"));
+    Serial.println(P("s) set credentials"));
     Serial.println(P("v) version"));
 
     Serial.println(P("Command?"));
+}
+
+void letterCallback( uint8_t letter ) {
+    Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
+}
+
+void wordCallback() {
+    Serial.println(P("word"));
+}
+
+void errorCallback() {
+    Serial.println(P("error"));
 }
 
 void IRKit_setup() {
@@ -83,7 +133,17 @@ void IRKit_setup() {
 
     FlexiTimer2::set( LED_BLINK_INTERVAL, &onTimer );
     FlexiTimer2::start();
-    color.setLedColor( 0, 1, 0 );
+    color.setLedColor( 1, 0, 0 );
+
+    //--- initialize morse listener
+
+    pinMode(MICROPHONE,  INPUT);
+
+    listener.letterCallback = &letterCallback;
+    listener.wordCallback   = &wordCallback;
+    listener.errorCallback  = &errorCallback;
+    listener.setup();
+    listener.enable(true);
 
     //--- initialize IR
 
@@ -99,10 +159,7 @@ void IRKit_setup() {
 
     reset3V3();
 
-    // wait til gs wakes up
-    delay( 100 );
-
-    // gs.setup();
+    gs.setup();
 
     // load wifi credentials from EEPROM
     {
@@ -111,9 +168,9 @@ void IRKit_setup() {
         if (credentials.isValid()) {
             color.setLedColor( 1, 0, 0, true );
 
-            // gs.connect(credentials.getSecurity(),
-            //            credentials.getSSID(),
-            //            credentials.getPassword());
+            gs.join(credentials.getSecurity(),
+                    credentials.getSSID(),
+                    credentials.getPassword());
         }
         else {
             Serial.println(P("!!! EEPROM INVALID, CLEARING !!!"));
@@ -122,13 +179,24 @@ void IRKit_setup() {
             color.setLedColor( 1, 0, 0 );
         }
 
-        // if (gs.isConnected()) {
-            // start http server
-            // gs.httpd(80);
+        if (gs.isJoined()) {
+            color.setLedColor( 0, 1, 0, true );
 
-            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPGET,  &onGet );
-            // gs.handleRequest( P("/signals"), GSwifi::GSPROT_HTTPPOST, &onPost );
-        // }
+            // start http server
+            gs.listen(80);
+
+            // 0
+            gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
+
+            // 1
+            gs.registerRoute( GSwifi::GSMETHOD_POST, P("/send") );
+
+            gs.setRequestHandler( &onRequest );
+        }
+
+        if (gs.isListening()) {
+            color.setLedColor( 0, 1, 0 );
+        }
     }
 
     printGuide();
@@ -137,32 +205,43 @@ void IRKit_setup() {
 void IRKit_loop() {
     static bool is_command_mode = false;
 
+    global.loop(); // always run first
+
+    listener.loop();
+
     // check if received
     ir_recv_loop();
 
     // wifi
-    // if ( ! is_command_mode ) {
-    //     gs.loop();
-    // }
-    // else {
-    //     if (Serial1.available()) {
-    //         Serial.write(Serial1.read());
-    //     }
-    // }
+    if ( ! is_command_mode ) {
+        gs.loop();
+    }
+    else {
+        if (Serial1.available()) {
+            while (Serial1.available()) {
+                uint8_t ch = Serial1.read();
+                Serial.print(P("< 0x"));
+                Serial.print(ch, HEX); Serial.print(P(" ")); Serial.write(ch); Serial.println();
+            }
+        }
+    }
 
     // Wifi UART interface test
     if (Serial.available()) {
+        char tmp[2];
         static uint8_t last_character = '0';
         last_character = Serial.read();
 
         Serial.print(P("> 0x"));
-        Serial.print(last_character, HEX);
+        sprintf( tmp, P("%x"), last_character );
+        Serial.print(tmp);
+        Serial.print(P(" "));
+        Serial.write(last_character);
         Serial.println();
         Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
         if (is_command_mode) {
             Serial1.write(last_character);
-
             if ( last_character == 0x1B ) {
                 is_command_mode = false;
                 Serial.println(P("<< command mode finished !!!!"));
@@ -175,13 +254,33 @@ void IRKit_loop() {
         else if (last_character == 'h') {
             printGuide();
         }
+        else if (last_character == 'b') {
+            gs.setBaud(9600);
+        }
+        else if (last_character == 'B') {
+            gs.setBaud(115200);
+        }
         else if (last_character == 'd') {
             WifiCredentials credentials;
             Serial.println(P("---credentials---"));
             credentials.dump();
+            Serial.println();
 
             Serial.println(P("---wifi---"));
-            // gs.dump();
+            gs.dump();
+            Serial.println();
+
+            Serial.println(P("---ir---"));
+            IR_dump();
+            Serial.println();
+        }
+        else if (last_character == 's') {
+            Serial.println(P("setting credentials in EEPROM"));
+            WifiCredentials credentials;
+            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
+                            PB("Rhodos",2),
+                            PB("aaaaaaaaaaaaa",3));
+            credentials.save();
         }
         else if (last_character == 'v') {
             Serial.print(P("version: "));
