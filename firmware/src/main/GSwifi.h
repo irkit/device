@@ -123,7 +123,7 @@ public:
      * send command
      */
     void command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout = GS_TIMEOUT);
-    void escape (const char *sequence, uint32_t timeout = GS_TIMEOUT);
+    void escape (const char *sequence);
     /**
      * reset recv responce
      */
@@ -214,6 +214,8 @@ public:
     void setRequestHandler (GSRequestHandler handler);
     int8_t writeHead (uint16_t status_code);
     void write (const char *data);
+    void write (const uint8_t data);
+    void write (const uint16_t data);
     int8_t end ();
 
     // TODO make accessor or rename

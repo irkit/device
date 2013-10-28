@@ -71,8 +71,8 @@ int8_t GSwifi::setup() {
 }
 
 int8_t GSwifi::close (uint8_t cid) {
-    char *cmd = P("AT+CLOSE=0");
-    cmd[ 9 ]  = cid + '0';
+    char *cmd = PB("AT+NCLOSE=0", 1);
+    cmd[ 10 ]  = cid + '0';
 
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
@@ -238,7 +238,7 @@ void GSwifi::parseByte(uint8_t dat) {
             case GSHTTPSTATE_BODY:
                 if (ring_isfull(_buf_cmd)) {
                     Serial.println(P("full"));
-                    dispatchRequestHandler();
+                    dispatchRequestHandler(); // POST, user callback should write()
                 }
                 ring_put(_buf_cmd, dat);
                 break;
@@ -321,9 +321,7 @@ int8_t GSwifi::dispatchRequestHandler () {
 }
 
 int8_t GSwifi::writeHead (uint16_t status_code) {
-    Serial.print(P("writeHead>"));
-
-    char *cmd = P("S0");
+    char *cmd = PB("S0",1);
     cmd[ 1 ]  = _request.cid + '0';
 
     escape( cmd );
@@ -357,8 +355,16 @@ void GSwifi::write (const char *data) {
     _serial->print(data);
 }
 
+void GSwifi::write (const uint8_t data) {
+    _serial->print(data);
+}
+
+void GSwifi::write (const uint16_t data) {
+    _serial->print(data);
+}
+
 int8_t GSwifi::end () {
-    escape( PB("E",1), GSCOMMANDMODE_NONE );
+    escape( PB("E",1) );
     if (did_timeout_) {
         // close anyway
     }
@@ -551,7 +557,7 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout) {
     waitResponse(timeout);
 }
 
-void GSwifi::escape (const char *cmd, uint32_t timeout) {
+void GSwifi::escape (const char *cmd) {
     Serial.print(P("e> "));
 
     resetResponse(GSCOMMANDMODE_NONE);
@@ -562,7 +568,7 @@ void GSwifi::escape (const char *cmd, uint32_t timeout) {
     Serial.println(cmd);
 
     setBusy(true);
-    waitResponse(timeout);
+    waitResponse(GS_TIMEOUT);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {

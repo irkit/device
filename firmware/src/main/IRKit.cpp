@@ -90,8 +90,31 @@ int8_t onRequest() {
 
     switch (gs._request.routeid) {
     case 0: // GET /recent
+        if (gs._request.state != GSwifi::GSHTTPSTATE_RECEIVED) {
+            Serial.println(P("GET with body??"));
+            return -1;
+        }
         gs.writeHead(200);
-        gs.write(P("{}"));
+        if (IrCtrl.len <= 0) {
+            // if no data
+            gs.write(P("[]"));
+            gs.end();
+            break;
+        }
+        gs.write(P("[{"));
+        gs.write(P("\"format\":\"raw\","));
+        gs.write(P("\"freq\":"));
+        gs.write(IrCtrl.freq);
+        gs.write(P(","));
+        gs.write(P("\"data\":["));
+        for (uint16_t i=0; i<IrCtrl.len; i++) {
+            gs.write(IrCtrl.buff[i]);
+            if (i != IrCtrl.len - 1) {
+                gs.write(P(","));
+            }
+        }
+        Serial.print(P(" "));
+        gs.write(P("]}]"));
         gs.end();
         break;
 
