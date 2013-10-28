@@ -9,6 +9,14 @@ void setup() {
     pinMode(IR_IN,      INPUT);
     digitalWrite(IR_IN, HIGH);
 
+    // output
+    pinMode(IR_OUT,     OUTPUT);
+    digitalWrite(IR_OUT, LOW);
+
+    // disable 3.3V
+    pinMode( LDO33_ENABLE, OUTPUT );
+    digitalWrite( LDO33_ENABLE, LOW );
+
     IR_initialize();
 
     // USB serial
@@ -24,10 +32,18 @@ void printGuide() {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("d) Dump IrCtrl data"));
     Serial.println(P("h) Help (this)"));
+    Serial.println(P("s) Send"));
     Serial.println(P("Command?"));
 }
 
 void ir_recv_loop(void) {
+    static uint8_t last_state;
+    if ((last_state == IR_XMITTING) &&
+        (IrCtrl.state == IR_IDLE) ) {
+        Serial.println(P("xmit finished"));
+    }
+    last_state = IrCtrl.state;
+
     if ( IRDidRecvTimeout() ) {
         Serial.println(P("!!!\tIR recv timeout"));
         IR_state(IR_IDLE);
@@ -77,6 +93,11 @@ void loop() {
         }
         else if (lastCharacter == 'h') {
             printGuide();
+        }
+        else if (lastCharacter == 's') {
+            Serial.println(P("sending"));
+            IR_xmit();
+            IR_dump();
         }
     }
 }
