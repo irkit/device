@@ -115,6 +115,7 @@ void connect() {
     }
     else {
         Serial.println(P("!!! CLEAR EEPROM, ENABLE MORSE !!!"));
+        credentials.dump();
         credentials.clear();
 
         color.setLedColor( 1, 0, 0, false );

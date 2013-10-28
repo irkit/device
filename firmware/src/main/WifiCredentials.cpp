@@ -29,7 +29,7 @@ WifiCredentials::WifiCredentials()
 
 void WifiCredentials::load()
 {
-    eeprom_read_block((void*)&data, (void*)0, sizeof(data));
+    eeprom_read_block((void*)data, (void*)0, sizeof(SavedData));
 }
 
 // crc8 is ok && version is ok
@@ -38,7 +38,7 @@ bool WifiCredentials::isValid()
     if (! data->isSet) {
         return false;
     }
-    uint8_t crc = crc8( (uint8_t*)&data, sizeof(CRCedData) );
+    uint8_t crc = crc8( (uint8_t*)data, sizeof(CRCedData) );
     return (crc == data->crc8) && (WIFICREDENTIALS_VERSION == data->version);
 }
 
@@ -68,13 +68,17 @@ void WifiCredentials::set(GSwifi::GSSECURITY security, const char *ssid, const c
 void WifiCredentials::save(void)
 {
     data->version = WIFICREDENTIALS_VERSION;
-    data->crc8    = crc8( (uint8_t*)&data, sizeof(CRCedData) );
-    eeprom_write_block((const void*)&data, (void*)0, sizeof(data));
+    data->crc8    = crc8( (uint8_t*)data, sizeof(CRCedData) );
+    eeprom_write_block((const void*)data, (void*)0, sizeof(SavedData));
 }
 
 void WifiCredentials::clear(void)
 {
     data->isSet = 0;
+    memset( data->ssid,     0, sizeof(data->ssid) );
+    memset( data->password, 0, sizeof(data->password) );
+    memset( data->token,    0, sizeof(data->token) );
+
     save();
 
     filler.state = WifiCredentialsFillerStateSecurity;
