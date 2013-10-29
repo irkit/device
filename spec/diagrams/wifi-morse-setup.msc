@@ -12,7 +12,7 @@ msc {
 
     User -> App      [label = "Launch App"];
     App => Server    [label = "GET /token"];
-    App << Server    [label = "Token Response (client_token, device_token)"];
+    App << Server    [label = "Token Response (client_token, device_token, expires_at)"];
     App => Server    [label = "GET /status?client_token=#{client_token} (Long Poll)"];
 
     User -> App      [label = "Input Wifi SSID and Password"];
