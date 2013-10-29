@@ -25,6 +25,28 @@ MorseListener listener(MICROPHONE,13);
 
 WifiCredentials credentials;
 
+//--- declaration
+
+void   reset3V3();
+void   ir_recv_loop();
+void   onTimer();
+void   onDisconnect();
+int8_t onGetRecent();
+void   jsonDetectedStart();
+void   jsonDetectedData( uint8_t key, uint16_t value );
+void   jsonDetectedEnd();
+int8_t onPostSend();
+int8_t onRequest();
+void   connect();
+void   letterCallback( char letter );
+void   wordCallback();
+void   errorCallback();
+void   printGuide(void);
+void   IRKit_setup();
+void   IRKit_loop();
+
+//--- implementation
+
 void reset3V3 () {
     Serial.println(P("hardware reset"));
     digitalWrite( LDO33_ENABLE, LOW );
@@ -68,6 +90,11 @@ void ir_recv_loop(void) {
 
 void onTimer() {
     color.toggleBlink();
+}
+
+void onDisconnect() {
+    Serial.println(P("onDisconnect"));
+    connect();
 }
 
 int8_t onGetRecent() {
@@ -156,6 +183,10 @@ int8_t onRequest() {
 }
 
 void connect() {
+    // load wifi credentials from EEPROM
+    gBufferMode = GBufferModeWifiCredentials;
+    credentials.load();
+
     if (credentials.isValid()) {
         color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid credentials
 
@@ -277,11 +308,7 @@ void IRKit_setup() {
 
     reset3V3();
 
-    gs.setup();
-
-    // load wifi credentials from EEPROM
-    gBufferMode = GBufferModeWifiCredentials;
-    credentials.load();
+    gs.setup( &onDisconnect );
 
     connect();
 

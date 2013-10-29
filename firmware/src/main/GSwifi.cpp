@@ -43,11 +43,12 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial)
 {
     _buf_cmd       = ring_new(GS_CMD_SIZE);
-    _request.cid   = CID_UNDEFINED;
     _route_count   = 0;
 }
 
-int8_t GSwifi::setup() {
+int8_t GSwifi::setup(GSEventHandler onDisconnect) {
+    onDisconnect_ = onDisconnect;
+
     reset();
 
     _serial->begin(9600);
@@ -430,17 +431,13 @@ void GSwifi::parseLine () {
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             uint8_t cid = x2i(buf[11]);
             Serial.println(P("disconnect ")); Serial.println(cid);
-            // _gs_sock[cid].connect = false;
-            // _gs_sock[cid].onGsReceive.call(cid, -1); // event disconnected
         }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
                  strncmp(buf, P("Disassociation Event"), 20) == 0 ) {
-            _joined    = false;
-            _listening = false;
-            // for (i = 0; i < 16; i ++) {
-            //     _gs_sock[i].connect = false;
-            // }
+            _joined      = false;
+            _listening   = false;
+            onDisconnect_();
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
                  strncmp(buf, P("APP Reset-APP SW Reset"), 22) == 0 ||
@@ -452,9 +449,6 @@ void GSwifi::parseLine () {
             _escape       = false;
             resetResponse(GSCOMMANDMODE_NONE);
             _gs_mode      = GSMODE_COMMAND;
-            // for (i = 0; i < 16; i ++) {
-            //     _gs_sock[i].connect = false;
-            // }
         }
         else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
                  strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
@@ -610,9 +604,6 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
          (millis() - timeout_start_ >= timeout_ms) ) {
         Serial.println(P("!!! did timeout !!!"));
         did_timeout_ = true;
-        if (onTimeout_ != 0) {
-            onTimeout_();
-        }
         setBusy(false);
     }
 
@@ -717,7 +708,8 @@ int GSwifi::listen(uint16_t port) {
         return -1;
     }
 
-    _listening = true;
+    _listening   = true;
+    _request.cid = CID_UNDEFINED;
 
     // assume CID is 0 for server (only listen on 1 port)
 

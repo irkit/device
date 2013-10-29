@@ -78,6 +78,7 @@ public:
         GSPOWERSTATUS_DEEPSLEEP,
     };
 
+    typedef void (*GSEventHandler)();
     /**
      * data receive callback function
      */
@@ -115,7 +116,7 @@ public:
     /**
      * setup call once after initialization
      */
-    int8_t setup();
+    int8_t setup( GSEventHandler disconnect );
 
     void loop();
 
@@ -242,13 +243,11 @@ public:
 protected:
     void reset ();
 
-    int8_t parseRequestLine (char *token, uint8_t token_size);
-    void parseLine ();
-    void parseCmdResponse (char *buf);
-    int8_t router (GSMETHOD method, const char *path);
-
-    int8_t close(uint8_t cid);
-
+    int8_t   parseRequestLine (char *token, uint8_t token_size);
+    void     parseLine ();
+    void     parseCmdResponse (char *buf);
+    int8_t   router (GSMETHOD method, const char *path);
+    int8_t   close(uint8_t cid);
     GSMETHOD x2method(const char *method);
 
 private:
@@ -269,7 +268,7 @@ private:
     uint32_t           timeout_start_;
     bool               busy_;
     bool               did_timeout_;
-    void               (*onTimeout_)();
+    GSEventHandler     onDisconnect_;
     uint8_t            checkActivity(uint32_t timeout_ms);
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
