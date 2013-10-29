@@ -57,6 +57,7 @@ void IR_initialize (void);
 int IR_xmit (void);
 uint8_t IRDidRecvTimeout ();
 uint8_t IRDidXmitTimeout ();
+void IR_put (uint16_t);
 void IR_state (uint8_t);
 void IR_dump (void);
 

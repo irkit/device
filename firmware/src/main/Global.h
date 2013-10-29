@@ -11,7 +11,6 @@ class Global {
 enum GBufferMode {
     GBufferModeIR,
     GBufferModeWifiCredentials,
-    GBufferModeHTTP,
     GBufferModeUnused,
 };
 

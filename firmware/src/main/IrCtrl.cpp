@@ -351,6 +351,14 @@ void IR_clear (void)
     }
 }
 
+void IR_put (uint16_t data)
+{
+    if ( IrCtrl.state != IR_WRITING ) {
+        IR_state( IR_WRITING );
+    }
+    IrCtrl.buff[ IrCtrl.len ++ ] = data;
+}
+
 void IR_state (uint8_t nextState)
 {
     switch (nextState) {

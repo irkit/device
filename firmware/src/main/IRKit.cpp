@@ -102,15 +102,28 @@ int8_t onGetRecent() {
 
 void jsonDetectedStart() {
     Serial.println(P("json start"));
+
+    gBufferMode = GBufferModeIR;
+    IR_state( IR_WRITING );
 }
 
 void jsonDetectedData( uint8_t key, uint16_t value ) {
     Serial.print(P("json data: ")); Serial.println(value);
+    switch (key) {
+    case IrJsonParserDataKeyFreq:
+        IrCtrl.freq = value;
+        break;
+    case IrJsonParserDataKeyData:
+        IR_put( value );
+        break;
+    default:
+        break;
+    }
 }
 
 void jsonDetectedEnd() {
-    Serial.println(P("json end"));
-    // IR_xmit();
+    Serial.println(P("json end, xmit"));
+    IR_xmit();
 }
 
 int8_t onPostSend() {
