@@ -271,6 +271,7 @@ void printGuide(void) {
 
     Serial.println(P("b) change baud rate to 9600"));
     Serial.println(P("B) change baud rate to 115200"));
+    Serial.println(P("c) connect"));
     Serial.println(P("d) dump"));
     Serial.println(P("s) set credentials"));
     Serial.println(P("v) version"));
@@ -372,6 +373,10 @@ void IRKit_loop() {
         }
         else if (last_character == 'B') {
             gs.setBaud(115200);
+        }
+        else if (last_character == 'c') {
+            Serial.println(P("connect"));
+            connect();
         }
         else if (last_character == 'd') {
             Serial.println(P("---credentials---"));

@@ -924,4 +924,5 @@ void GSwifi::dump () {
     Serial.print(P("_power_status:"));      Serial.println(_power_status);
     Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
     Serial.print(P("_gs_response_lines:")); Serial.println(_gs_response_lines);
+    Serial.print(P("_gs_mode:"));           Serial.println(_gs_mode);
 }
