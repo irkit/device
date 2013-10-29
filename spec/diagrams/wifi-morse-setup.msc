@@ -1,0 +1,33 @@
+msc {
+    # entities
+    User, App, IRKit, Server;
+
+    # space
+    |||;
+
+    IRKit note IRKit [label = "Powered Off"];
+
+    User -> IRKit    [label = "Power On"];
+    IRKit note IRKit [label = "No Wifi Credentials, Waiting for Morse Sound"];
+
+    User -> App      [label = "Launch App"];
+    App => Server    [label = "GET /token"];
+    App << Server    [label = "Token Response (client_token, device_token)"];
+    App => Server    [label = "GET /status?client_token=#{client_token} (Long Poll)"];
+
+    User -> App      [label = "Input Wifi SSID and Password"];
+    App -> IRKit     [label = "Morse Sound\n(Wifi Security Level, SSID, Password, Device Token, CRC8)"];
+
+    IRKit note IRKit [label = "Decodes Morse Sound and Connect to Wifi"];
+    IRKit => Server  [label = "POST /status (body: token=#{device_token}&status=ok)"];
+    IRKit << Server  [label = "Status Response (OK)"];
+
+    App << Server    [label = "Status Response (body: {\"status\":\"ok\"})"];
+
+    IRKit => Server  [label = "GET /events?device_token=#{device_token} (Long Poll)"];
+
+    App -> Server    [label = "POST /events (body: token=#{client_token}&event=#{event})"];
+    App << Server    [label = "OK"];
+
+    IRKit << Server  [label = "Events Response ([#{event}])"];
+}
