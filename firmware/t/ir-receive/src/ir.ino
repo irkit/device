@@ -95,7 +95,43 @@ void loop() {
             printGuide();
         }
         else if (lastCharacter == 's') {
+            Serial.println(P("writing"));
+            IR_put(50489);            IR_put(9039);
+            IR_put(1205);            IR_put(1127);
+            IR_put(1199);            IR_put(3372);
+            IR_put(1203);            IR_put(3371);
+            IR_put(1202);            IR_put(3371);
+            IR_put(1206);            IR_put(1127);
+            IR_put(1199);            IR_put(3372);
+            IR_put(1205);            IR_put(3370);
+            IR_put(1201);            IR_put(3371);
+            IR_put(1205);            IR_put(3369);
+            IR_put(1203);            IR_put(3370);
+            IR_put(1206);            IR_put(3367);
+            IR_put(1201);            IR_put(1131);
+            IR_put(1204);            IR_put(1127);
+            IR_put(1203);            IR_put(1128);
+            IR_put(1201);            IR_put(1129);
+            IR_put(1204);            IR_put(3383);
+            IR_put(1205);            IR_put(3367);
+            IR_put(1206);            IR_put(1127);
+            IR_put(1203);            IR_put(3368);
+            IR_put(1205);            IR_put(1128);
+            IR_put(1204);            IR_put(1127);
+            IR_put(1202);            IR_put(1128);
+            IR_put(1204);            IR_put(1127);
+            IR_put(1203);            IR_put(1128);
+            IR_put(1202);            IR_put(1129);
+            IR_put(1203);            IR_put(1127);
+            IR_put(1204);            IR_put(1127);
+            IR_put(1203);            IR_put(3368);
+            IR_put(1205);            IR_put(3368);
+            IR_put(1206);            IR_put(3368);
+            IR_put(1205);            IR_put(3368);
+            IR_put(1205);            IR_put(3371);
+            IR_put(1205);
             Serial.println(P("sending"));
+            delay(100);
             IR_xmit();
             IR_dump();
         }
