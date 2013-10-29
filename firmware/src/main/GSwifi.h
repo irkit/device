@@ -160,7 +160,7 @@ public:
     /**
      * change radio region
      */
-    int setRegion (int reg = GS_WREGDOMAIN);
+    int8_t setRegion (int reg = GS_WREGDOMAIN);
 
     /**
      * use DHCP
@@ -193,21 +193,6 @@ public:
     GSPOWERSTATUS getPowerStatus ();
 
     /**
-     * http request (GET method)
-     */
-    int httpGet (Host &host, const char *uri, const char *user, const char *pwd, int ssl = 0, onGsReceiveFunc ponGsReceive = NULL);
-    int httpGet (Host &host, const char *uri, int ssl = 0, onGsReceiveFunc ponGsReceive = NULL) {
-        return httpGet (host, uri, NULL, NULL, ssl, ponGsReceive);
-    }
-    /**
-     * http request (POST method)
-     */
-    int httpPost (Host &host, const char *uri, const char *body, const char *user, const char *pwd, int ssl = 0, onGsReceiveFunc ponGsReceive = NULL);
-    int httpPost (Host &host, const char *uri, const char *body, int ssl = 0, onGsReceiveFunc ponGsReceive = NULL) {
-        return httpPost (host, uri, body, NULL, NULL, ssl, ponGsReceive);
-    }
-
-    /**
      * attach uri, http method pair to function
      */
     typedef int8_t (*GSRequestHandler)();
@@ -218,6 +203,11 @@ public:
     void write (const uint8_t data);
     void write (const uint16_t data);
     int8_t end ();
+
+    // HTTP Request
+    typedef void (*GSResponseHandler)();
+    int8_t postStatus (const char *device_token, GSResponseHandler handler);
+    int8_t getEvents (const char *device_token, GSResponseHandler handler);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;

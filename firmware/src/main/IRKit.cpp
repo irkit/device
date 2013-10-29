@@ -37,6 +37,8 @@ void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
 int8_t onPostSend();
 int8_t onRequest();
+void   onPostStatusResponse();
+void   onGetEventsResponse();
 void   connect();
 void   letterCallback( char letter );
 void   wordCallback();
@@ -180,6 +182,14 @@ int8_t onRequest() {
         break;
     }
     return -1;
+}
+
+void   onPostStatusResponse() {
+    Serial.println(P("onPostStatusResponse"));
+}
+
+void   onGetEventsResponse() {
+    Serial.println(P("onGetEventsResponse"));
 }
 
 void connect() {
@@ -390,6 +400,19 @@ void IRKit_loop() {
             Serial.println(P("---ir---"));
             IR_dump();
             Serial.println();
+        }
+        else if (last_character == 'g') {
+            gs.getEvents( PB("1bb0cfd6-494c-455a-a8b3-1109587b0d70", 2),
+                          &onGetEventsResponse
+                          );
+        }
+        else if (last_character == 'p') {
+            gBufferMode = GBufferModeWifiCredentials;
+            credentials.load();
+            // gs.postStatus( credentials.getToken() );
+            gs.postStatus( PB("1bb0cfd6-494c-455a-a8b3-1109587b0d70", 2),
+                           &onPostStatusResponse
+                           );
         }
         else if (last_character == 's') {
             Serial.println(P("setting credentials in EEPROM"));

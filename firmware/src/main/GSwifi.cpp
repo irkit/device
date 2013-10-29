@@ -26,6 +26,9 @@
 #include "MemoryFree.h"
 #include "convert.h"
 #include "ringbuffer.h"
+#include "version.h"
+
+#define DOMAIN "wifi-morse-setup.herokuapp.com"
 
 #define RESPONSE_LINES_ENDED -1
 
@@ -47,6 +50,8 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
 }
 
 int8_t GSwifi::setup(GSEventHandler onDisconnect) {
+    char cmd[GS_CMD_SIZE];
+
     onDisconnect_ = onDisconnect;
 
     reset();
@@ -67,6 +72,18 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect) {
     // faster baud rate
     // TODO enable when ready
     // setBaud(115200);
+
+    sprintf(cmd, P("AT+HTTPCONF=20,IRKit/%s"), version);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
+    sprintf(cmd, P("AT+HTTPCONF=11,%s"), DOMAIN);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
+    sprintf(cmd, P("AT+HTTPCONF=3,keep-alive"));
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
 
     return 0;
 }
@@ -512,8 +529,18 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         break;
     case GSCOMMANDMODE_HTTP:
+        if (_gs_response_lines == 0 && strstr(buf, P("IP:"))) {
+            _gs_response_lines ++;
+        }
+        else if (_gs_response_lines == 1) {
         if (buf[0] >= '0' && buf[0] <= 'F' && buf[1] == 0) {
+            // TODO ClientRequest.cid
             // _cid = x2i(buf[0]);
+
+
+
+
+
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -833,7 +860,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int GSwifi::setRegion (int reg) {
+int8_t GSwifi::setRegion (int reg) {
     char cmd[GS_CMD_SIZE];
 
     if (_power_status != GSPOWERSTATUS_READY) return -1;
@@ -841,6 +868,41 @@ int GSwifi::setRegion (int reg) {
     sprintf(cmd, P("AT+WREGDOMAIN=%d"), reg);
     command(cmd, GSCOMMANDMODE_NORMAL);
     return did_timeout_;
+}
+
+int8_t GSwifi::postStatus (const char *device_token, GSResponseHandler handler) {
+    char cmd[GS_CMD_SIZE];
+
+    sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
+    command(cmd, GSCOMMANDMODE_HTTP);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    // sprintf(cmd, P("AT+HTTPSEND=%d,3,10,/status"), cid);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::getEvents (const char *device_token, GSResponseHandler handler) {
+    char cmd[GS_CMD_SIZE];
+
+    sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
+    command(cmd, GSCOMMANDMODE_HTTP);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    sprintf(cmd, P("AT+HTTPSEND=%d,1,10,/events?device_token=%s"), device_token);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+
 }
 
 #ifdef GS_ENABLE_MDNS

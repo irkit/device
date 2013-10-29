@@ -61,6 +61,7 @@ class WifiCredentials {
     bool isValid();
     char* getSSID();
     char* getPassword();
+    char* getToken();
     GSwifi::GSSECURITY getSecurity();
     void set(GSwifi::GSSECURITY security, const char *ssid, const char *pass);
     void save();
