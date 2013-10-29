@@ -33,8 +33,10 @@
 #define IR_READING     4    /* BLE central is reading IR data, can't receive IR */
 #define IR_WRITING     10   /* BLE central is wrinting IR data, can't receive IR */
 #define IR_XMITTING    11   /* IR transmission is in progress */
+#define IR_DISABLED    0xFF /* disabled */
 
 typedef struct _irstruct {
+    uint8_t enabled;
     uint8_t state;               // Communication state
     uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
     uint8_t freq;                // carrier wave freq in kHz
@@ -43,7 +45,7 @@ typedef struct _irstruct {
     unsigned long recvStart;     // recv started at millis()
     uint16_t len;                // Size of buff used
     uint16_t txIndex;            // 0 < txIndex < len
-    uint16_t buff[IR_BUFF_SIZE]; // Data buffer 16Byte x 8bit/Byte x 2(HIGH and LOW) x uint16_t
+    uint16_t *buff;              // pointer to global buffer
 } IR_STRUCT;
 
 /* The work area for IR_CTRL is defined in ir_ctrl.c */
@@ -55,6 +57,7 @@ void IR_initialize (void);
 int IR_xmit (void);
 uint8_t IRDidRecvTimeout ();
 uint8_t IRDidXmitTimeout ();
+void IR_put (uint16_t);
 void IR_state (uint8_t);
 void IR_dump (void);
 

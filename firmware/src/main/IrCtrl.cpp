@@ -21,12 +21,7 @@
 #include <Arduino.h>
 #include "IrCtrl.h"
 #include "pgmStrToRAM.h"
-
-// we use ATmega328P-AU
-// avr/iom32u4.h
-#define WGM10 0
-#define WGM11 1
-#define WGM12 3
+#include "Global.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -356,6 +351,14 @@ void IR_clear (void)
     }
 }
 
+void IR_put (uint16_t data)
+{
+    if ( IrCtrl.state != IR_WRITING ) {
+        IR_state( IR_WRITING );
+    }
+    IrCtrl.buff[ IrCtrl.len ++ ] = data;
+}
+
 void IR_state (uint8_t nextState)
 {
     switch (nextState) {
@@ -397,6 +400,10 @@ void IR_state (uint8_t nextState)
         IrCtrl.txIndex = 0;
         IrCtrl.xmitStart = millis();
         break;
+    case IR_DISABLED:
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
+        break;
     }
     IrCtrl.state = nextState;
 }
@@ -406,7 +413,9 @@ void IR_initialize (void)
     IR_INIT_TIMER();
     IR_INIT_XMIT();
 
-    IR_state( IR_IDLE );
+    IrCtrl.buff = (uint16_t*)gBuffer;
+
+    IR_state( IR_DISABLED );
 }
 
 void IR_dump (void)

@@ -8,6 +8,14 @@ class Global {
     unsigned long now;
 };
 
+enum GBufferMode {
+    GBufferModeIR,
+    GBufferModeWifiCredentials,
+    GBufferModeUnused,
+};
+
 extern Global global;
+extern volatile char gBuffer[ 1024 ];
+extern GBufferMode gBufferMode;
 
 #endif // __GLOBAL_H__

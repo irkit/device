@@ -7,7 +7,7 @@
 // 0-1023
 #define ON_MIN_THRESHOLD 800
 
-prog_uchar morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
+prog_char morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
 
 MorseListener::MorseListener(int pin, uint16_t wpm) :
     pin_(pin)
@@ -152,7 +152,7 @@ void MorseListener::loop() {
             Serial.print(P("index: ")); Serial.println(index_);
 #endif
 
-            uint8_t letter = pgm_read_byte_near(morseTable + index_);
+            char letter = pgm_read_byte_near(morseTable + index_);
 
             letterCallback( letter );
 

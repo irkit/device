@@ -48,7 +48,6 @@ void loop() {
         uint8_t status;
         if (last_character == 'y') {
             WifiCredentials credentials;
-            uint8_t security = WIFICREDENTIALS_SECURITY_WPA2PSK;
             credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
                             PB("Rhodos",2),
                             PB("aaaaaaaaaaaaa",3));

@@ -13,7 +13,7 @@ public:
     void enable(bool);
 
     // called when a letter is detected
-    void (*letterCallback)(uint8_t letter);
+    void (*letterCallback)(char letter);
 
     // called when a word space is detected
     void (*wordCallback)();
