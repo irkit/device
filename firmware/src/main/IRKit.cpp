@@ -5,7 +5,7 @@
 #include "FullColorLed.h"
 #include "version.h"
 #include "GSwifi.h"
-#include "WifiCredentials.h"
+#include "Keys.h"
 #include "FlexiTimer2.h"
 #include "Global.h"
 #include "MorseListener.h"
@@ -23,7 +23,7 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 MorseListener listener(MICROPHONE,13);
 
-WifiCredentials credentials;
+Keys keys;
 
 //--- declaration
 
@@ -203,19 +203,19 @@ int8_t onGetEventsResponse() {
 void connect() {
     // load wifi credentials from EEPROM
     gBufferMode = GBufferModeWifiCredentials;
-    credentials.load();
+    keys.load();
 
-    if (credentials.isValid()) {
-        color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid credentials
+    if (keys.isSet()) {
+        color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid keys
 
-        gs.join(credentials.getSecurity(),
-                credentials.getSSID(),
-                credentials.getPassword());
+        gs.join(keys.getSecurity(),
+                keys.getSSID(),
+                keys.getPassword());
     }
     else {
         Serial.println(P("!!! CLEAR EEPROM, ENABLE MORSE !!!"));
-        credentials.dump();
-        credentials.clear();
+        keys.dump();
+        keys.clear();
 
         color.setLedColor( 1, 0, 0, false );
 
@@ -247,9 +247,9 @@ void connect() {
 
 void letterCallback( char letter ) {
     Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
-    int8_t result = credentials.put( letter );
+    int8_t result = keys.put( letter );
     if ( result != 0 ) {
-        credentials.clear();
+        keys.clear();
         Serial.println(P("cleared"));
 
         color.setLedColor( 1, 0, 0, false ); // red
@@ -261,24 +261,24 @@ void letterCallback( char letter ) {
 
 void wordCallback() {
     Serial.println(P("word"));
-    int8_t result = credentials.putDone();
+    int8_t result = keys.putDone();
     if ( result != 0 ) {
-        credentials.clear();
+        keys.clear();
         Serial.println(P("cleared"));
 
         color.setLedColor( 1, 0, 0, false ); // red
     }
     else {
         Serial.println(P("let's try connecting to wifi"));
-        credentials.dump();
-        credentials.save();
+        keys.dump();
+        keys.save();
         connect();
     }
 }
 
 void errorCallback() {
     Serial.println(P("error"));
-    credentials.clear();
+    keys.clear();
 
     color.setLedColor( 1, 0, 0, false ); // red
 }
@@ -291,7 +291,7 @@ void printGuide(void) {
     Serial.println(P("B) change baud rate to 115200"));
     Serial.println(P("c) connect"));
     Serial.println(P("d) dump"));
-    Serial.println(P("s) set credentials"));
+    Serial.println(P("s) set keys"));
     Serial.println(P("v) version"));
 
     Serial.println(P("Command?"));
@@ -397,8 +397,8 @@ void IRKit_loop() {
             connect();
         }
         else if (last_character == 'd') {
-            Serial.println(P("---credentials---"));
-            credentials.dump();
+            Serial.println(P("---keys---"));
+            keys.dump();
             Serial.println();
 
             Serial.println(P("---wifi---"));
@@ -416,18 +416,19 @@ void IRKit_loop() {
         }
         else if (last_character == 'p') {
             gBufferMode = GBufferModeWifiCredentials;
-            credentials.load();
-            // gs.postStatus( credentials.getToken() );
+            keys.load();
+            // gs.postStatus( keys.getToken() );
             gs.postStatus( PB("1bb0cfd6-494c-455a-a8b3-1109587b0d70", 2),
                            &onPostStatusResponse
                            );
         }
         else if (last_character == 's') {
-            Serial.println(P("setting credentials in EEPROM"));
-            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
-                            PB("Rhodos",1),
-                            PB("aaaaaaaaaaaaa",2));
-            credentials.save();
+            Serial.println(P("setting keys in EEPROM"));
+            keys.set(GSwifi::GSSECURITY_WPA2_PSK,
+                     PB("Rhodos",1),
+                     PB("aaaaaaaaaaaaa",2));
+            keys.setDeviceKey(P("1bb0cfd6-494c-455a-a8b3-1109587b0d70"));
+            keys.save();
         }
         else if (last_character == 'v') {
             Serial.print(P("version: "));

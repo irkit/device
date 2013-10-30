@@ -1,4 +1,4 @@
-#include "WifiCredentials.h"
+#include "Keys.h"
 #include <avr/eeprom.h>
 #include "pgmStrToRAM.h"
 #include "CRC8.h"
@@ -12,8 +12,8 @@
 // Fill wifi credentials
 //
 
-WifiCredentialsFiller::WifiCredentialsFiller ()
-    : state(WifiCredentialsFillerStateSecurity)
+KeysFiller::KeysFiller ()
+    : state(KeysFillerStateSecurity)
 {
 }
 
@@ -22,78 +22,92 @@ WifiCredentialsFiller::WifiCredentialsFiller ()
 // Save wifi credentials in EEPROM
 //
 
-WifiCredentials::WifiCredentials()
+Keys::Keys()
 {
-    data = (SavedData*)gBuffer;
+    data = (KeysShared*)gBuffer;
 }
 
-void WifiCredentials::load()
+void Keys::load()
 {
-    eeprom_read_block((void*)data, (void*)0, sizeof(SavedData));
-}
-
-// crc8 is ok && version is ok
-bool WifiCredentials::isValid()
-{
-    if (! data->isSet) {
-        return false;
+    eeprom_read_block((void*)data,   (void*)0,                  sizeof(KeysShared));
+    eeprom_read_block((void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
+    if (! isCRCOK()) {
+        clear();
     }
-    uint8_t crc = crc8( (uint8_t*)data, sizeof(CRCedData) );
-    return (crc == data->crc8) && (WIFICREDENTIALS_VERSION == data->version);
 }
 
-GSwifi::GSSECURITY WifiCredentials::getSecurity()
+bool Keys::isCRCOK()
+{
+    uint8_t crc = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
+    return (crc == data->crc8);
+}
+
+// crc8 is ok and wifi credentials are valid
+bool Keys::isSet()
+{
+    return data->is_set && data2.is_set;
+}
+
+GSwifi::GSSECURITY Keys::getSecurity()
 {
     return data->security;
 }
 
-char* WifiCredentials::getSSID()
+const char* Keys::getSSID()
 {
     return data->ssid;
 }
 
-char* WifiCredentials::getPassword()
+const char* Keys::getPassword()
 {
     return data->password;
 }
 
-char* WifiCredentials::getToken()
+const char* Keys::getDeviceKey()
 {
-    return data->token;
+    return data2.device_key;
 }
 
-void WifiCredentials::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
+void Keys::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
 {
     data->security = security;
     strcpy(data->ssid,     ssid);
     strcpy(data->password, pass);
-    data->isSet = true;
+    data->is_set = true;
 }
 
-void WifiCredentials::save(void)
+void Keys::setDeviceKey(const char *key)
 {
-    data->version = WIFICREDENTIALS_VERSION;
-    data->crc8    = crc8( (uint8_t*)data, sizeof(CRCedData) );
-    eeprom_write_block((const void*)data, (void*)0, sizeof(SavedData));
+    strcpy(data2.device_key, key);
+    data2.is_set = true;
 }
 
-void WifiCredentials::clear(void)
+void Keys::save(void)
 {
-    data->isSet = 0;
+    data->crc8    = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
+    eeprom_write_block((const void*)data,   (void*)0,                  sizeof(KeysShared));
+    eeprom_write_block((const void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
+}
+
+void Keys::clear(void)
+{
+    data->is_set = false;
     memset( data->ssid,     0, sizeof(data->ssid) );
     memset( data->password, 0, sizeof(data->password) );
-    memset( data->token,    0, sizeof(data->token) );
+
+    data2.is_set = false;
+    memset( data2.device_key, 0, sizeof(data2.device_key) );
 
     save();
 
-    filler.state = WifiCredentialsFillerStateSecurity;
+    filler.state = KeysFillerStateSecurity;
     filler.index = 0;
 }
 
-// we use morse code to transfer Security, SSID, Password, Token, CRC8 to IRKit device
+// we use morse code to transfer Security, SSID, Password, Device_Key, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
-int8_t WifiCredentials::put(char code)
+int8_t Keys::put(char code)
 {
     static uint8_t character;
     static bool is_first_byte;
@@ -101,22 +115,22 @@ int8_t WifiCredentials::put(char code)
     if (code == MORSE_CREDENTIALS_SEPARATOR) {
         // wait for putDone() on CRC state
         switch (filler.state) {
-        case WifiCredentialsFillerStateSecurity:
-            filler.state = WifiCredentialsFillerStateSSID;
+        case KeysFillerStateSecurity:
+            filler.state = KeysFillerStateSSID;
             break;
-        case WifiCredentialsFillerStateSSID:
+        case KeysFillerStateSSID:
             data->ssid[ filler.index ] = 0;
-            filler.state = WifiCredentialsFillerStatePassword;
+            filler.state = KeysFillerStatePassword;
             break;
-        case WifiCredentialsFillerStatePassword:
+        case KeysFillerStatePassword:
             data->password[ filler.index ] = 0;
-            filler.state = WifiCredentialsFillerStateToken;
+            filler.state = KeysFillerStateToken;
             break;
-        case WifiCredentialsFillerStateToken:
-            data->token[ filler.index ] = 0;
-            filler.state = WifiCredentialsFillerStateCRC;
+        case KeysFillerStateToken:
+            data2.device_key[ filler.index ] = 0;
+            filler.state = KeysFillerStateCRC;
             break;
-        case WifiCredentialsFillerStateCRC:
+        case KeysFillerStateCRC:
             // wait
             break;
         default:
@@ -132,7 +146,7 @@ int8_t WifiCredentials::put(char code)
         Serial.print(P("unexpected code: 0x")); Serial.println( code, HEX );
         return -1;
     }
-    if (filler.state == WifiCredentialsFillerStateSecurity) {
+    if (filler.state == KeysFillerStateSecurity) {
         switch (code) {
         case '0': // GSwifi::GSSECURITY_NONE:
         case '1': // GSwifi::GSSECURITY_OPEN:
@@ -160,28 +174,28 @@ int8_t WifiCredentials::put(char code)
     }
 
     switch (filler.state) {
-    case WifiCredentialsFillerStateSSID:
-        if ( filler.index == WIFICREDENTIALS_MAX_SSID ) {
+    case KeysFillerStateSSID:
+        if ( filler.index == MAX_WIFI_SSID_LENGTH ) {
             Serial.println(P("overflow 1"));
             return -1;
         }
         data->ssid[ filler.index ++ ] = character;
         break;
-    case WifiCredentialsFillerStatePassword:
-        if ( filler.index == WIFICREDENTIALS_MAX_PASSWORD ) {
+    case KeysFillerStatePassword:
+        if ( filler.index == MAX_WIFI_PASSWORD_LENGTH ) {
             Serial.println(P("overflow 2"));
             return -1;
         }
         data->password[ filler.index ++ ] = character;
         break;
-    case WifiCredentialsFillerStateToken:
-        if (filler.index == CREDENTIALS_MAX_TOKEN) {
+    case KeysFillerStateToken:
+        if (filler.index == MAX_DEVICE_KEY_LENGTH) {
             Serial.println(P("overflow 3"));
             return -1;
         }
-        data->token[ filler.index ++ ] = character;
+        data2.device_key[ filler.index ++ ] = character;
         break;
-    case WifiCredentialsFillerStateCRC:
+    case KeysFillerStateCRC:
         if (filler.index > 0) {
             Serial.println(P("overflow 4"));
             return -1;
@@ -196,20 +210,17 @@ int8_t WifiCredentials::put(char code)
     return 0;
 }
 
-int8_t WifiCredentials::putDone()
+int8_t Keys::putDone()
 {
-    if (filler.state != WifiCredentialsFillerStateCRC) {
+    if (filler.state != KeysFillerStateCRC) {
         Serial.println(P("state error"));
         return -1;
     }
 
-    // check CRC
-    data->isSet   = 1;
-    data->version = WIFICREDENTIALS_VERSION;
+    data->is_set = true;
+    data2.is_set = true;
 
-    dump();
-
-    if (isValid()) {
+    if (isCRCOK()) {
         return 0;
     }
     else {
@@ -218,13 +229,12 @@ int8_t WifiCredentials::putDone()
     }
 }
 
-void WifiCredentials::dump(void)
+void Keys::dump(void)
 {
-    Serial.print(P("version: "));
-    Serial.println(data->version);
-
-    Serial.print(P("isSet: "));
-    Serial.println(data->isSet);
+    Serial.print(P("wifi is_set: "));
+    Serial.println(data->is_set);
+    Serial.print(P("key is_set: "));
+    Serial.println(data2.is_set);
 
     Serial.print(P("security: "));
     switch (data->security) {
@@ -253,14 +263,9 @@ void WifiCredentials::dump(void)
     Serial.print(P("password: "));
     Serial.println((const char*)data->password);
 
-    Serial.print(P("token: "));
-    Serial.println((const char*)data->token);
+    Serial.print(P("device_key: "));
+    Serial.println((const char*)data2.device_key);
 
     Serial.print(P("crc8: 0x"));
     Serial.println(data->crc8, HEX);
-}
-
-uint8_t WifiCredentials::crc(void)
-{
-    return data->crc8;
 }

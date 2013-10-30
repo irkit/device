@@ -2,7 +2,7 @@
 #include "pins.h"
 #include "pgmStrToRAM.h"
 #include "MemoryFree.h"
-#include "WifiCredentials.h"
+#include "Keys.h"
 
 void setup() {
     // USB serial
@@ -13,12 +13,12 @@ void setup() {
 
     // load wifi credentials from EEPROM
     {
-        WifiCredentials credentials;
+        Keys keys;
 
-        if (credentials.isValid()) {
-            Serial.println(credentials.getSecurity());
-            Serial.println(credentials.getSSID());
-            Serial.println(credentials.getPassword());
+        if (keys.isValid()) {
+            Serial.println(keys.getSecurity());
+            Serial.println(keys.getSSID());
+            Serial.println(keys.getPassword());
         }
     }
 
@@ -47,15 +47,15 @@ void loop() {
 
         uint8_t status;
         if (last_character == 'y') {
-            WifiCredentials credentials;
-            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
-                            PB("Rhodos",2),
-                            PB("aaaaaaaaaaaaa",3));
-            credentials.save();
+            Keys keys;
+            keys.set(GSwifi::GSSECURITY_WPA2_PSK,
+                     PB("Rhodos",2),
+                     PB("aaaaaaaaaaaaa",3));
+            keys.save();
         }
         else if (last_character == 'z') {
-            WifiCredentials credentials;
-            credentials.clear();
+            Keys keys;
+            keys.clear();
             Serial.println(P("cleared EEPROM"));
         }
     }
