@@ -65,7 +65,7 @@ char* WifiCredentials::getToken()
 void WifiCredentials::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
 {
     data->security = security;
-    strcpy(data->ssid, ssid);
+    strcpy(data->ssid,     ssid);
     strcpy(data->password, pass);
     data->isSet = true;
 }

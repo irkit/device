@@ -278,6 +278,7 @@ private:
     void               parseByte(uint8_t dat);
     int8_t             dispatchRequestHandler();
     int8_t             dispatchResponseHandler();
+    struct RingBuffer  ringbuffer;
 };
 
 #endif // __GSWIFI_H__
