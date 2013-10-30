@@ -180,9 +180,10 @@ void GSwifi::parseByte(uint8_t dat) {
     else if (_gs_mode == GSMODE_DATA_RX_BULK) {
         if (next_token == NEXT_TOKEN_CID) {
             // dat is cid
+            uint8_t cid = x2i(dat);
             next_token  = NEXT_TOKEN_LENGTH;
             len         = 0;
-            if (clientRequest.cid == dat) {
+            if (clientRequest.cid == cid) {
                 // following data is response to our request from gswifi
                 is_response = true;
             }

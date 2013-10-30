@@ -187,6 +187,11 @@ int8_t onRequest() {
 
 int8_t onPostStatusResponse() {
     Serial.println(P("onPostStatusResponse"));
+
+    if (gs.clientRequest.status_code == 200) {
+
+    }
+
     return 0;
 }
 
