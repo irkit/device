@@ -45,7 +45,8 @@
 GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial)
 {
-    _buf_cmd       = ring_new(GS_CMD_SIZE);
+    _buf_cmd = &ringbuffer;
+    ring_init( _buf_cmd );
     _route_count   = 0;
 }
 
@@ -471,7 +472,7 @@ void GSwifi::parseLine () {
         // received "\n"
         i = 0;
         while ( (! ring_isempty(_buf_cmd)) &&
-                (i < sizeof(buf)) ) {
+                (i < sizeof(buf) - 1) ) {
             ring_get( _buf_cmd, &buf[i], 1 );
             if (buf[i] == '\n') {
                 break;
@@ -966,7 +967,7 @@ int8_t GSwifi::postStatus (const char *device_token, GSEventHandler handler) {
 int8_t GSwifi::getEvents (const char *device_token, GSEventHandler handler) {
     _responseHandler = handler;
 
-    char cmd[GS_CMD_SIZE];
+    char cmd[40 + 32 + 1];
 
     command( PB("AT+HTTPCONFDEL=5",1), GSCOMMANDMODE_NORMAL);
     command( PB("AT+HTTPCONFDEL=7",1), GSCOMMANDMODE_NORMAL);
@@ -977,7 +978,8 @@ int8_t GSwifi::getEvents (const char *device_token, GSEventHandler handler) {
         return -1;
     }
 
-    sprintf(cmd, P("AT+HTTPSEND=%d,1,10,/events?device_token=%s"), device_token);
+    // length: 40 + 32
+    sprintf(cmd, P("AT+HTTPSEND=%d,1,10,/events?device_token=%s"), clientRequest.cid, device_token);
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;

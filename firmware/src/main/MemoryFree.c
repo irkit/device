@@ -8,7 +8,7 @@ extern unsigned int __heap_start;
 extern void *__brkval;
 
 /*
- * The free list structure as maintained by the 
+ * The free list structure as maintained by the
  * avr-libc memory allocation routines.
  */
 struct __freelist {
@@ -19,7 +19,7 @@ struct __freelist {
 /* The head of the free list structure */
 extern struct __freelist *__flp;
 
-#include "MemoryFree.h";
+#include "MemoryFree.h"
 
 /* Calculates the size of the free list */
 int freeListSize() {

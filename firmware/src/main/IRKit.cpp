@@ -420,8 +420,8 @@ void IRKit_loop() {
         else if (last_character == 's') {
             Serial.println(P("setting credentials in EEPROM"));
             credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
-                            PB("Rhodos",2),
-                            PB("aaaaaaaaaaaaa",3));
+                            PB("Rhodos",1),
+                            PB("aaaaaaaaaaaaa",2));
             credentials.save();
         }
         else if (last_character == 'v') {

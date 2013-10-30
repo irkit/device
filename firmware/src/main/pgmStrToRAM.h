@@ -3,7 +3,6 @@
 
 #include <avr/pgmspace.h>
 
-#define getPSTR(s) pgmStrToRAM(PSTR(s))
 #define P(s)       pgmStrToRAM(PSTR(s),0)
 #define PB(s,i)    pgmStrToRAM(PSTR(s),i)
 

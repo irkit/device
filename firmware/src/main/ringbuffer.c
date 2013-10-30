@@ -1,20 +1,9 @@
 #include "ringbuffer.h"
-#include <stdlib.h> // for malloc
 
-struct RingBuffer {
-    char *buf;
-    uint8_t size;
-    uint8_t addr_w, addr_r;
-} RingBuffer;
-
-struct RingBuffer *ring_new (uint8_t p_size) {
-    struct RingBuffer *ring;
-    ring         = (struct RingBuffer *)malloc(sizeof(struct RingBuffer));
-    ring->size   = p_size + 1;
-    ring->buf    = (char*)malloc(ring->size);
+void ring_init (struct RingBuffer *ring) {
+    ring->size   = RING_SIZE + 1;
     ring->addr_w = 0;
     ring->addr_r = 0;
-    return ring;
 }
 
 void ring_put (struct RingBuffer *ring, char dat) {
