@@ -100,7 +100,7 @@ void onDisconnect() {
 }
 
 int8_t onGetRecent() {
-    if (gs._request.state != GSwifi::GSHTTPSTATE_RECEIVED) {
+    if (gs.serverRequest.state != GSwifi::GSHTTPSTATE_RECEIVED) {
         Serial.println(P("GET with body??"));
         return -1;
     }
@@ -171,7 +171,7 @@ int8_t onPostSend() {
 int8_t onRequest() {
     Serial.println(P("onRequest"));
 
-    switch (gs._request.routeid) {
+    switch (gs.serverRequest.routeid) {
     case 0: // GET /recent
         return onGetRecent();
 

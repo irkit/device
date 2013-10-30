@@ -101,6 +101,13 @@ public:
         uint16_t    error_code; // status code when error occured
     };
 
+    struct GSClientRequest {
+        uint8_t     cid; // can be 2 <= cid, because cid == 0 is our http server
+        // GSHTTPSTATE state;
+        // uint16_t    length;
+        // uint16_t    error_code; // status code when error occured
+    };
+
     struct GSRoute {
         GSMETHOD method;
         char path[GS_MAX_PATH_LENGTH + 1];
@@ -211,7 +218,8 @@ public:
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
-    struct GSServerRequest _request;
+    struct GSServerRequest serverRequest;
+    struct GSClientRequest clientRequest;
 
 #ifdef GS_ENABLE_MDNS
     /**
