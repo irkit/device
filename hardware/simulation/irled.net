@@ -1,0 +1,19 @@
+* F:\IRKIT\DEVICE\HARDWARE\SIMULATION\irled.asc
+Q1 c b 0 0 2SD1781K
+R1 b in 1.8k
+R2 c N002 200
+V1 in 0 PULSE(0V 5V 18u 0 0 9u 27u 100) AC 2.5V
+V2 out 0 5V
+R3 c b 10k
+D1 N001 N002 LD271
+D2 out N001 LD271
+R4 N002 c 200
+C1 out 0 4.7u
+.model D D
+.lib C:\PROGRA~1\LTC\LTSPIC~1\lib\cmp\standard.dio
+.model NPN NPN
+.model PNP PNP
+.lib C:\PROGRA~1\LTC\LTSPIC~1\lib\cmp\standard.bjt
+.tran 0.1m
+.backanno
+.end
