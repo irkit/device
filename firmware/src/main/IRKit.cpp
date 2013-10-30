@@ -30,15 +30,15 @@ WifiCredentials credentials;
 void   reset3V3();
 void   ir_recv_loop();
 void   onTimer();
-void   onDisconnect();
+int8_t onDisconnect();
 int8_t onGetRecent();
 void   jsonDetectedStart();
 void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
 int8_t onPostSend();
 int8_t onRequest();
-void   onPostStatusResponse();
-void   onGetEventsResponse();
+int8_t onPostStatusResponse();
+int8_t onGetEventsResponse();
 void   connect();
 void   letterCallback( char letter );
 void   wordCallback();
@@ -94,13 +94,14 @@ void onTimer() {
     color.toggleBlink();
 }
 
-void onDisconnect() {
+int8_t onDisconnect() {
     Serial.println(P("onDisconnect"));
     connect();
+    return 0;
 }
 
 int8_t onGetRecent() {
-    if (gs.serverRequest.state != GSwifi::GSHTTPSTATE_RECEIVED) {
+    if (gs.serverRequest.state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         Serial.println(P("GET with body??"));
         return -1;
     }
@@ -184,12 +185,14 @@ int8_t onRequest() {
     return -1;
 }
 
-void   onPostStatusResponse() {
+int8_t onPostStatusResponse() {
     Serial.println(P("onPostStatusResponse"));
+    return 0;
 }
 
-void   onGetEventsResponse() {
+int8_t onGetEventsResponse() {
     Serial.println(P("onGetEventsResponse"));
+    return 0;
 }
 
 void connect() {

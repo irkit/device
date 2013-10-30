@@ -78,34 +78,41 @@ public:
         GSPOWERSTATUS_DEEPSLEEP,
     };
 
-    typedef void (*GSEventHandler)();
+    typedef int8_t (*GSEventHandler)();
     /**
      * data receive callback function
      */
     typedef void (*onGsReceiveFunc)(uint8_t cid, int len);
 
-    enum GSHTTPSTATE {
-        GSHTTPSTATE_PREPARE, // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
-        GSHTTPSTATE_HEAD1, // 1st line ex: "GET / HTTP/1.1"
-        GSHTTPSTATE_HEAD2, // 2nd line and after
-        GSHTTPSTATE_BODY,
-        GSHTTPSTATE_RECEIVED, // received whole HTTP request successfully
-        GSHTTPSTATE_ERROR,
+    enum GSREQUESTSTATE {
+        GSREQUESTSTATE_PREPARE, // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
+        GSREQUESTSTATE_HEAD1, // 1st line ex: "GET / HTTP/1.1"
+        GSREQUESTSTATE_HEAD2, // 2nd line and after
+        GSREQUESTSTATE_BODY,
+        GSREQUESTSTATE_RECEIVED, // received whole HTTP request successfully
+        GSREQUESTSTATE_ERROR,
+    };
+
+    enum GSRESPONSESTATE {
+        GSRESPONSESTATE_STATUSLINE, // 1st line ex: "200 OK", "401 UNAUTHORIZED", ..
+        GSRESPONSESTATE_BODY,
+        GSRESPONSESTATE_RECEIVED, // received whole HTTP request successfully
+        GSRESPONSESTATE_ERROR,
     };
 
     struct GSServerRequest {
         uint8_t     cid; // can be 1 <= cid, because cid == 0 is our http server
         int8_t      routeid;
-        GSHTTPSTATE state;
+        GSREQUESTSTATE state;
         uint16_t    length;
         uint16_t    error_code; // status code when error occured
     };
 
     struct GSClientRequest {
         uint8_t     cid; // can be 2 <= cid, because cid == 0 is our http server
-        // GSHTTPSTATE state;
+        GSRESPONSESTATE state;
         // uint16_t    length;
-        // uint16_t    error_code; // status code when error occured
+        uint16_t    status_code; // status code when error occured
     };
 
     struct GSRoute {
@@ -202,9 +209,8 @@ public:
     /**
      * attach uri, http method pair to function
      */
-    typedef int8_t (*GSRequestHandler)();
     int8_t registerRoute (GSMETHOD method, const char *path);
-    void setRequestHandler (GSRequestHandler handler);
+    void setRequestHandler (GSEventHandler handler);
     int8_t writeHead (uint16_t status_code);
     void write (const char *data);
     void write (const uint8_t data);
@@ -212,9 +218,8 @@ public:
     int8_t end ();
 
     // HTTP Request
-    typedef void (*GSResponseHandler)();
-    int8_t postStatus (const char *device_token, GSResponseHandler handler);
-    int8_t getEvents (const char *device_token, GSResponseHandler handler);
+    int8_t postStatus (const char *device_token, GSEventHandler handler);
+    int8_t getEvents (const char *device_token, GSEventHandler handler);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
@@ -261,7 +266,8 @@ private:
 
     struct GSRoute     _routes[GS_MAX_ROUTES];
     uint8_t            _route_count;
-    GSRequestHandler   _handler;
+    GSEventHandler     _requestHandler;
+    GSEventHandler     _responseHandler;
 
     uint32_t           timeout_start_;
     bool               busy_;
@@ -271,6 +277,7 @@ private:
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
     int8_t             dispatchRequestHandler();
+    int8_t             dispatchResponseHandler();
 };
 
 #endif // __GSWIFI_H__
