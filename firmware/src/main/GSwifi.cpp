@@ -936,9 +936,9 @@ int8_t GSwifi::postStatus (const char *device_token, GSEventHandler handler) {
 
     char cmd[GS_CMD_SIZE];
 
+    command(PB("AT+HTTPCONF=7,application/x-www-form-urlencoded",1), GSCOMMANDMODE_NORMAL);
     // Content-Length is fixed to 49
     command(PB("AT+HTTPCONF=5,49",1), GSCOMMANDMODE_NORMAL);
-    command(PB("AT+HTTPCONF=7,application/x-www-form-urlencoded",1), GSCOMMANDMODE_NORMAL);
 
     sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
     command(cmd, GSCOMMANDMODE_HTTP);
