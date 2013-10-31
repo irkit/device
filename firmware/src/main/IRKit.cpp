@@ -242,7 +242,9 @@ int8_t onGetMessagesResponse() {
                           &jsonDetectedEnd );
         }
 
-        getMessageTimer = 0; // immediately
+        if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
+            getMessageTimer = 0; // immediately
+        }
         break;
     default:
         getMessageTimer = 25; // 5sec
