@@ -32,6 +32,7 @@ void   reset3V3();
 void   IrReceiveLoop();
 void   timerLoop();
 void   onTimer();
+int8_t onReset();
 int8_t onDisconnect();
 int8_t onGetMessagesRequest();
 void   jsonDetectedStart();
@@ -108,25 +109,37 @@ void onTimer() {
     }
 }
 
+int8_t onReset() {
+    Serial.println(P("!!! onReset"));
+
+    gs.setup( &onDisconnect, &onReset );
+
+    connect();
+    return 0;
+}
+
 int8_t onDisconnect() {
-    Serial.println(P("onDisconnect"));
+    Serial.println(P("!!! onDisconnect"));
+
     connect();
     return 0;
 }
 
 int8_t onGetMessagesRequest() {
     if (gs.serverRequest.state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        Serial.println(P("GET with body??"));
+        Serial.println(P("!!! GET with body??"));
         return -1;
     }
     gs.writeHead(200);
     if (IrCtrl.len <= 0) {
         // if no data
-        gs.write(P("[]"));
         gs.end();
         return 0;
     }
-    gs.write(P("[{"));
+
+    // TODO lock IrCtrl.buff
+
+    gs.write(P("{"));
     gs.write(P("\"format\":\"raw\",")); // format fixed to "raw" for now
     gs.write(P("\"freq\":"));
     gs.write(IrCtrl.freq);
@@ -139,7 +152,7 @@ int8_t onGetMessagesRequest() {
         }
     }
     Serial.print(P(" "));
-    gs.write(P("]}]"));
+    gs.write(P("]}"));
     gs.end();
     return 0;
 }
@@ -387,7 +400,7 @@ void IRKit_setup() {
 
     reset3V3();
 
-    gs.setup( &onDisconnect );
+    gs.setup( &onDisconnect, &onReset );
 
     connect();
 

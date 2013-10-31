@@ -129,7 +129,7 @@ public:
     /**
      * setup call once after initialization
      */
-    int8_t setup( GSEventHandler disconnect );
+    int8_t setup( GSEventHandler disconnect, GSEventHandler reset );
 
     void loop();
 
@@ -273,6 +273,7 @@ private:
     bool               busy_;
     bool               did_timeout_;
     GSEventHandler     onDisconnect_;
+    GSEventHandler     onReset_;
     uint8_t            checkActivity(uint32_t timeout_ms);
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);

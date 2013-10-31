@@ -52,25 +52,20 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     clientRequest.cid = CID_UNDEFINED;
 }
 
-int8_t GSwifi::setup(GSEventHandler onDisconnect) {
+int8_t GSwifi::setup(GSEventHandler onDisconnect, GSEventHandler onReset) {
     char cmd[GS_CMD_SIZE];
 
     onDisconnect_ = onDisconnect;
+    onReset_      = onReset;
 
     reset();
 
     _serial->begin(9600);
 
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
 
     // disable echo
     command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
 
     // faster baud rate
     // TODO enable when ready
@@ -85,6 +80,8 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect) {
     // finding an open socket for our server uses program space
     sprintf(cmd, P("AT+HTTPCONF=3,close"));
     command(cmd, GSCOMMANDMODE_NORMAL);
+
+    command(PB("AT+PSPOLLINTRL=0",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
@@ -104,7 +101,6 @@ int8_t GSwifi::close (uint8_t cid) {
 }
 
 void GSwifi::reset () {
-
     _joined         = false;
     _listening      = false;
     _power_status   = GSPOWERSTATUS_READY;
@@ -113,6 +109,8 @@ void GSwifi::reset () {
     _gs_mode        = GSMODE_COMMAND;
     _dhcp           = false;
     ring_clear(_buf_cmd);
+    serverRequest.cid = CID_UNDEFINED;
+    clientRequest.cid = CID_UNDEFINED;
 }
 
 void GSwifi::loop() {
@@ -526,20 +524,15 @@ void GSwifi::parseLine () {
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
                  strncmp(buf, P("Disassociation Event"), 20) == 0 ) {
-            _joined      = false;
-            _listening   = false;
+            reset();
             onDisconnect_();
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
                  strncmp(buf, P("APP Reset-APP SW Reset"), 22) == 0 ||
                  strncmp(buf, P("APP Reset-Wlan Except"), 21) == 0 ) {
             Serial.println(P("disassociate"));
-            _joined       = false;
-            _listening    = false;
-            _power_status = GSPOWERSTATUS_READY;
-            _escape       = false;
-            resetResponse(GSCOMMANDMODE_NONE);
-            _gs_mode      = GSMODE_COMMAND;
+            reset();
+            onReset_();
         }
         else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
                  strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
