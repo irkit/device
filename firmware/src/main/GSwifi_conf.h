@@ -11,12 +11,14 @@
 
 #define GS_TIMEOUT   10000 // ms
 #define GS_TIMEOUT2  60000 // ms
-#define GS_RECONNECT 60 // s
+#define GS_LONGPOLL_TIMEOUT 40 // s
+#define GS_LONGPOLL_TIMEOUT_MS 40000 // ms
+#define GS_IGNORE_TIMEOUT      10 // ms
 
 #define GS_CMD_SIZE 64
 
 #define GS_MAX_ROUTES 2
-#define GS_MAX_PATH_LENGTH 7 // max: "/abcdef"
+#define GS_MAX_PATH_LENGTH 9 // max: "/abcdefgh"
 
 //#define GS_ENABLE_MDNS
 

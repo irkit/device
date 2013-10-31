@@ -48,6 +48,11 @@ bool Keys::isSet()
     return data->is_set && data2.is_set;
 }
 
+bool Keys::isValid()
+{
+    return data2.is_set && data2.is_valid;
+}
+
 GSwifi::GSSECURITY Keys::getSecurity()
 {
     return data->security;
@@ -63,9 +68,9 @@ const char* Keys::getPassword()
     return data->password;
 }
 
-const char* Keys::getDeviceKey()
+const char* Keys::getKey()
 {
-    return data2.device_key;
+    return data2.key;
 }
 
 void Keys::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
@@ -76,16 +81,26 @@ void Keys::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
     data->is_set = true;
 }
 
-void Keys::setDeviceKey(const char *key)
+void Keys::setKey(const char *key)
 {
-    strcpy(data2.device_key, key);
+    strcpy(data2.key, key);
     data2.is_set = true;
+}
+
+void Keys::setKeyValid(bool valid)
+{
+    data2.is_valid = valid;
 }
 
 void Keys::save(void)
 {
     data->crc8    = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
     eeprom_write_block((const void*)data,   (void*)0,                  sizeof(KeysShared));
+    save2();
+}
+
+void Keys::save2(void)
+{
     eeprom_write_block((const void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
 }
 
@@ -95,8 +110,7 @@ void Keys::clear(void)
     memset( data->ssid,     0, sizeof(data->ssid) );
     memset( data->password, 0, sizeof(data->password) );
 
-    data2.is_set = false;
-    memset( data2.device_key, 0, sizeof(data2.device_key) );
+    clearKey();
 
     save();
 
@@ -104,7 +118,14 @@ void Keys::clear(void)
     filler.index = 0;
 }
 
-// we use morse code to transfer Security, SSID, Password, Device_Key, CRC8 to IRKit device
+void Keys::clearKey(void)
+{
+    data2.is_set   = false;
+    data2.is_valid = false;
+    memset( data2.key, 0, sizeof(data2.key) );
+}
+
+// we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
 int8_t Keys::put(char code)
@@ -127,7 +148,7 @@ int8_t Keys::put(char code)
             filler.state = KeysFillerStateToken;
             break;
         case KeysFillerStateToken:
-            data2.device_key[ filler.index ] = 0;
+            data2.key[ filler.index ] = 0;
             filler.state = KeysFillerStateCRC;
             break;
         case KeysFillerStateCRC:
@@ -189,11 +210,11 @@ int8_t Keys::put(char code)
         data->password[ filler.index ++ ] = character;
         break;
     case KeysFillerStateToken:
-        if (filler.index == MAX_DEVICE_KEY_LENGTH) {
+        if (filler.index == MAX_KEY_LENGTH) {
             Serial.println(P("overflow 3"));
             return -1;
         }
-        data2.device_key[ filler.index ++ ] = character;
+        data2.key[ filler.index ++ ] = character;
         break;
     case KeysFillerStateCRC:
         if (filler.index > 0) {
@@ -235,6 +256,8 @@ void Keys::dump(void)
     Serial.println(data->is_set);
     Serial.print(P("key is_set: "));
     Serial.println(data2.is_set);
+    Serial.print(P("key is_valid: "));
+    Serial.println(data2.is_valid);
 
     Serial.print(P("security: "));
     switch (data->security) {
@@ -263,8 +286,8 @@ void Keys::dump(void)
     Serial.print(P("password: "));
     Serial.println((const char*)data->password);
 
-    Serial.print(P("device_key: "));
-    Serial.println((const char*)data2.device_key);
+    Serial.print(P("key: "));
+    Serial.println((const char*)data2.key);
 
     Serial.print(P("crc8: 0x"));
     Serial.println(data->crc8, HEX);

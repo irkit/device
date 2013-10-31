@@ -109,7 +109,7 @@ public:
     };
 
     struct GSClientRequest {
-        uint8_t     cid; // can be 2 <= cid, because cid == 0 is our http server
+        uint8_t     cid; // can be 1 <= cid, because cid == 0 is our http server
         GSRESPONSESTATE state;
         // uint16_t    length;
         uint16_t    status_code; // status code when error occured
@@ -138,7 +138,7 @@ public:
      * send command
      */
     void command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout = GS_TIMEOUT);
-    void escape (const char *sequence);
+    void escape (const char *sequence, uint32_t timeout = GS_TIMEOUT);
     /**
      * reset recv responce
      */
@@ -218,13 +218,14 @@ public:
     int8_t end ();
 
     // HTTP Request
-    int8_t postStatus (const char *device_token, GSEventHandler handler);
-    int8_t getEvents (const char *device_token, GSEventHandler handler);
+    int8_t postDoor (const char *key, GSEventHandler handler);
+    int8_t getMessages (const char *key, GSEventHandler handler);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
     struct GSServerRequest serverRequest;
     struct GSClientRequest clientRequest;
+    uint32_t newest_message_id; // on memory only should be fine
 
 #ifdef GS_ENABLE_MDNS
     /**

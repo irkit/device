@@ -24,6 +24,7 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 MorseListener listener(MICROPHONE,13);
 
 Keys keys;
+static uint8_t getMessageTimer = 0; // off if 0, on if >0, fires on 0
 
 //--- declaration
 
@@ -31,14 +32,14 @@ void   reset3V3();
 void   ir_recv_loop();
 void   onTimer();
 int8_t onDisconnect();
-int8_t onGetRecent();
+int8_t onGetMessagesRequest();
 void   jsonDetectedStart();
 void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
-int8_t onPostSend();
+int8_t onPostMessagesRequest();
 int8_t onRequest();
-int8_t onPostStatusResponse();
-int8_t onGetEventsResponse();
+int8_t onPostDoorResponse();
+int8_t onGetMessagesResponse();
 void   connect();
 void   letterCallback( char letter );
 void   wordCallback();
@@ -92,6 +93,13 @@ void ir_recv_loop(void) {
 
 void onTimer() {
     color.toggleBlink();
+
+    if (getMessageTimer > 0) {
+        getMessageTimer --;
+        if (getMessageTimer == 0) {
+            gs.getMessages( keys.getKey(), &onGetMessagesResponse );
+        }
+    }
 }
 
 int8_t onDisconnect() {
@@ -100,7 +108,7 @@ int8_t onDisconnect() {
     return 0;
 }
 
-int8_t onGetRecent() {
+int8_t onGetMessagesRequest() {
     if (gs.serverRequest.state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         Serial.println(P("GET with body??"));
         return -1;
@@ -137,9 +145,12 @@ void jsonDetectedStart() {
     IR_state( IR_WRITING );
 }
 
-void jsonDetectedData( uint8_t key, uint16_t value ) {
+void jsonDetectedData( uint8_t key, uint32_t value ) {
     Serial.print(P("json data: ")); Serial.println(value);
     switch (key) {
+    case IrJsonParserDataKeyId:
+        gs.newest_message_id = value;
+        break;
     case IrJsonParserDataKeyFreq:
         IrCtrl.freq = value;
         break;
@@ -156,7 +167,7 @@ void jsonDetectedEnd() {
     IR_xmit();
 }
 
-int8_t onPostSend() {
+int8_t onPostMessagesRequest() {
     while (!ring_isempty(gs._buf_cmd)) {
         char letter;
         ring_get(gs._buf_cmd, &letter, 1);
@@ -173,11 +184,11 @@ int8_t onRequest() {
     Serial.println(P("onRequest"));
 
     switch (gs.serverRequest.routeid) {
-    case 0: // GET /recent
-        return onGetRecent();
+    case 0: // GET /messages
+        return onGetMessagesRequest();
 
-    case 1: // POST /send
-        return onPostSend();
+    case 1: // POST /messages
+        return onPostMessagesRequest();
 
     default:
         break;
@@ -185,18 +196,53 @@ int8_t onRequest() {
     return -1;
 }
 
-int8_t onPostStatusResponse() {
-    Serial.println(P("onPostStatusResponse"));
+int8_t onPostDoorResponse() {
+    Serial.println(P("onPostDoorResponse"));
+    uint16_t status = gs.clientRequest.status_code;
 
-    if (gs.clientRequest.status_code == 200) {
-
+    switch (status) {
+    case 200:
+        keys.setKeyValid(true);
+        // save only independent area, since gBuffer might be populated by IR or so.
+        keys.save2();
+        break;
+    case 401:
+        // keys have expired, we have to start from morse sequence again
+        keys.clear();
+        break;
+    case 408:
+    default:
+        // try again
+        gs.postDoor( keys.getKey(), &onPostDoorResponse );
+        break;
     }
 
     return 0;
 }
 
-int8_t onGetEventsResponse() {
-    Serial.println(P("onGetEventsResponse"));
+int8_t onGetMessagesResponse() {
+    Serial.println(P("onGetMessagesResponse"));
+    uint16_t status = gs.clientRequest.status_code;
+
+    switch (status) {
+    case 200:
+        while (!ring_isempty(gs._buf_cmd)) {
+            char letter;
+            ring_get(gs._buf_cmd, &letter, 1);
+
+            irjson_parse( letter,
+                          &jsonDetectedStart,
+                          &jsonDetectedData,
+                          &jsonDetectedEnd );
+        }
+
+        getMessageTimer = 1; // retry after 200ms
+        break;
+    default:
+        getMessageTimer = 25; // 5sec
+        break;
+    }
+
     return 0;
 }
 
@@ -226,9 +272,9 @@ void connect() {
         color.setLedColor( 0, 1, 0, true );
 
         // 0
-        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/recent") );
+        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
         // 1
-        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/send") );
+        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
 
         gs.setRequestHandler( &onRequest );
 
@@ -243,6 +289,12 @@ void connect() {
         IR_state( IR_IDLE );
     }
 
+    if (keys.isSet() && ! keys.isValid()) {
+        gs.postDoor( keys.getKey(), &onPostDoorResponse );
+    }
+    else if (keys.isValid()) {
+        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
+    }
 }
 
 void letterCallback( char letter ) {
@@ -410,24 +462,17 @@ void IRKit_loop() {
             Serial.println();
         }
         else if (last_character == 'g') {
-            gs.getEvents( PB("1bb0cfd6-494c-455a-a8b3-1109587b0d70", 2),
-                          &onGetEventsResponse
-                          );
+            gs.getMessages( keys.getKey(), &onGetMessagesResponse );
         }
         else if (last_character == 'p') {
-            gBufferMode = GBufferModeWifiCredentials;
-            keys.load();
-            // gs.postStatus( keys.getToken() );
-            gs.postStatus( PB("1bb0cfd6-494c-455a-a8b3-1109587b0d70", 2),
-                           &onPostStatusResponse
-                           );
+            gs.postDoor( keys.getKey(), &onPostDoorResponse );
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));
             keys.set(GSwifi::GSSECURITY_WPA2_PSK,
                      PB("Rhodos",1),
                      PB("aaaaaaaaaaaaa",2));
-            keys.setDeviceKey(P("1bb0cfd6-494c-455a-a8b3-1109587b0d70"));
+            keys.setKey(P("26445d75-a2dc-4be1-9e9c-c21cd250bed6"));
             keys.save();
         }
         else if (last_character == 'v') {

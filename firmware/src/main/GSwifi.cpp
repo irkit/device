@@ -45,9 +45,10 @@
 GSwifi::GSwifi( HardwareSerial *serial ) :
     _serial(serial)
 {
-    _buf_cmd = &ringbuffer;
+    _buf_cmd          = &ringbuffer;
     ring_init( _buf_cmd );
-    _route_count   = 0;
+    _route_count      = 0;
+    newest_message_id = 0;
 }
 
 int8_t GSwifi::setup(GSEventHandler onDisconnect) {
@@ -223,8 +224,8 @@ void GSwifi::parseByte(uint8_t dat) {
                             // protocol error
                             // we should receive something like: "200 OK", "401 Unauthorized"
                             // TODO handle this
-                            sprintf( status_code, "999" );
-                            clientRequest.state = GSRESPONSESTATE_ERROR;
+                            clientRequest.status_code = 999;
+                            clientRequest.state       = GSRESPONSESTATE_ERROR;
                             break;
                         }
                         ring_clear(_buf_cmd);
@@ -247,8 +248,8 @@ void GSwifi::parseByte(uint8_t dat) {
                 if (len == 0) {
                     Serial.println(P("len==0"));
 
-                    _escape  = false;
-                    _gs_mode = GSMODE_COMMAND;
+                    _escape             = false;
+                    _gs_mode            = GSMODE_COMMAND;
                     clientRequest.state = GSRESPONSESTATE_RECEIVED;
                     clientRequest.cid   = CID_UNDEFINED;
                     dispatchResponseHandler();
@@ -512,7 +513,13 @@ void GSwifi::parseLine () {
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             uint8_t cid = x2i(buf[11]);
-            Serial.println(P("disconnect ")); Serial.println(cid);
+            Serial.print(P("disconnect ")); Serial.println(cid);
+            if (cid == clientRequest.cid) {
+                clientRequest.cid = CID_UNDEFINED;
+            }
+            else if (cid == serverRequest.cid) {
+                serverRequest.cid = CID_UNDEFINED;
+            }
         }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
@@ -600,7 +607,15 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         else if (_gs_response_lines == 1) {
             if (buf[0] >= '0' && buf[0] <= 'F' && buf[1] == 0) {
-                clientRequest.cid   = x2i(buf[0]);
+                uint8_t cid = x2i(buf[0]);
+
+                if ( (clientRequest.cid != CID_UNDEFINED) &&
+                     (clientRequest.cid != cid) ){
+                    // if a connection is left over, close it before hand
+                    close( clientRequest.cid );
+                }
+
+                clientRequest.cid   = cid;
                 clientRequest.state = GSRESPONSESTATE_STATUSLINE;
             }
             _gs_response_lines = RESPONSE_LINES_ENDED;
@@ -640,7 +655,7 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout) {
     waitResponse(timeout);
 }
 
-void GSwifi::escape (const char *cmd) {
+void GSwifi::escape (const char *cmd, uint32_t timeout) {
     Serial.print(P("e> "));
 
     resetResponse(GSCOMMANDMODE_NONE);
@@ -651,7 +666,7 @@ void GSwifi::escape (const char *cmd) {
     Serial.println(cmd);
 
     setBusy(true);
-    waitResponse(GS_TIMEOUT);
+    waitResponse(timeout);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
@@ -932,14 +947,14 @@ int8_t GSwifi::setRegion (int reg) {
     return did_timeout_;
 }
 
-int8_t GSwifi::postStatus (const char *device_token, GSEventHandler handler) {
+int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
     _responseHandler = handler;
 
-    char cmd[GS_CMD_SIZE];
+    char cmd[GS_CMD_SIZE]; // uses 62
 
     command(PB("AT+HTTPCONF=7,application/x-www-form-urlencoded",1), GSCOMMANDMODE_NORMAL);
-    // Content-Length is fixed to 49
-    command(PB("AT+HTTPCONF=5,49",1), GSCOMMANDMODE_NORMAL);
+    // Content-Length is fixed to 40
+    command(PB("AT+HTTPCONF=5,40",1), GSCOMMANDMODE_NORMAL);
 
     sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
     command(cmd, GSCOMMANDMODE_HTTP);
@@ -948,27 +963,29 @@ int8_t GSwifi::postStatus (const char *device_token, GSEventHandler handler) {
     }
 
     // example POST body
-    // device_token=23B31A70-4E14-4970-8737-BD478BC968E2
-    // length: 49
-    sprintf(cmd, P("AT+HTTPSEND=%d,3,10,/status,49"), clientRequest.cid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    // key=23B31A70-4E14-4970-8737-BD478BC968E2
+    // length: 40
+    sprintf(cmd, P("AT+HTTPSEND=%d,3,%d,/door,40"),
+            clientRequest.cid,
+            GS_LONGPOLL_TIMEOUT);
+    command(cmd, GSCOMMANDMODE_NORMAL, GS_LONGPOLL_TIMEOUT_MS);
     if (did_timeout_) {
         return -1;
     }
 
-    sprintf(cmd, P("H%ddevice_token=%s"), clientRequest.cid, device_token);
-    escape( cmd );
-    if (did_timeout_) {
-        return -1;
-    }
+    sprintf(cmd, P("H%dkey=%s"), clientRequest.cid, key);
+    escape( cmd, GS_IGNORE_TIMEOUT );
+
+    // we're long polling here, to receive other events, we're going back to our main loop
+    // ignore timeout, we always timeout here
 
     return 0;
 }
 
-int8_t GSwifi::getEvents (const char *device_token, GSEventHandler handler) {
+int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
     _responseHandler = handler;
 
-    char cmd[40 + 32 + 1];
+    char cmd[87];
 
     command( PB("AT+HTTPCONFDEL=5",1), GSCOMMANDMODE_NORMAL);
     command( PB("AT+HTTPCONFDEL=7",1), GSCOMMANDMODE_NORMAL);
@@ -979,12 +996,17 @@ int8_t GSwifi::getEvents (const char *device_token, GSEventHandler handler) {
         return -1;
     }
 
-    // length: 40 + 32
-    sprintf(cmd, P("AT+HTTPSEND=%d,1,10,/events?device_token=%s"), clientRequest.cid, device_token);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
+    // TODO newer_than
+    // ex: AT+HTTPSEND=1,1,40,/messages?key=23B31A70-4E14-4970-8737-BD478BC968E2&newer_than=65535
+    sprintf(cmd, P("AT+HTTPSEND=%d,1,%d,/messages?key=%s&newer_than=%d"),
+            clientRequest.cid,
+            GS_LONGPOLL_TIMEOUT,
+            key,
+            newest_message_id);
+    command(cmd, GSCOMMANDMODE_NORMAL, GS_IGNORE_TIMEOUT);
+
+    // we're long polling here, to receive other events, we're going back to our main loop
+    // ignore timeout, we always timeout here
 
     return 0;
 }

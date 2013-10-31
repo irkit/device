@@ -13,7 +13,7 @@
 #define MAX_WIFI_PASSWORD_LENGTH 63
 
 // it's an UUID
-#define MAX_DEVICE_KEY_LENGTH    32
+#define MAX_KEY_LENGTH           36
 
 enum KeysFillerState {
     KeysFillerStateSecurity = 0,
@@ -37,15 +37,18 @@ class Keys {
 
     void load();
     bool isSet();
+    bool isValid();
     const char* getSSID();
     const char* getPassword();
-    const char* getDeviceKey();
+    const char* getKey();
     GSwifi::GSSECURITY getSecurity();
     void set(GSwifi::GSSECURITY security, const char *ssid, const char *pass);
-    void setDeviceKey(const char *key);
+    void setKey(const char *key);
+    void setKeyValid(bool valid);
     void save();
+    void save2();
     void clear();
-
+    void clearKey();
     int8_t put(char dat);
     int8_t putDone();
 
@@ -56,7 +59,7 @@ class Keys {
     // SharedArea includes Wifi credentials, which is only needed
     // when we lost Wifi connection or haven't established it,
     // and no other classes will use gBuffer without Wifi connection.
-    // IndependentArea is used to store device_key,
+    // IndependentArea is used to store key,
     // which is needed to communicate with server,
     // and that's going to happen when other classes (ex: IR) uses gBuffer
     // CRC is used to detect EEPROM corruption, so let's just use SharedArea for simplicity
@@ -80,8 +83,9 @@ class Keys {
 
     struct KeysIndependent
     {
-        char device_key[MAX_DEVICE_KEY_LENGTH + 1];
+        char key[MAX_KEY_LENGTH + 1];
         bool is_set;
+        bool is_valid; // POST /door succeeded
     };
 
     bool isCRCOK();

@@ -8,10 +8,16 @@ void irjson_parse (char letter,
                    IrJsonParserData onData,
                    IrJsonParserStartEnd onEnd) {
     static uint8_t  current_token;
-    static uint16_t data;
+    static uint32_t data;
     static uint8_t  data_exists;
 
     // special case only json parser
+    // non-nested Object with following possible keys
+    // (capital letter is unique to that key -> use that to identify key)
+    // - Id
+    // - fOrMat
+    // - frEQ
+    // - Data
     switch (letter) {
     case '{':
         current_token = IrJsonParserDataKeyUnknown;
@@ -31,6 +37,8 @@ void irjson_parse (char letter,
         data          = 0;
         data_exists   = 0;
         break;
+    case 'i':
+        current_token = IrJsonParserDataKeyId;
     case 'o':
     case 'm':
         // format
@@ -55,7 +63,8 @@ void irjson_parse (char letter,
     case '7':
     case '8':
     case '9':
-        if ( (current_token == IrJsonParserDataKeyFreq) ||
+        if ( (current_token == IrJsonParserDataKeyId)   ||
+             (current_token == IrJsonParserDataKeyFreq) ||
              (current_token == IrJsonParserDataKeyData) ) {
             if (data_exists) {
                 data    *= 10;

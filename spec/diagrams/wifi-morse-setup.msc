@@ -40,4 +40,10 @@ msc {
     App << Server    [label = "Message Response (status code: 200)"];
 
     IRKit << Server  [label = "Messages Response (status code: 200\nbody: \"#{message_id},#{event}\")"];
+
+    App -> IRKit    [label = "POST /messages (body: event=#{event})"];
+    App << IRKit    [label = "Message Response (status code: 200)"];
+
+    App -> IRKit    [label = "GET /messages"];
+    App << IRKit    [label = "Message Response (status code: 200\nbody: \"#{message_id},#{event}\")"];
 }
