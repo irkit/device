@@ -364,6 +364,7 @@ void errorCallback() {
 
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
+    Serial.println(P("c) clear"));
     Serial.println(P("d) dump"));
     Serial.println(P("p) POST /door"));
     Serial.println(P("s) set keys"));
@@ -457,6 +458,9 @@ void IRKit_loop() {
         else if (last_character == 0x1B) {
             is_command_mode = true;
             Serial.println(P(">>c"));
+        }
+        else if (last_character == 'c') {
+            keys.clear();
         }
         else if (last_character == 'd') {
             Serial.println(P("---keys---"));
