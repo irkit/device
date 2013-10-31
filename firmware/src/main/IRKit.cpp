@@ -183,6 +183,12 @@ int8_t onPostMessagesRequest() {
                       &jsonDetectedData,
                       &jsonDetectedEnd );
     }
+
+    if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+        gs.writeHead(200);
+        gs.end();
+    }
+
     return 0;
 }
 
