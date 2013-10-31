@@ -12,7 +12,7 @@ msc {
 
     User -> App      [label = "Launch App"];
     App => Server    [label = "GET /keys"];
-    App << Server    [label = "Keys Response (status code: 200\nbody: \"#{key1},#{key2}\")"];
+    App << Server    [label = "Keys Response (status code: 200\nbody: [\"#{key1}\",\"#{key2}\"])"];
 
     App => Server    [label = "POST /door (body: key=#{key1}) (Long Poll)"];
     App << Server    [label = "Door Response (status code: 401)\nKeys have expired, get keys again"];
@@ -36,14 +36,14 @@ msc {
 
     IRKit => Server  [label = "GET /messages?key=#{key2}&newer_than=#{newest_message_id} (Long Poll)"];
 
-    App -> Server    [label = "POST /messages (body: key=#{key1}&event=#{event})"];
+    App -> Server    [label = "POST /messages (body: key=#{key1}&message=#{JSON stringified message})"];
     App << Server    [label = "Message Response (status code: 200)"];
 
-    IRKit << Server  [label = "Messages Response (status code: 200\nbody: \"#{message_id},#{event}\")"];
+    IRKit << Server  [label = "Messages Response (status code: 200\nbody: {\"id\":#{message_id},#{JSON stringified message}})"];
 
-    App -> IRKit    [label = "POST /messages (body: event=#{event})"];
+    App -> IRKit    [label = "POST /messages (body: message=#{JSON stringified message})"];
     App << IRKit    [label = "Message Response (status code: 200)"];
 
     App -> IRKit    [label = "GET /messages"];
-    App << IRKit    [label = "Message Response (status code: 200\nbody: \"#{message_id},#{event}\")"];
+    App << IRKit    [label = "Message Response (status code: 200\nbody: #{JSON stringified message})"];
 }
