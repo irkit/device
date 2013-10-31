@@ -49,6 +49,7 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     ring_init( _buf_cmd );
     _route_count      = 0;
     newest_message_id = 0;
+    clientRequest.cid = CID_UNDEFINED;
 }
 
 int8_t GSwifi::setup(GSEventHandler onDisconnect) {
@@ -81,6 +82,7 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect) {
     sprintf(cmd, P("AT+HTTPCONF=11,%s"), DOMAIN);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
+    // finding an open socket for our server uses program space
     sprintf(cmd, P("AT+HTTPCONF=3,close"));
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
@@ -154,7 +156,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                Serial.print(P("!!! unknown [ESC] 0x")); Serial.println(dat,HEX);
+                Serial.print(P("!!!E1 ")); Serial.println(dat,HEX);
                 break;
             }
             _escape = false;
@@ -173,7 +175,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    Serial.println(P("!!! line buffer overflowed !!!"));
+                    Serial.println(P("!!!E2"));
                 }
             }
         }
@@ -670,10 +672,10 @@ void GSwifi::escape (const char *cmd, uint32_t timeout) {
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
-    _gs_ok                = false;
-    _gs_failure           = false;
-    _gs_response_lines    = 0;
-    _gs_commandmode = res;
+    _gs_ok             = false;
+    _gs_failure        = false;
+    _gs_response_lines = 0;
+    _gs_commandmode    = res;
 }
 
 bool GSwifi::setBusy(bool busy) {
@@ -1003,7 +1005,7 @@ int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
             GS_LONGPOLL_TIMEOUT,
             key,
             newest_message_id);
-    command(cmd, GSCOMMANDMODE_NORMAL, GS_IGNORE_TIMEOUT);
+    command(cmd, GSCOMMANDMODE_NORMAL);
 
     // we're long polling here, to receive other events, we're going back to our main loop
     // ignore timeout, we always timeout here

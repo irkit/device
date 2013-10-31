@@ -236,7 +236,7 @@ int8_t onGetMessagesResponse() {
                           &jsonDetectedEnd );
         }
 
-        getMessageTimer = 1; // retry after 200ms
+        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
         break;
     default:
         getMessageTimer = 25; // 5sec
@@ -337,16 +337,10 @@ void errorCallback() {
 
 void printGuide(void) {
     Serial.println(P("Operations Menu:"));
-    Serial.println(P("h) Print this guide"));
-
-    Serial.println(P("b) change baud rate to 9600"));
-    Serial.println(P("B) change baud rate to 115200"));
-    Serial.println(P("c) connect"));
     Serial.println(P("d) dump"));
+    Serial.println(P("p) POST /door"));
     Serial.println(P("s) set keys"));
     Serial.println(P("v) version"));
-
-    Serial.println(P("Command?"));
 }
 
 void IRKit_setup() {
@@ -428,25 +422,12 @@ void IRKit_loop() {
             Serial1.write(last_character);
             if ( last_character == 0x1B ) {
                 is_command_mode = false;
-                Serial.println(P("<< command mode finished !!!!"));
+                Serial.println(P("<<c"));
             }
         }
         else if (last_character == 0x1B) {
             is_command_mode = true;
-            Serial.println(P(">> entered command mode !!!!"));
-        }
-        else if (last_character == 'h') {
-            printGuide();
-        }
-        else if (last_character == 'b') {
-            gs.setBaud(9600);
-        }
-        else if (last_character == 'B') {
-            gs.setBaud(115200);
-        }
-        else if (last_character == 'c') {
-            Serial.println(P("connect"));
-            connect();
+            Serial.println(P(">>c"));
         }
         else if (last_character == 'd') {
             Serial.println(P("---keys---"));
@@ -460,9 +441,6 @@ void IRKit_loop() {
             Serial.println(P("---ir---"));
             IR_dump();
             Serial.println();
-        }
-        else if (last_character == 'g') {
-            gs.getMessages( keys.getKey(), &onGetMessagesResponse );
         }
         else if (last_character == 'p') {
             gs.postDoor( keys.getKey(), &onPostDoorResponse );

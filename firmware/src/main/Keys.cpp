@@ -136,26 +136,20 @@ int8_t Keys::put(char code)
     if (code == MORSE_CREDENTIALS_SEPARATOR) {
         // wait for putDone() on CRC state
         switch (filler.state) {
-        case KeysFillerStateSecurity:
-            filler.state = KeysFillerStateSSID;
-            break;
         case KeysFillerStateSSID:
             data->ssid[ filler.index ] = 0;
-            filler.state = KeysFillerStatePassword;
             break;
         case KeysFillerStatePassword:
             data->password[ filler.index ] = 0;
-            filler.state = KeysFillerStateToken;
             break;
         case KeysFillerStateToken:
             data2.key[ filler.index ] = 0;
-            filler.state = KeysFillerStateCRC;
-            break;
-        case KeysFillerStateCRC:
-            // wait
             break;
         default:
             break;
+        }
+        if (filler.state != KeysFillerStateCRC) {
+            filler.state = (KeysFillerState)( filler.state + 1 );
         }
         is_first_byte = 1;
         filler.index  = 0;
