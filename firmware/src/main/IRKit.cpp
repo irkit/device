@@ -24,12 +24,13 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 MorseListener listener(MICROPHONE,13);
 
 Keys keys;
-static uint8_t getMessageTimer = 0; // off if 0, on if >0, fires on 0
+static int8_t getMessageTimer = -1; // -1: off, 0: dispatch, >0: timer running
 
 //--- declaration
 
 void   reset3V3();
-void   ir_recv_loop();
+void   IrReceiveLoop();
+void   timerLoop();
 void   onTimer();
 int8_t onDisconnect();
 int8_t onGetMessagesRequest();
@@ -60,7 +61,7 @@ void reset3V3 () {
     delay( 1000 );
 }
 
-void ir_recv_loop(void) {
+void IrReceiveLoop(void) {
     char tmp[10];
     if ( IRDidRecvTimeout() ) {
         Serial.println(P("!!!\tIR recv timeout"));
@@ -91,14 +92,19 @@ void ir_recv_loop(void) {
     IR_state( IR_RECVED_IDLE );
 }
 
+void timerLoop() {
+    if (getMessageTimer == 0) {
+        getMessageTimer = -1;
+        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
+    }
+}
+
+// inside ISR, be careful
 void onTimer() {
     color.toggleBlink();
 
     if (getMessageTimer > 0) {
         getMessageTimer --;
-        if (getMessageTimer == 0) {
-            gs.getMessages( keys.getKey(), &onGetMessagesResponse );
-        }
     }
 }
 
@@ -236,7 +242,7 @@ int8_t onGetMessagesResponse() {
                           &jsonDetectedEnd );
         }
 
-        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
+        getMessageTimer = 0; // immediately
         break;
     default:
         getMessageTimer = 25; // 5sec
@@ -388,7 +394,9 @@ void IRKit_loop() {
     listener.loop();
 
     // check if received
-    ir_recv_loop();
+    IrReceiveLoop();
+
+    timerLoop();
 
     // wifi
     if ( ! is_command_mode ) {

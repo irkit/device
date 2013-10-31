@@ -713,6 +713,9 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
         setBusy(false);
     }
 
+    Serial.print(busy_);
+    delay( 10 );
+
     return busy_;
 }
 
