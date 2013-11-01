@@ -8943,7 +8943,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="C11" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="LED1" library="my" deviceset="LED" device="-2012" value="5V"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
-<part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1781K"/>
+<part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1781KT146Q"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="P+7" library="supply1" deviceset="+5V" device=""/>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
