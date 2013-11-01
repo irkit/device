@@ -641,19 +641,15 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
-            // int ip1, ip2, ip3, ip4;
-            // sscanf(&buf[3], P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            // _resolv = IpAddr(ip1, ip2, ip3, ip4);
+            // safely terminates _ipaddr, because _ipaddr's size should be larger than &buf[3]
+            strncpy(_ipaddr, &buf[3], sizeof(_ipaddr));
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
     case GSCOMMANDMODE_STATUS:
         if (_gs_response_lines == 0 && strncmp(buf, P("NOT ASSOCIATED"), 14) == 0) {
-            _joined    = false;
-            _listening = false;
-            // for (int i = 0; i < 16; i ++) {
-            //     _gs_sock[i].connect = false;
-            // }
+            _joined            = false;
+            _listening         = false;
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         if (_gs_response_lines == 0 && strncmp(buf, P("MODE:"), 5) == 0) {
@@ -813,11 +809,11 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
         return -1;
     }
 
-    if (!dhcp) {
-        sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-            _gateway[0], _gateway[1], _gateway[2], _gateway[3]);
-        command(cmd, GSCOMMANDMODE_NORMAL);
-    }
+    // if (!dhcp) {
+    //     sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
+    //         _gateway[0], _gateway[1], _gateway[2], _gateway[3]);
+    //     command(cmd, GSCOMMANDMODE_NORMAL);
+    // }
 
     _joined = true;
     _dhcp   = dhcp;
@@ -857,70 +853,40 @@ int GSwifi::disconnect () {
     return 0;
 }
 
-int GSwifi::setAddress (char *name) {
-    command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
-    if (did_timeout_) {
-        return -1;
-    }
-    if (_ipaddr.isNull()) return -1;
-    return 0;
-}
-
-int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver) {
-    int r;
-    char cmd[GS_CMD_SIZE];
-
-    command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
-    // wait_ms(100);
-
-    sprintf(cmd, P("AT+NSET=%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d"),
-        ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3],
-        netmask[0], netmask[1], netmask[2], netmask[3],
-        gateway[0], gateway[1], gateway[2], gateway[3]);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    _ipaddr = ipaddr;
-    _netmask = netmask;
-    _gateway = gateway;
-
-    if (ipaddr != nameserver) {
-        sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-            nameserver[0], nameserver[1], nameserver[2], nameserver[3]);
-        command(cmd, GSCOMMANDMODE_NORMAL);
-    }
-    return did_timeout_;
-}
-
-int GSwifi::getHostByName (const char* name, IpAddr &addr) {
-    char cmd[GS_CMD_SIZE];
-
-    if (! _joined || _power_status != GSPOWERSTATUS_READY) return -1;
-
-    sprintf(cmd, P("AT+DNSLOOKUP=%s"), name);
-    command(cmd, GSCOMMANDMODE_DNSLOOKUP);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    addr = _resolv;
-    return 0;
-}
-
-// int GSwifi::getHostByName (Host &host) {
-//     char cmd[GS_CMD_SIZE];
-
-//     if (! _joined || _power_status != GSPOWERSTATUS_READY) return -1;
-
-//     sprintf(cmd, P("AT+DNSLOOKUP=%s"), host.getName());
-//     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
+// int GSwifi::setAddress (char *name) {
+//     command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
 //     if (did_timeout_) {
 //         return -1;
 //     }
-
-//     host.setIp(_resolv);
+//     if (_ipaddr.isNull()) return -1;
 //     return 0;
+// }
+
+// int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver) {
+//     int r;
+//     char cmd[GS_CMD_SIZE];
+
+//     command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
+//     // wait_ms(100);
+
+//     sprintf(cmd, P("AT+NSET=%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d"),
+//         ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3],
+//         netmask[0], netmask[1], netmask[2], netmask[3],
+//         gateway[0], gateway[1], gateway[2], gateway[3]);
+//     command(cmd, GSCOMMANDMODE_NORMAL);
+//     if (did_timeout_) {
+//         return -1;
+//     }
+//     _ipaddr = ipaddr;
+//     _netmask = netmask;
+//     _gateway = gateway;
+
+//     if (ipaddr != nameserver) {
+//         sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
+//             nameserver[0], nameserver[1], nameserver[2], nameserver[3]);
+//         command(cmd, GSCOMMANDMODE_NORMAL);
+//     }
+//     return did_timeout_;
 // }
 
 bool GSwifi::isJoined () {
@@ -978,8 +944,13 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     char cmd[ GS_CMD_SIZE ];
 
-    // TODO fill IP
-    sprintf(cmd, P("AT+NCTCP=%s,80"), "192.168.2.1");
+    sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
+    command(cmd, GSCOMMANDMODE_DNSLOOKUP);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    sprintf(cmd, P("AT+NCTCP=%s,80"), _ipaddr);
     // clientRequest.cid is filled
     command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {

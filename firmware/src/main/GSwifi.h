@@ -26,7 +26,6 @@
 #define DEBUG
 
 #include "Arduino.h"
-#include "ipaddr.h"
 #include "GSwifi_conf.h"
 #include "ringbuffer.h"
 
@@ -181,17 +180,17 @@ public:
     /**
      * use static ip address
      */
-    int setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver);
+    // int setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver);
     /**
      * get ip address
      */
-    int getAddress (IpAddr &ipaddr, IpAddr &netmask, IpAddr &gateway, IpAddr &nameserver);
+    // int getAddress (IpAddr &ipaddr, IpAddr &netmask, IpAddr &gateway, IpAddr &nameserver);
     /**
      * resolv hostname
      * @param name hostname
      * @param addr resolved ip address
      */
-    int getHostByName (const char* name, IpAddr &addr);
+    // int getHostByName (const char* name, IpAddr &addr);
     /**
      * resolv hostname
      * @param host.name hostname
@@ -264,7 +263,7 @@ private:
     GSMODE             _gs_mode;
     GSCOMMANDMODE      _gs_commandmode;
     bool               _escape;
-    IpAddr             _ipaddr, _netmask, _gateway, _nameserver, _resolv;
+    char               _ipaddr[16]; // xxx.xxx.xxx.xxx
 
     struct GSRoute     _routes[GS_MAX_ROUTES];
     uint8_t            _route_count;
