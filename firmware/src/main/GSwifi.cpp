@@ -81,6 +81,9 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect, GSEventHandler onReset) {
     sprintf(cmd, P("AT+HTTPCONF=3,close"));
     command(cmd, GSCOMMANDMODE_NORMAL);
 
+    // get my mac address
+    command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
+
     command(PB("AT+PSPOLLINTRL=0",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
@@ -95,10 +98,11 @@ int8_t GSwifi::setupMDNS() {
 
     command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
 
-    sprintf(cmd, P("AT+MDNSHNREG=%s,local"), "IRKit1");
+    // ex: "00:1d:c9:01:99:99"
+    sprintf(cmd, P("AT+MDNSHNREG=IRKit%c%c,local"), _mac[15], _mac[16]);
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    sprintf(cmd, P("AT+MDNSSRVREG=IRKit1,,_irproxy,_tcp,local,80"));
+    sprintf(cmd, P("AT+MDNSSRVREG=IRKit%c%c,,_irproxy,_tcp,local,80"), _mac[15], _mac[16]);
     command(cmd, GSCOMMANDMODE_MDNS);
 
     command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
@@ -427,7 +431,7 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     for (i = 0; i < _route_count; i ++) {
         if ((method == _routes[i].method) &&
             (strncmp(path, _routes[i].path, GS_MAX_PATH_LENGTH) == 0)) {
-            Serial.print(P("router matched: ")); Serial.println(i);
+            Serial.print(P("route: ")); Serial.println(i);
             return i;
         }
     }
@@ -439,7 +443,7 @@ int8_t GSwifi::registerRoute (GSwifi::GSMETHOD method, const char *path) {
         return -1;
     }
     _routes[ _route_count ].method = method;
-    strncpy(_routes[ _route_count ].path, path, sizeof(_routes[_route_count].path));
+    sprintf( _routes[ _route_count ].path, "%s", path );
     _route_count ++;
 }
 
@@ -499,7 +503,7 @@ void GSwifi::write (const uint16_t data) {
 }
 
 int8_t GSwifi::end () {
-    escape( PB("E",1) );
+    escape( "E" );
     if (did_timeout_) {
         // close anyway
     }
@@ -652,7 +656,8 @@ void GSwifi::parseCmdResponse (char *buf) {
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
             // safely terminates _ipaddr, because _ipaddr's size should be larger than &buf[3]
-            strncpy(_ipaddr, &buf[3], sizeof(_ipaddr));
+            // strncpy(_ipaddr, &buf[3], sizeof(_ipaddr));
+            sprintf( _ipaddr, "%s", &buf[3] );
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -677,6 +682,18 @@ void GSwifi::parseCmdResponse (char *buf) {
         else if ((_gs_response_lines == 1) && (buf[1] == 'R')) {
             // 2nd line is something like:
             // " Registration Success!! for RR: IRKitXX"
+            _gs_response_lines = RESPONSE_LINES_ENDED;
+        }
+        break;
+    case GSCOMMANDMODE_MAC:
+        if (_gs_response_lines == 0) {
+            // 1st line is something like:
+            // "00:1d:c9:01:99:99"
+            sprintf( _mac, "%s", buf );
+            _gs_response_lines ++;
+        }
+        else {
+            // 2nd line is just "OK"
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -943,14 +960,6 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int8_t GSwifi::setRegion (int reg) {
-    char cmd[GS_CMD_SIZE];
-
-    sprintf(cmd, P("AT+WREGDOMAIN=%d"), reg);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    return did_timeout_;
-}
-
 int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler) {
     _responseHandler = handler;
 
@@ -969,7 +978,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         return -1;
     }
 
-    sprintf(cmd, P("S%d"), clientRequest.cid);
+    sprintf(cmd, "S%d", clientRequest.cid);
     escape( cmd );
     if (did_timeout_) {
         return -1;
@@ -984,13 +993,11 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     _serial->print(path);
     _serial->println(P(" HTTP/1.1"));
 
-    // TODO x.x.x style version string
     sprintf(cmd, P("User-Agent: IRKit/%s"), version);
     _serial->println(cmd);
 
     sprintf(cmd, P("Host: %s"), DOMAIN);
     _serial->println(cmd);
-    _serial->println();
 
     if (method == GSMETHOD_POST) {
         _serial->print(P("Content-Length: "));
@@ -1000,10 +1007,13 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         _serial->println();
         _serial->print(body);
     }
+    else {
+        _serial->println();
+    }
 
     // we're long polling here, to receive other events, we're going back to our main loop
     // ignore timeout, we always timeout here
-    escape( PB("E",1) );
+    escape( "E" );
 
     return 0;
 }
@@ -1018,7 +1028,7 @@ int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEvent
 
 int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
     char body[41]; // 4 + 36 + 1
-    sprintf(body, P("key=%s"), key);
+    sprintf(body, "key=%s", key);
     return post( PB("/door",1), body, 40, handler );
 }
 

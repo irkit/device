@@ -36,7 +36,8 @@ class Keys {
     Keys();
 
     void load();
-    bool isSet();
+    bool isWifiCredentialsSet();
+    bool isAPIKeySet();
     bool isValid();
     const char* getSSID();
     const char* getPassword();

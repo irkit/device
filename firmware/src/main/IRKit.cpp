@@ -279,7 +279,7 @@ void connect() {
     gBufferMode = GBufferModeWifiCredentials;
     keys.load();
 
-    if (keys.isSet()) {
+    if (keys.isWifiCredentialsSet()) {
         color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid keys
 
         gs.join(keys.getSecurity(),
@@ -287,7 +287,7 @@ void connect() {
                 keys.getPassword());
     }
     else {
-        Serial.println(P("!!! CLEAR EEPROM, ENABLE MORSE !!!"));
+        Serial.println(P("!!!CLEAR"));
         keys.dump();
         keys.clear();
 
@@ -320,7 +320,7 @@ void connect() {
         IR_state( IR_IDLE );
     }
 
-    if (keys.isSet() && ! keys.isValid()) {
+    if (keys.isAPIKeySet() && ! keys.isValid()) {
         gs.postDoor( keys.getKey(), &onPostDoorResponse );
     }
     else if (keys.isValid()) {
@@ -352,7 +352,6 @@ void wordCallback() {
         color.setLedColor( 1, 0, 0, false ); // red
     }
     else {
-        Serial.println(P("let's try connecting to wifi"));
         keys.dump();
         keys.save();
         connect();

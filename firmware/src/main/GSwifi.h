@@ -67,6 +67,7 @@ public:
         GSCOMMANDMODE_TIME,
         GSCOMMANDMODE_STATUS,
         GSCOMMANDMODE_MDNS,
+        GSCOMMANDMODE_MAC,
     };
 
     typedef int8_t (*GSEventHandler)();
@@ -163,10 +164,6 @@ public:
      * main polling
      */
     int8_t setBaud (uint32_t baud);
-    /**
-     * change radio region
-     */
-    int8_t setRegion (int reg = GS_WREGDOMAIN);
 
     /**
      * use DHCP
@@ -240,6 +237,7 @@ private:
     GSCOMMANDMODE      _gs_commandmode;
     bool               _escape;
     char               _ipaddr[16]; // xxx.xxx.xxx.xxx
+    char               _mac[17];    // 00:1d:c9:01:99:99
 
     struct GSRoute     _routes[GS_MAX_ROUTES];
     uint8_t            _route_count;

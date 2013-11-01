@@ -43,9 +43,14 @@ bool Keys::isCRCOK()
 }
 
 // crc8 is ok and wifi credentials are valid
-bool Keys::isSet()
+bool Keys::isWifiCredentialsSet()
 {
-    return data->is_set && data2.is_set;
+    return data->is_set;
+}
+
+bool Keys::isAPIKeySet()
+{
+    return data2.is_set;
 }
 
 bool Keys::isValid()
