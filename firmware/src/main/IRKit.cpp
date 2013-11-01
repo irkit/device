@@ -246,8 +246,9 @@ int8_t onPostDoorResponse() {
 }
 
 int8_t onGetMessagesResponse() {
-    Serial.println(P("onGetMessagesResponse"));
     uint16_t status = gs.clientRequest.status_code;
+
+    Serial.print(P("onGetMessagesResponse ")); Serial.println(status);
 
     switch (status) {
     case 200:
@@ -483,7 +484,7 @@ void IRKit_loop() {
             keys.set(GSwifi::GSSECURITY_WPA2_PSK,
                      PB("Rhodos",1),
                      PB("aaaaaaaaaaaaa",2));
-            keys.setKey(P("26445d75-a2dc-4be1-9e9c-c21cd250bed6"));
+            keys.setKey(P("5bd38a24-77e3-46ea-954f-571071055dac"));
             keys.save();
         }
         else if (last_character == 'v') {

@@ -201,7 +201,12 @@ void GSwifi::parseByte(uint8_t dat) {
                 len        = atoi(tmp); // length of data
                 next_token = NEXT_TOKEN_DATA;
 
-                serverRequest.state = GSREQUESTSTATE_HEAD1;
+                if (is_response) {
+                    clientRequest.state = GSRESPONSESTATE_HEAD1;
+                }
+                else {
+                    serverRequest.state = GSREQUESTSTATE_HEAD1;
+                }
                 ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
 
                 Serial.print(P("bulk length:")); Serial.println(tmp);
@@ -212,11 +217,19 @@ void GSwifi::parseByte(uint8_t dat) {
 
             if (is_response) {
                 switch (clientRequest.state) {
-                case GSRESPONSESTATE_STATUSLINE:
+                case GSRESPONSESTATE_HEAD1:
                     if (dat != '\n') {
                         ring_put( _buf_cmd, dat );
                     }
                     else {
+                        uint8_t i=0;
+
+                        // skip 9 characters "HTTP/1.1 "
+                        char trash;
+                        while (i++ < 9) {
+                            ring_get( _buf_cmd, &trash, 1 );
+                        }
+
                         char status_code[4];
                         status_code[ 3 ] = 0;
                         int8_t count = ring_get( _buf_cmd, status_code, 3 );
@@ -230,7 +243,26 @@ void GSwifi::parseByte(uint8_t dat) {
                         }
                         ring_clear(_buf_cmd);
                         clientRequest.status_code = atoi(status_code);
-                        clientRequest.state       = GSRESPONSESTATE_BODY;
+                        clientRequest.state       = GSRESPONSESTATE_HEAD2;
+                        continous_newlines        = 0;
+                        Serial.println(P("next: head2"));
+                    }
+                    break;
+                case GSRESPONSESTATE_HEAD2:
+                    if (dat == '\n') {
+                        continous_newlines ++;
+                    }
+                    else if (dat == '\r') {
+                        // preserve
+                    }
+                    else {
+                        continous_newlines = 0;
+                    }
+                    if (continous_newlines == 2) {
+                        // if detected double (\r)\n, switch to body mode
+                        clientRequest.state = GSRESPONSESTATE_BODY;
+                        ring_clear(_buf_cmd);
+                        Serial.println(P("next: body"));
                     }
                     break;
                 case GSRESPONSESTATE_BODY:
@@ -251,8 +283,10 @@ void GSwifi::parseByte(uint8_t dat) {
                     _escape             = false;
                     _gs_mode            = GSMODE_COMMAND;
                     clientRequest.state = GSRESPONSESTATE_RECEIVED;
-                    clientRequest.cid   = CID_UNDEFINED;
                     dispatchResponseHandler();
+                    ring_clear( _buf_cmd );
+                    close( clientRequest.cid );
+                    clientRequest.cid   = CID_UNDEFINED;
                 }
                 return;
             }
@@ -309,7 +343,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     continous_newlines = 0;
                 }
                 if (continous_newlines == 2) {
-                    // if detected double \n, switch to body mode
+                    // if detected double (\r)\n, switch to body mode
                     serverRequest.state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
                     Serial.println(P("next: body"));
@@ -344,6 +378,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     dispatchRequestHandler(); // user callback should write() and end()
                 }
                 serverRequest.cid = CID_UNDEFINED;
+                ring_clear(_buf_cmd);
             }
         } // (next_token == NEXT_TOKEN_DATA)
     } // (_gs_mode == GSMODE_DATA_RX_BULK)
@@ -565,8 +600,26 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSCOMMANDMODE_CONNECT:
         if (strncmp(buf, P("CONNECT "), 8) == 0 && buf[9] == 0) {
-            // server started listening
+            // both "AT+NSTCP=port" and "AT+NCTCP=ip,port" responds with
+            // CONNECT <cid>
+
             _gs_response_lines = RESPONSE_LINES_ENDED;
+
+            if (buf[8] == '0') {
+                // it's server successfully started listening
+            }
+            else {
+                int8_t cid = x2i(buf[8]);
+
+                if ( (clientRequest.cid != CID_UNDEFINED) &&
+                     (clientRequest.cid != cid) ) {
+                    // if a connection is left over, close it before hand
+                    close( clientRequest.cid );
+                }
+
+                clientRequest.cid   = cid;
+                clientRequest.state = GSRESPONSESTATE_HEAD1;
+            }
         }
         break;
     case GSCOMMANDMODE_DHCP:
@@ -589,40 +642,15 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
-            // int ip1, ip2, ip3, ip4;
-            // sscanf(&buf[3], P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            // _resolv = IpAddr(ip1, ip2, ip3, ip4);
-            _gs_response_lines = RESPONSE_LINES_ENDED;
-        }
-        break;
-    case GSCOMMANDMODE_HTTP:
-        if (_gs_response_lines == 0 && strstr(buf, P("IP:"))) {
-            // ignore IP
-            _gs_response_lines ++;
-        }
-        else if (_gs_response_lines == 1) {
-            if (buf[0] >= '0' && buf[0] <= 'F' && buf[1] == 0) {
-                uint8_t cid = x2i(buf[0]);
-
-                if ( (clientRequest.cid != CID_UNDEFINED) &&
-                     (clientRequest.cid != cid) ){
-                    // if a connection is left over, close it before hand
-                    close( clientRequest.cid );
-                }
-
-                clientRequest.cid   = cid;
-                clientRequest.state = GSRESPONSESTATE_STATUSLINE;
-            }
+            // safely terminates _ipaddr, because _ipaddr's size should be larger than &buf[3]
+            strncpy(_ipaddr, &buf[3], sizeof(_ipaddr));
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
     case GSCOMMANDMODE_STATUS:
         if (_gs_response_lines == 0 && strncmp(buf, P("NOT ASSOCIATED"), 14) == 0) {
-            _joined    = false;
-            _listening = false;
-            // for (int i = 0; i < 16; i ++) {
-            //     _gs_sock[i].connect = false;
-            // }
+            _joined            = false;
+            _listening         = false;
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         if (_gs_response_lines == 0 && strncmp(buf, P("MODE:"), 5) == 0) {
@@ -782,11 +810,11 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
         return -1;
     }
 
-    if (!dhcp) {
-        sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-            _gateway[0], _gateway[1], _gateway[2], _gateway[3]);
-        command(cmd, GSCOMMANDMODE_NORMAL);
-    }
+    // if (!dhcp) {
+    //     sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
+    //         _gateway[0], _gateway[1], _gateway[2], _gateway[3]);
+    //     command(cmd, GSCOMMANDMODE_NORMAL);
+    // }
 
     _joined = true;
     _dhcp   = dhcp;
@@ -826,71 +854,41 @@ int GSwifi::disconnect () {
     return 0;
 }
 
-int GSwifi::setAddress (char *name) {
-    command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
-    if (did_timeout_) {
-        return -1;
-    }
-    if (_ipaddr.isNull()) return -1;
-    return 0;
-}
+// int GSwifi::setAddress (char *name) {
+//     command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
+//     if (did_timeout_) {
+//         return -1;
+//     }
+//     if (_ipaddr.isNull()) return -1;
+//     return 0;
+// }
 
-int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver) {
-    int r;
-    char cmd[GS_CMD_SIZE];
+// int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver) {
+//     int r;
+//     char cmd[GS_CMD_SIZE];
 
-    command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
-    // wait_ms(100);
+//     command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
+//     // wait_ms(100);
 
-    sprintf(cmd, P("AT+NSET=%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d"),
-        ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3],
-        netmask[0], netmask[1], netmask[2], netmask[3],
-        gateway[0], gateway[1], gateway[2], gateway[3]);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    _ipaddr = ipaddr;
-    _netmask = netmask;
-    _gateway = gateway;
+//     sprintf(cmd, P("AT+NSET=%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d"),
+//         ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3],
+//         netmask[0], netmask[1], netmask[2], netmask[3],
+//         gateway[0], gateway[1], gateway[2], gateway[3]);
+//     command(cmd, GSCOMMANDMODE_NORMAL);
+//     if (did_timeout_) {
+//         return -1;
+//     }
+//     _ipaddr = ipaddr;
+//     _netmask = netmask;
+//     _gateway = gateway;
 
-    if (ipaddr != nameserver) {
-        sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-            nameserver[0], nameserver[1], nameserver[2], nameserver[3]);
-        command(cmd, GSCOMMANDMODE_NORMAL);
-    }
-    return did_timeout_;
-}
-
-int GSwifi::getHostByName (const char* name, IpAddr &addr) {
-    char cmd[GS_CMD_SIZE];
-
-    if (! _joined || _power_status != GSPOWERSTATUS_READY) return -1;
-
-    sprintf(cmd, P("AT+DNSLOOKUP=%s"), name);
-    command(cmd, GSCOMMANDMODE_DNSLOOKUP);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    addr = _resolv;
-    return 0;
-}
-
-int GSwifi::getHostByName (Host &host) {
-    char cmd[GS_CMD_SIZE];
-
-    if (! _joined || _power_status != GSPOWERSTATUS_READY) return -1;
-
-    sprintf(cmd, P("AT+DNSLOOKUP=%s"), host.getName());
-    command(cmd, GSCOMMANDMODE_DNSLOOKUP);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    host.setIp(_resolv);
-    return 0;
-}
+//     if (ipaddr != nameserver) {
+//         sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
+//             nameserver[0], nameserver[1], nameserver[2], nameserver[3]);
+//         command(cmd, GSCOMMANDMODE_NORMAL);
+//     }
+//     return did_timeout_;
+// }
 
 bool GSwifi::isJoined () {
     return _joined;
@@ -942,68 +940,82 @@ int8_t GSwifi::setRegion (int reg) {
     return did_timeout_;
 }
 
-int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
+int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler) {
     _responseHandler = handler;
 
-    char cmd[GS_CMD_SIZE]; // uses 62
+    char cmd[ GS_CMD_SIZE ];
 
-    command(PB("AT+HTTPCONF=7,application/x-www-form-urlencoded",1), GSCOMMANDMODE_NORMAL);
-    // Content-Length is fixed to 40
-    command(PB("AT+HTTPCONF=5,40",1), GSCOMMANDMODE_NORMAL);
-
-    sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
-    command(cmd, GSCOMMANDMODE_HTTP);
+    sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
+    command(cmd, GSCOMMANDMODE_DNSLOOKUP);
     if (did_timeout_) {
         return -1;
     }
 
-    // example POST body
-    // key=23B31A70-4E14-4970-8737-BD478BC968E2
-    // length: 40
-    sprintf(cmd, P("AT+HTTPSEND=%d,3,%d,/door,40"),
-            clientRequest.cid,
-            GS_LONGPOLL_TIMEOUT);
-    command(cmd, GSCOMMANDMODE_NORMAL, GS_LONGPOLL_TIMEOUT_MS);
+    sprintf(cmd, P("AT+NCTCP=%s,80"), _ipaddr);
+    // clientRequest.cid is filled
+    command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
         return -1;
     }
 
-    sprintf(cmd, P("H%dkey=%s"), clientRequest.cid, key);
-    escape( cmd, GS_IGNORE_TIMEOUT );
+    sprintf(cmd, P("S%d"), clientRequest.cid);
+    escape( cmd );
+    if (did_timeout_) {
+        return -1;
+    }
+
+    if (method == GSMETHOD_POST) {
+        _serial->print(P("POST "));
+    }
+    else {
+        _serial->print(P("GET "));
+    }
+    _serial->print(path);
+    _serial->println(P(" HTTP/1.1"));
+
+    // TODO x.x.x style version string
+    sprintf(cmd, P("User-Agent: IRKit/%s"), version);
+    _serial->println(cmd);
+
+    sprintf(cmd, P("Host: %s"), DOMAIN);
+    _serial->println(cmd);
+    _serial->println();
+
+    if (method == GSMETHOD_POST) {
+        _serial->print(P("Content-Length: "));
+        _serial->println(length);
+
+        _serial->println(P("Content-Type: application/x-www-form-urlencoded"));
+        _serial->println();
+        _serial->print(body);
+    }
 
     // we're long polling here, to receive other events, we're going back to our main loop
     // ignore timeout, we always timeout here
+    escape( PB("E",1) );
 
     return 0;
 }
 
+int8_t GSwifi::get(const char *path, GSEventHandler handler) {
+    return request( GSMETHOD_GET, path, NULL, 0, handler );
+}
+
+int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler) {
+    return request( GSMETHOD_POST, path, body, length, handler );
+}
+
+int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
+    char body[41]; // 4 + 36 + 1
+    sprintf(body, P("key=%s"), key);
+    return post( PB("/door",1), body, 40, handler );
+}
+
 int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
-    _responseHandler = handler;
-
-    char cmd[87];
-
-    command( PB("AT+HTTPCONFDEL=5",1), GSCOMMANDMODE_NORMAL);
-    command( PB("AT+HTTPCONFDEL=7",1), GSCOMMANDMODE_NORMAL);
-
-    sprintf(cmd, P("AT+HTTPOPEN=%s,80"), DOMAIN);
-    command(cmd, GSCOMMANDMODE_HTTP);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    // TODO newer_than
-    // ex: AT+HTTPSEND=1,1,40,/messages?key=23B31A70-4E14-4970-8737-BD478BC968E2&newer_than=65535
-    sprintf(cmd, P("AT+HTTPSEND=%d,1,%d,/messages?key=%s&newer_than=%d"),
-            clientRequest.cid,
-            GS_LONGPOLL_TIMEOUT,
-            key,
-            newest_message_id);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    // we're long polling here, to receive other events, we're going back to our main loop
-    // ignore timeout, we always timeout here
-
-    return 0;
+    // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
+    char path[80];
+    sprintf(path, P("/messages?key=%s&newer_than=%d"), key, newest_message_id);
+    return get(path, handler);
 }
 
 #ifdef GS_ENABLE_MDNS
