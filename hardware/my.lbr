@@ -3499,12 +3499,14 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <text x="-1.386" y="-2.93" size="1.27" layer="21">-</text>
 </package>
 <package name="MIC_SMD_4MM">
-<circle x="0" y="0" radius="1.35" width="1" layer="31"/>
-<circle x="0" y="0" radius="1.35" width="1.1" layer="29"/>
-<circle x="0" y="0" radius="2" width="0.4" layer="21"/>
+<circle x="0" y="0" radius="1.35" width="0.8" layer="31"/>
+<circle x="0" y="0" radius="1.35" width="0.9" layer="29"/>
+<circle x="0" y="0" radius="2" width="0.3" layer="21"/>
 <smd name="2" x="0" y="1.4" dx="0.5" dy="0.5" layer="1" roundness="100" stop="no" thermals="no" cream="no"/>
 <pad name="1" x="0" y="0" drill="0.3048" diameter="0.8128"/>
 <circle x="0" y="0" radius="1.35" width="0.9" layer="1"/>
+<text x="1.9" y="1.5" size="0.8128" layer="25">&gt;NAME</text>
+<text x="1.9" y="-2.2" size="0.8128" layer="27">&gt;VALUE</text>
 </package>
 <package name="DIL08">
 <description>&lt;b&gt;Dual In Line Package&lt;/b&gt;</description>
