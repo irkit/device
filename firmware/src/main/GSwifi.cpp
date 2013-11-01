@@ -283,9 +283,10 @@ void GSwifi::parseByte(uint8_t dat) {
                     _escape             = false;
                     _gs_mode            = GSMODE_COMMAND;
                     clientRequest.state = GSRESPONSESTATE_RECEIVED;
-                    clientRequest.cid   = CID_UNDEFINED;
                     dispatchResponseHandler();
                     ring_clear( _buf_cmd );
+                    close( clientRequest.cid );
+                    clientRequest.cid   = CID_UNDEFINED;
                 }
                 return;
             }
