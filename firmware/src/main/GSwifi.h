@@ -26,7 +26,6 @@
 #define DEBUG
 
 #include "Arduino.h"
-#include "host.h"
 #include "ipaddr.h"
 #include "GSwifi_conf.h"
 #include "ringbuffer.h"
@@ -65,7 +64,6 @@ public:
         GSCOMMANDMODE_CONNECT,
         GSCOMMANDMODE_DHCP,
         GSCOMMANDMODE_DNSLOOKUP,
-        GSCOMMANDMODE_HTTP,
         GSCOMMANDMODE_RSSI,
         GSCOMMANDMODE_TIME,
         GSCOMMANDMODE_STATUS,
@@ -94,7 +92,8 @@ public:
     };
 
     enum GSRESPONSESTATE {
-        GSRESPONSESTATE_STATUSLINE, // 1st line ex: "200 OK", "401 UNAUTHORIZED", ..
+        GSRESPONSESTATE_HEAD1, // 1st line ex: "200 OK", "401 UNAUTHORIZED", ..
+        GSRESPONSESTATE_HEAD2, // 2nd line and after
         GSRESPONSESTATE_BODY,
         GSRESPONSESTATE_RECEIVED, // received whole HTTP request successfully
         GSRESPONSESTATE_ERROR,
@@ -129,7 +128,7 @@ public:
     /**
      * setup call once after initialization
      */
-    int8_t setup( GSEventHandler disconnect, GSEventHandler reset );
+    int8_t setup( GSEventHandler disconnect, GSEventHandler  );
 
     void loop();
 
@@ -198,7 +197,7 @@ public:
      * @param host.name hostname
      * @param host.ipaddr resolved ip address
      */
-    int getHostByName (Host &host);
+    // int getHostByName (Host &host);
     /**
      * status
      * @return GSPOWERSTATUS
@@ -217,6 +216,9 @@ public:
     int8_t end ();
 
     // HTTP Request
+    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler);
+    int8_t get (const char *path, GSEventHandler handler);
+    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler);
     int8_t postDoor (const char *key, GSEventHandler handler);
     int8_t getMessages (const char *key, GSEventHandler handler);
 
