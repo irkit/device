@@ -66,13 +66,7 @@ public:
         GSCOMMANDMODE_RSSI,
         GSCOMMANDMODE_TIME,
         GSCOMMANDMODE_STATUS,
-    };
-
-    enum GSPOWERSTATUS {
-        GSPOWERSTATUS_READY,
-        GSPOWERSTATUS_STANDBY,
-        GSPOWERSTATUS_WAKEUP,
-        GSPOWERSTATUS_DEEPSLEEP,
+        GSCOMMANDMODE_MDNS,
     };
 
     typedef int8_t (*GSEventHandler)();
@@ -128,6 +122,7 @@ public:
      * setup call once after initialization
      */
     int8_t setup( GSEventHandler disconnect, GSEventHandler  );
+    int8_t setupMDNS();
 
     void loop();
 
@@ -197,11 +192,6 @@ public:
      * @param host.ipaddr resolved ip address
      */
     // int getHostByName (Host &host);
-    /**
-     * status
-     * @return GSPOWERSTATUS
-     */
-    GSPOWERSTATUS getPowerStatus ();
 
     /**
      * attach uri, http method pair to function
@@ -227,19 +217,6 @@ public:
     struct GSClientRequest clientRequest;
     uint32_t newest_message_id; // on memory only should be fine
 
-#ifdef GS_ENABLE_MDNS
-    /**
-     * mDNS
-     */
-    int8_t mDNSStart();
-    int8_t mDNSRegisterHostname(const char *hostname = "");
-    int8_t mDNSDeregisterHostname(const char *hostname);
-    int8_t mDNSRegisterService(const char *name, const char *subtype, const char *type, const char *protocol, uint16_t port);
-    int8_t mDNSDeregisterService(const char *name, const char *subtype, const char *type, const char *protocol);
-    int8_t mDNSAnnounceService();
-    int8_t mDNSDiscoverService(const char *subtype, const char *type, const char *protocol);
-#endif // GS_ENABLE_MDNS
-
 #ifdef DEBUG
     void dump ();
 #endif
@@ -257,7 +234,6 @@ protected:
 private:
     HardwareSerial*    _serial;
     bool               _joined, _listening, _dhcp;
-    GSPOWERSTATUS      _power_status;
     bool               _gs_ok, _gs_failure;
     int                _gs_response_lines;
     GSMODE             _gs_mode;

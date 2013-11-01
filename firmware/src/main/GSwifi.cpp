@@ -89,6 +89,25 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect, GSEventHandler onReset) {
     return 0;
 }
 
+// mDNS setup has to be done while joined to network
+int8_t GSwifi::setupMDNS() {
+    char cmd[GS_CMD_SIZE];
+
+    command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
+
+    sprintf(cmd, P("AT+MDNSHNREG=%s,local"), "IRKit1");
+    command(cmd, GSCOMMANDMODE_MDNS);
+
+    sprintf(cmd, P("AT+MDNSSRVREG=IRKit1,,_irproxy,_tcp,local,80"));
+    command(cmd, GSCOMMANDMODE_MDNS);
+
+    command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
 int8_t GSwifi::close (uint8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
     cmd[ 10 ]  = cid + '0';
@@ -103,7 +122,6 @@ int8_t GSwifi::close (uint8_t cid) {
 void GSwifi::reset () {
     _joined         = false;
     _listening      = false;
-    _power_status   = GSPOWERSTATUS_READY;
     _escape         = false;
     resetResponse(GSCOMMANDMODE_NONE);
     _gs_mode        = GSMODE_COMMAND;
@@ -126,9 +144,9 @@ void GSwifi::parseByte(uint8_t dat) {
     }
     Serial.println();
 
-    static int len;
-    static int next_token; // split each byte into tokens (cid,ip,port,length,data)
-    static char tmp[20];
+    static uint16_t len;
+    static uint8_t next_token; // split each byte into tokens (cid,ip,port,length,data)
+    static char tmp[5];
     static uint8_t continous_newlines = 0;
 
     // true  : data from gswifi is response to request from gswifi
@@ -140,16 +158,14 @@ void GSwifi::parseByte(uint8_t dat) {
             // esc
             switch (dat) {
             case 'O':
-                Serial.println(P("ok"));
                 _gs_ok      = true;
                 break;
             case 'F':
-                Serial.println(P("failure"));
+                Serial.println(P("!!!E3"));
                 _gs_failure = true;
                 break;
             case 'Z':
             case 'H':
-                Serial.println(P("GSMODE_DATA_RX_BULK"));
                 _gs_mode   = GSMODE_DATA_RX_BULK;
                 next_token = NEXT_TOKEN_CID;
                 break;
@@ -571,16 +587,9 @@ void GSwifi::parseLine () {
         }
         else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
                  strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
-            if (_power_status == GSPOWERSTATUS_STANDBY) {
-                _power_status = GSPOWERSTATUS_WAKEUP;
-            }
         }
         else if (strncmp(buf, P("Out of Deep Sleep"), 17) == 0 ) {
-            if (_power_status == GSPOWERSTATUS_DEEPSLEEP) {
-                _power_status = GSPOWERSTATUS_READY;
-            }
         }
-        // Serial.print(P("status: ")); Serial.println(_power_status, HEX);
     }
 }
 
@@ -657,6 +666,17 @@ void GSwifi::parseCmdResponse (char *buf) {
             _gs_response_lines ++;
         }
         else if (_gs_response_lines == 1 && strncmp(buf, P("BSSID:"), 6) == 0) {
+            _gs_response_lines = RESPONSE_LINES_ENDED;
+        }
+        break;
+    case GSCOMMANDMODE_MDNS:
+        if (_gs_response_lines == 0) {
+            // 1st line is just OK
+            _gs_response_lines ++;
+        }
+        else if ((_gs_response_lines == 1) && (buf[1] == 'R')) {
+            // 2nd line is something like:
+            // " Registration Success!! for RR: IRKitXX"
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -745,7 +765,9 @@ void GSwifi::waitResponse (uint32_t ms) {
 int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name) {
     char cmd[GS_CMD_SIZE];
 
-    if (_joined || _power_status != GSPOWERSTATUS_READY) return -1;
+    if (_joined) {
+        return -1;
+    }
 
     command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
@@ -824,8 +846,7 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
 int GSwifi::listen(uint16_t port) {
     char cmd[GS_CMD_SIZE];
 
-    if ( (! _joined) ||
-         (_power_status != GSPOWERSTATUS_READY) ) {
+    if ( ! _joined ) {
         return -1;
     }
 
@@ -898,20 +919,12 @@ bool GSwifi::isListening () {
     return _listening;
 }
 
-GSwifi::GSPOWERSTATUS GSwifi::getPowerStatus () {
-    return _power_status;
-}
-
 // 4.2.1 UART Parameters
 // Allowed baud rates include: 9600, 19200, 38400, 57600, 115200, 230400,460800 and 921600.
 // The new UART parameters take effect immediately. However, they are stored in RAM and will be lost when power is lost unless they are saved to a profile using AT&W (section 4.6.1). The profile used in that command must also be set as the power-on profile using AT&Y (section 4.6.3).
 // This command returns the standard command response (section 4) to the serial interface with the new UART configuration.
 int8_t GSwifi::setBaud (uint32_t baud) {
     char cmd[GS_CMD_SIZE];
-
-    if (_power_status != GSPOWERSTATUS_READY) {
-        return -1;
-    }
 
     sprintf(cmd, P("ATB=%ld"), baud);
     _serial->println(cmd);
@@ -932,8 +945,6 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 
 int8_t GSwifi::setRegion (int reg) {
     char cmd[GS_CMD_SIZE];
-
-    if (_power_status != GSPOWERSTATUS_READY) return -1;
 
     sprintf(cmd, P("AT+WREGDOMAIN=%d"), reg);
     command(cmd, GSCOMMANDMODE_NORMAL);
@@ -1018,85 +1029,9 @@ int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
     return get(path, handler);
 }
 
-#ifdef GS_ENABLE_MDNS
-/**
- * mDNS
- */
-int8_t GSwifi::mDNSStart() {
-    command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-int8_t GSwifi::mDNSRegisterHostname(const char *hostname) {
-    char cmd[GS_CMD_SIZE];
-    sprintf(cmd, P("AT+MDNSHNREG=%s,local"), hostname);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-int8_t GSwifi::mDNSDeregisterHostname(const char *hostname) {
-    char cmd[GS_CMD_SIZE];
-    sprintf(cmd, P("AT+MDNSHNDEREG=%s,local"), hostname);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-// AT+MDNSSRVREG=<ServiceInstanceName>,[<ServiceSubType>],<ServiceType>, <Protocol>,<Domain>,<port>,<Default Key=Val>,<key 1=val 1>, <key 2=val 2>.....
-// Example: if the factory default host name is “GAINSPAN” and the mac address of the node is “00-1d-c9- 00-22-97”, then AT+MDNSHNREG=,local
-// Will take the host name as “GAINSPAN_002297”
-// TODO change factory default host name
-int8_t GSwifi::mDNSRegisterService(const char *name, const char *subtype, const char *type, const char *protocol, uint16_t port) {
-    char cmd[GS_CMD_SIZE];
-    sprintf(cmd, P("AT+MDNSSRVREG=%s,%s,%s,%s,local,%d"), name, subtype, type, protocol, port );
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-int8_t GSwifi::mDNSDeregisterService(const char *name, const char *subtype, const char *type, const char *protocol) {
-    char cmd[GS_CMD_SIZE];
-    sprintf(cmd, P("AT+MDNSSRVDEREG=%s,%s,%s,%s,local"), name, subtype, type, protocol );
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-int8_t GSwifi::mDNSAnnounceService() {
-    command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-
-int8_t GSwifi::mDNSDiscoverService(const char *subtype, const char *type, const char *protocol) {
-    char cmd[GS_CMD_SIZE];
-    sprintf(cmd, P("AT+MDNSSD=%s,%s,%s,local"), subtype, type, protocol);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-    return 0;
-}
-#endif // GS_ENABLE_MDNS
-
 // for test
 void GSwifi::dump () {
     Serial.print(P("_joined:"));            Serial.println(_joined);
-    Serial.print(P("_power_status:"));      Serial.println(_power_status);
     Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
     Serial.print(P("_gs_response_lines:")); Serial.println(_gs_response_lines);
     Serial.print(P("_gs_mode:"));           Serial.println(_gs_mode);

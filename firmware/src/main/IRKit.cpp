@@ -308,6 +308,9 @@ void connect() {
 
         // start http server
         gs.listen(80);
+
+        // start mDNS
+        gs.setupMDNS();
     }
 
     if (gs.isListening()) {
