@@ -1014,7 +1014,7 @@ int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
 int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
     // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
     char path[80];
-    sprintf(path, P("/messages?key=%s&newer_than=%d"), key, newest_message_id);
+    sprintf(path, P("/messages?key=%s&newer_than=%ld"), key, newest_message_id);
     return get(path, handler);
 }
 

@@ -10,48 +10,41 @@ void irjson_parse (char letter,
     static uint8_t  current_token;
     static uint32_t data;
     static uint8_t  data_exists;
+    static uint8_t  first_letter_of_key;
+    static uint8_t  is_key;
 
     // special case only json parser
     // non-nested Object with following possible keys
-    // (capital letter is unique to that key -> use that to identify key)
-    // - Id
-    // - fOrMat
-    // - frEQ
-    // - Data
+    // (check only the first 2 letters to identify key)
+    // - ID
+    // - FOrmat
+    // - FReq
+    // - DAta
     switch (letter) {
     case '{':
-        current_token = IrJsonParserDataKeyUnknown;
-        data          = 0;
-        data_exists   = 0;
+        is_key = 0;
         onStart();
         break;
     case '}':
         if (data_exists) {
             onData(current_token, data);
-            data        = 0;
-            data_exists = 0;
         }
         onEnd();
+        break;
+    case '"':
+        if ( ! is_key ) {
+            // detected JSON Object's key
+            is_key              = 1;
+            first_letter_of_key = 0;
+            current_token       = IrJsonParserDataKeyUnknown;
+        }
+        else {
+            is_key              = 0;
+        }
         break;
     case ':':
         data          = 0;
         data_exists   = 0;
-        break;
-    case 'i':
-        current_token = IrJsonParserDataKeyId;
-    case 'o':
-    case 'm':
-        // format
-        current_token = IrJsonParserDataKeyFormat;
-        break;
-    case 'e':
-    case 'q':
-        // freq
-        current_token = IrJsonParserDataKeyFreq;
-        break;
-    case 'd':
-        // data
-        current_token = IrJsonParserDataKeyData;
         break;
     case '0':
     case '1':
@@ -83,5 +76,30 @@ void irjson_parse (char letter,
         break;
     default:
         break;
+    }
+
+    if (is_key && (letter != '"')) {
+        if (! first_letter_of_key) {
+            // save key's first letter
+            first_letter_of_key = letter;
+        }
+        else if (current_token == IrJsonParserDataKeyUnknown) {
+            // - id
+            // - format
+            // - freq
+            // - data
+            if (first_letter_of_key == 'i' && letter == 'd') {
+                current_token = IrJsonParserDataKeyId;
+            }
+            else if (first_letter_of_key == 'f' && letter == 'o') {
+                current_token = IrJsonParserDataKeyFormat;
+            }
+            else if (first_letter_of_key == 'f' && letter == 'r') {
+                current_token = IrJsonParserDataKeyFreq;
+            }
+            else if (first_letter_of_key == 'd' && letter == 'a') {
+                current_token = IrJsonParserDataKeyData;
+            }
+        }
     }
 }

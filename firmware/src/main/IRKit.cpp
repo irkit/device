@@ -165,7 +165,7 @@ void jsonDetectedStart() {
 }
 
 void jsonDetectedData( uint8_t key, uint32_t value ) {
-    Serial.print(P("json data: ")); Serial.println(value);
+    Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
     switch (key) {
     case IrJsonParserDataKeyId:
         gs.newest_message_id = value;
