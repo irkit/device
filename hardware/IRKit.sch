@@ -8875,7 +8875,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 </classes>
 <parts>
 <part name="FRAME1" library="frames" deviceset="FRAME_B_L" device="" value="IRKit"/>
-<part name="R2" library="my" deviceset="RESISTOR-US" device="2012" value="910"/>
+<part name="R2" library="my" deviceset="RESISTOR-US" device="2012" value="5.1k"/>
 <part name="C3" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="P+3" library="supply1" deviceset="+5V" device=""/>
@@ -8886,7 +8886,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" deviceset="+5V" device=""/>
 <part name="C11" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
-<part name="LED1" library="my" deviceset="LED" device="-2012" value="5V"/>
+<part name="LED1" library="my" deviceset="LED" device="-2012" value="OSG50805C1C"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1781KT146Q"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
@@ -8976,7 +8976,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="R10" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="RB1" library="my" deviceset="RESISTOR-US" device="2012" value="1.8k"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
-<part name="R8" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
+<part name="R8" library="my" deviceset="RESISTOR-US" device="2012" value="5.1k"/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
 <part name="SW1" library="my" deviceset="TACTILE-SWITCH" device="EVQPUJ02K" value="EVQPUJ02K"/>
 <part name="CN3" library="pinhead" deviceset="PINHD-2X4" device=""/>
@@ -9031,7 +9031,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <text x="33.02" y="142.24" size="3.81" layer="94" ratio="10">USB MiniB, Power</text>
 <text x="271.78" y="142.24" size="3.81" layer="94" ratio="10">PIN HEADER</text>
 <text x="154.94" y="259.08" size="3.81" layer="94" ratio="10">Logic Level Converter</text>
-<text x="38.1" y="33.02" size="1.778" layer="94">True green </text>
 <text x="147.32" y="142.24" size="3.81" layer="94" ratio="10">Reset Switch</text>
 <text x="325.12" y="68.58" size="3.81" layer="94" ratio="10">LED SPACERs</text>
 <text x="248.92" y="76.2" size="3.81" layer="94" ratio="10">MICROPHONE</text>
