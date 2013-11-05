@@ -3617,6 +3617,8 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </package>
 <package name="LED-CAP">
 </package>
+<package name="SCREW-M3">
+</package>
 </packages>
 <symbols>
 <symbol name="USB-MINIB">
@@ -4237,6 +4239,11 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 </symbol>
 <symbol name="LED-CAP">
 <circle x="0" y="0" radius="2.54" width="0.254" layer="94"/>
+</symbol>
+<symbol name="SCREW">
+<circle x="0" y="0" radius="1.27" width="0.254" layer="94"/>
+<wire x1="-0.508" y1="-0.508" x2="0.508" y2="0.508" width="0.254" layer="94"/>
+<wire x1="0.508" y1="-0.508" x2="-0.508" y2="0.508" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -5979,7 +5986,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </devices>
 </deviceset>
 <deviceset name="MIC">
-<description>Omni-directional electret microphone. 9.7mm standard diameter.</description>
+<description>Omni-directional electret condenser microphone.</description>
 <gates>
 <gate name="G$1" symbol="BUZZER" x="0" y="0"/>
 </gates>
@@ -6106,6 +6113,18 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </gates>
 <devices>
 <device name="" package="LED-CAP">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="SCREW">
+<gates>
+<gate name="G$1" symbol="SCREW" x="0" y="10.16"/>
+</gates>
+<devices>
+<device name="" package="SCREW-M3">
 <technologies>
 <technology name=""/>
 </technologies>

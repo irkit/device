@@ -5200,6 +5200,8 @@ NS Package M08A</description>
 </package>
 <package name="LED-CAP">
 </package>
+<package name="SCREW-M3">
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -5584,6 +5586,11 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 </symbol>
 <symbol name="LED-CAP">
 <circle x="0" y="0" radius="2.54" width="0.254" layer="94"/>
+</symbol>
+<symbol name="SCREW">
+<circle x="0" y="0" radius="1.27" width="0.254" layer="94"/>
+<wire x1="-0.508" y1="-0.508" x2="0.508" y2="0.508" width="0.254" layer="94"/>
+<wire x1="0.508" y1="-0.508" x2="-0.508" y2="0.508" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -7015,7 +7022,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </devices>
 </deviceset>
 <deviceset name="MIC">
-<description>Omni-directional electret microphone. 9.7mm standard diameter.</description>
+<description>Omni-directional electret condenser microphone.</description>
 <gates>
 <gate name="G$1" symbol="BUZZER" x="0" y="0"/>
 </gates>
@@ -7138,6 +7145,18 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </gates>
 <devices>
 <device name="" package="LED-CAP">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="SCREW">
+<gates>
+<gate name="G$1" symbol="SCREW" x="0" y="10.16"/>
+</gates>
+<devices>
+<device name="" package="SCREW-M3">
 <technologies>
 <technology name=""/>
 </technologies>
@@ -9007,11 +9026,11 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="SP1" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
 <part name="SP2" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
 <part name="IC3" library="my" deviceset="LM386?-*" device="MM" technology="1"/>
-<part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0223"/>
+<part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0323"/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
-<part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="2k"/>
-<part name="R14" library="my" deviceset="RESISTOR-US" device="2012" value="1.3k"/>
-<part name="R16" library="my" deviceset="RESISTOR-US" device="2012" value="2k"/>
+<part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
+<part name="R14" library="my" deviceset="RESISTOR-US" device="2012" value="3.3k"/>
+<part name="R16" library="my" deviceset="RESISTOR-US" device="2012" value="5.1k"/>
 <part name="GND20" library="supply1" deviceset="GND" device=""/>
 <part name="GND22" library="supply1" deviceset="GND" device=""/>
 <part name="GND23" library="supply1" deviceset="GND" device=""/>
@@ -9032,6 +9051,10 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="V3" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz CL:10pF"/>
 <part name="LEDCAP1" library="my" deviceset="LED-CAP" device=""/>
+<part name="SCREW1" library="my" deviceset="SCREW" device="" value="flat-head M3 self-tapping"/>
+<part name="SCREW2" library="my" deviceset="SCREW" device="" value="flat-head M3 self-tapping"/>
+<part name="SCREW3" library="my" deviceset="SCREW" device="" value="flat-head M3 self-tapping"/>
+<part name="SCREW4" library="my" deviceset="SCREW" device="" value="flat-head M3 self-tapping"/>
 </parts>
 <sheets>
 <sheet>
@@ -9050,9 +9073,10 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <text x="271.78" y="142.24" size="3.81" layer="94" ratio="10">PIN HEADER</text>
 <text x="154.94" y="259.08" size="3.81" layer="94" ratio="10">Logic Level Converter</text>
 <text x="147.32" y="142.24" size="3.81" layer="94" ratio="10">Reset Switch</text>
-<text x="325.12" y="68.58" size="3.81" layer="94" ratio="10">LED SPACERs</text>
+<text x="325.12" y="83.82" size="3.81" layer="94" ratio="10">LED SPACERs</text>
 <text x="248.92" y="76.2" size="3.81" layer="94" ratio="10">MICROPHONE</text>
-<text x="373.38" y="68.58" size="3.81" layer="94" ratio="10">LED CAP</text>
+<text x="373.38" y="83.82" size="3.81" layer="94" ratio="10">LED CAP</text>
+<text x="325.12" y="63.5" size="3.81" layer="94" ratio="10">SCREWs</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -9199,8 +9223,8 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="NAME" x="57.15" y="99.06" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="62.23" y="96.52" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="SP1" gate="G$1" x="327.66" y="63.5"/>
-<instance part="SP2" gate="G$1" x="332.74" y="63.5"/>
+<instance part="SP1" gate="G$1" x="327.66" y="78.74"/>
+<instance part="SP2" gate="G$1" x="332.74" y="78.74"/>
 <instance part="IC3" gate="G$1" x="279.4" y="33.02"/>
 <instance part="MIC" gate="G$1" x="243.84" y="35.56" rot="R90"/>
 <instance part="GND17" gate="1" x="248.92" y="7.62"/>
@@ -9229,7 +9253,11 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="VALUE" x="72.39" y="96.52" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="XTAL1" gate="G$1" x="40.64" y="231.14" rot="R90"/>
-<instance part="LEDCAP1" gate="G$1" x="375.92" y="63.5"/>
+<instance part="LEDCAP1" gate="G$1" x="375.92" y="78.74"/>
+<instance part="SCREW1" gate="G$1" x="327.66" y="58.42"/>
+<instance part="SCREW2" gate="G$1" x="332.74" y="58.42"/>
+<instance part="SCREW3" gate="G$1" x="337.82" y="58.42"/>
+<instance part="SCREW4" gate="G$1" x="342.9" y="58.42"/>
 </instances>
 <busses>
 </busses>
