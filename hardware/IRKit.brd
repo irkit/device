@@ -843,6 +843,8 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <wire x1="-0.2" y1="-1.25" x2="0.2" y2="-1.25" width="0.127" layer="21"/>
 <wire x1="1.6" y1="-0.02" x2="1.6" y2="0.02" width="0.127" layer="21"/>
 </package>
+<package name="LED-CAP">
+</package>
 </packages>
 </library>
 <library name="m-pad-2.1">
@@ -3118,6 +3120,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="5.2" y="26.45" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="0.9" y="25.55" size="1.27" layer="27"/>
 </element>
+<element name="LEDCAP1" library="my" package="LED-CAP" value="LED-CAP" x="10.8" y="-1.5"/>
 </elements>
 <signals>
 <signal name="!RESET">

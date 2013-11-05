@@ -5198,6 +5198,8 @@ NS Package M08A</description>
 <wire x1="-0.2" y1="-1.25" x2="0.2" y2="-1.25" width="0.127" layer="21"/>
 <wire x1="1.6" y1="-0.02" x2="1.6" y2="0.02" width="0.127" layer="21"/>
 </package>
+<package name="LED-CAP">
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -5579,6 +5581,9 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <text x="-2.159" y="-1.143" size="0.8636" layer="93">1</text>
 <text x="1.524" y="-1.143" size="0.8636" layer="93">2</text>
 <text x="1.143" y="2.794" size="0.8636" layer="93" rot="R90">3</text>
+</symbol>
+<symbol name="LED-CAP">
+<circle x="0" y="0" radius="2.54" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -7121,6 +7126,18 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <connect gate="G$1" pin="GND@1" pad="2"/>
 <connect gate="G$1" pin="GND@2" pad="4"/>
 </connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LED-CAP">
+<gates>
+<gate name="G$1" symbol="LED-CAP" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LED-CAP">
 <technologies>
 <technology name=""/>
 </technologies>
@@ -9014,6 +9031,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="GND24" library="supply1" deviceset="GND" device=""/>
 <part name="V3" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="XTAL1" library="my" deviceset="CRYSTAL-3.2-2.5" device="" value="16MHz CL:10pF"/>
+<part name="LEDCAP1" library="my" deviceset="LED-CAP" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -9034,6 +9052,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <text x="147.32" y="142.24" size="3.81" layer="94" ratio="10">Reset Switch</text>
 <text x="325.12" y="68.58" size="3.81" layer="94" ratio="10">LED SPACERs</text>
 <text x="248.92" y="76.2" size="3.81" layer="94" ratio="10">MICROPHONE</text>
+<text x="373.38" y="68.58" size="3.81" layer="94" ratio="10">LED CAP</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -9210,6 +9229,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <attribute name="VALUE" x="72.39" y="96.52" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="XTAL1" gate="G$1" x="40.64" y="231.14" rot="R90"/>
+<instance part="LEDCAP1" gate="G$1" x="375.92" y="63.5"/>
 </instances>
 <busses>
 </busses>

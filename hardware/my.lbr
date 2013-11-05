@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="mm" altunit="mm"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -3615,6 +3615,8 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <text x="1.4" y="-1.2" size="0.254" layer="27" rot="R90">&gt;VALUE</text>
 <circle x="-1.3" y="-1.4" radius="0.2" width="0.1" layer="21"/>
 </package>
+<package name="LED-CAP">
+</package>
 </packages>
 <symbols>
 <symbol name="USB-MINIB">
@@ -4232,6 +4234,9 @@ http://akizukidenshi.com/download/ds/paralight/PL-IRM2161-XD1.pdf</description>
 <pin name="BLUE" x="-5.08" y="-15.24" length="middle" rot="R90"/>
 <pin name="RED" x="5.08" y="-15.24" length="middle" rot="R90"/>
 <text x="-7.62" y="1.27" size="1.778" layer="94">&gt;NAME</text>
+</symbol>
+<symbol name="LED-CAP">
+<circle x="0" y="0" radius="2.54" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -6089,6 +6094,18 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <connect gate="G$1" pin="GREEN" pad="1"/>
 <connect gate="G$1" pin="RED" pad="4"/>
 </connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="LED-CAP">
+<gates>
+<gate name="G$1" symbol="LED-CAP" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="LED-CAP">
 <technologies>
 <technology name=""/>
 </technologies>
