@@ -18,6 +18,7 @@ void setup() {
     digitalWrite( LDO33_ENABLE, LOW );
 
     IR_initialize();
+    IR_state(IR_IDLE);
 
     // USB serial
     Serial.begin(9600);
@@ -96,40 +97,27 @@ void loop() {
         }
         else if (lastCharacter == 's') {
             Serial.println(P("writing"));
-            IR_put(50489);            IR_put(9039);
-            IR_put(1205);            IR_put(1127);
-            IR_put(1199);            IR_put(3372);
-            IR_put(1203);            IR_put(3371);
-            IR_put(1202);            IR_put(3371);
-            IR_put(1206);            IR_put(1127);
-            IR_put(1199);            IR_put(3372);
-            IR_put(1205);            IR_put(3370);
-            IR_put(1201);            IR_put(3371);
-            IR_put(1205);            IR_put(3369);
-            IR_put(1203);            IR_put(3370);
-            IR_put(1206);            IR_put(3367);
-            IR_put(1201);            IR_put(1131);
-            IR_put(1204);            IR_put(1127);
-            IR_put(1203);            IR_put(1128);
-            IR_put(1201);            IR_put(1129);
-            IR_put(1204);            IR_put(3383);
-            IR_put(1205);            IR_put(3367);
-            IR_put(1206);            IR_put(1127);
-            IR_put(1203);            IR_put(3368);
-            IR_put(1205);            IR_put(1128);
-            IR_put(1204);            IR_put(1127);
-            IR_put(1202);            IR_put(1128);
-            IR_put(1204);            IR_put(1127);
-            IR_put(1203);            IR_put(1128);
-            IR_put(1202);            IR_put(1129);
-            IR_put(1203);            IR_put(1127);
-            IR_put(1204);            IR_put(1127);
-            IR_put(1203);            IR_put(3368);
-            IR_put(1205);            IR_put(3368);
-            IR_put(1206);            IR_put(3368);
-            IR_put(1205);            IR_put(3368);
-            IR_put(1205);            IR_put(3371);
-            IR_put(1205);
+            // Apple Remote Play/Pause
+            IR_put(0x46E1); IR_put(0x2325); IR_put(0x04CE); IR_put(0x044C);
+            IR_put(0x04CC); IR_put(0x0D0B); IR_put(0x04CF); IR_put(0x0D09);
+            IR_put(0x049E); IR_put(0x0D3B); IR_put(0x049E); IR_put(0x047C);
+            IR_put(0x04CC); IR_put(0x0D0A); IR_put(0x049E); IR_put(0x0D3A);
+            IR_put(0x049E); IR_put(0x0D3A); IR_put(0x04CE); IR_put(0x0D0A);
+            IR_put(0x049E); IR_put(0x0D3A); IR_put(0x04CD); IR_put(0x0D0C);
+            IR_put(0x04CD); IR_put(0x044C); IR_put(0x04CC); IR_put(0x044C);
+            IR_put(0x04CB); IR_put(0x044D); IR_put(0x049C); IR_put(0x047C);
+            IR_put(0x04CD); IR_put(0x0D19); IR_put(0x049E); IR_put(0x0D3A);
+            IR_put(0x04CA); IR_put(0x0451); IR_put(0x049B); IR_put(0x0D3B);
+            IR_put(0x049D); IR_put(0x047C); IR_put(0x049B); IR_put(0x047E);
+            IR_put(0x04CB); IR_put(0x044E); IR_put(0x04CB); IR_put(0x044D);
+            IR_put(0x04CC); IR_put(0x044C); IR_put(0x049B); IR_put(0x047E);
+            IR_put(0x049A); IR_put(0x047D); IR_put(0x04C9); IR_put(0x044F);
+            IR_put(0x049A); IR_put(0x0D3C); IR_put(0x049C); IR_put(0x0D3B);
+            IR_put(0x04CF); IR_put(0x0D08); IR_put(0x049D); IR_put(0x0D3B);
+            IR_put(0x049C); IR_put(0x0D3E); IR_put(0x049C); IR_put(0xFFFF);
+            IR_put(0x0000); IR_put(0x25DF); IR_put(0x46AD); IR_put(0x1188);
+            IR_put(0x049C);
+
             Serial.println(P("sending"));
             delay(100);
             IR_xmit();
