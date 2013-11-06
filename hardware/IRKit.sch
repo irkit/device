@@ -2272,9 +2272,9 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <rectangle x1="-0.5" y1="-0.7" x2="0.5" y2="0.7" layer="39"/>
 </package>
 <package name="IR-RECEIVER">
-<pad name="2" x="0" y="0" drill="0.6"/>
-<pad name="1" x="-2.54" y="0" drill="0.6"/>
-<pad name="3" x="2.54" y="0" drill="0.6"/>
+<pad name="2" x="0" y="0" drill="0.7"/>
+<pad name="1" x="-2.54" y="0" drill="0.7"/>
+<pad name="3" x="2.54" y="0" drill="0.7"/>
 <wire x1="2.8" y1="-2.1" x2="1.4" y2="-2.1" width="0.127" layer="21"/>
 <wire x1="1.4" y1="-2.1" x2="-1.6" y2="-2.1" width="0.127" layer="21"/>
 <wire x1="-1.6" y1="-2.1" x2="-2.8" y2="-2.1" width="0.127" layer="21"/>
