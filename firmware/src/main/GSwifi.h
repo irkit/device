@@ -29,6 +29,8 @@
 #include "GSwifi_conf.h"
 #include "ringbuffer.h"
 
+#define CID_UNDEFINED     0xFF
+
 /**
  * GSwifi class
  */
@@ -197,6 +199,7 @@ public:
     void setRequestHandler (GSEventHandler handler);
     int8_t writeHead (uint16_t status_code);
     void write (const char *data);
+    void write (const char data);
     void write (const uint8_t data);
     void write (const uint16_t data);
     int8_t end ();
@@ -205,14 +208,12 @@ public:
     int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler);
     int8_t get (const char *path, GSEventHandler handler);
     int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler);
-    int8_t postDoor (const char *key, GSEventHandler handler);
-    int8_t getMessages (const char *key, GSEventHandler handler);
+    int8_t close(uint8_t cid);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
     struct GSServerRequest serverRequest;
     struct GSClientRequest clientRequest;
-    uint32_t newest_message_id; // on memory only should be fine
 
 #ifdef DEBUG
     void dump ();
@@ -225,7 +226,6 @@ protected:
     void     parseLine ();
     void     parseCmdResponse (char *buf);
     int8_t   router (GSMETHOD method, const char *path);
-    int8_t   close(uint8_t cid);
     GSMETHOD x2method(const char *method);
 
 private:

@@ -38,8 +38,6 @@
 #define NEXT_TOKEN_LENGTH 3
 #define NEXT_TOKEN_DATA   4
 
-#define CID_UNDEFINED     0xFF
-
 #define ESCAPE           0x1B
 
 GSwifi::GSwifi( HardwareSerial *serial ) :
@@ -48,13 +46,10 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     _buf_cmd          = &ringbuffer;
     ring_init( _buf_cmd );
     _route_count      = 0;
-    newest_message_id = 0;
     clientRequest.cid = CID_UNDEFINED;
 }
 
 int8_t GSwifi::setup(GSEventHandler onDisconnect, GSEventHandler onReset) {
-    char cmd[GS_CMD_SIZE];
-
     onDisconnect_ = onDisconnect;
     onReset_      = onReset;
 
@@ -70,16 +65,6 @@ int8_t GSwifi::setup(GSEventHandler onDisconnect, GSEventHandler onReset) {
     // faster baud rate
     // TODO enable when ready
     // setBaud(115200);
-
-    sprintf(cmd, P("AT+HTTPCONF=20,IRKit/%s"), version);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    sprintf(cmd, P("AT+HTTPCONF=11,%s"), DOMAIN);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    // finding an open socket for our server uses program space
-    sprintf(cmd, P("AT+HTTPCONF=3,close"));
-    command(cmd, GSCOMMANDMODE_NORMAL);
 
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
@@ -269,6 +254,8 @@ void GSwifi::parseByte(uint8_t dat) {
                     }
                     break;
                 case GSRESPONSESTATE_HEAD2:
+                    // we don't read *any* headers except 1st request line.
+                    // "Expect: 100-continue" doesn't work
                     if (dat == '\n') {
                         continous_newlines ++;
                     }
@@ -397,7 +384,6 @@ void GSwifi::parseByte(uint8_t dat) {
                     serverRequest.state = GSREQUESTSTATE_RECEIVED;
                     dispatchRequestHandler(); // user callback should write() and end()
                 }
-                serverRequest.cid = CID_UNDEFINED;
                 ring_clear(_buf_cmd);
             }
         } // (next_token == NEXT_TOKEN_DATA)
@@ -494,6 +480,10 @@ void GSwifi::write (const char *data) {
     _serial->print(data);
 }
 
+void GSwifi::write (const char data) {
+    _serial->print(data);
+}
+
 void GSwifi::write (const uint8_t data) {
     _serial->print(data);
 }
@@ -508,7 +498,9 @@ int8_t GSwifi::end () {
         // close anyway
     }
 
-    return close( serverRequest.cid );
+    int8_t ret = close( serverRequest.cid );
+    serverRequest.cid = CID_UNDEFINED;
+    return ret;
 }
 
 GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
@@ -638,18 +630,8 @@ void GSwifi::parseCmdResponse (char *buf) {
     case GSCOMMANDMODE_DHCP:
         if (_gs_response_lines == 0 && strstr(buf, P("SubNet")) && strstr(buf, P("Gateway"))) {
             _gs_response_lines ++;
-        } else
-        if (_gs_response_lines == 1) {
-            // int ip1, ip2, ip3, ip4;
-            // char *tmp = buf + 1;
-            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            // _ipaddr = IpAddr(ip1, ip2, ip3, ip4);
-            // tmp = strstr(tmp, ":") + 2;
-            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            // _netmask = IpAddr(ip1, ip2, ip3, ip4);
-            // tmp = strstr(tmp, ":") + 2;
-            // sscanf(tmp, P("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-            // _gateway = IpAddr(ip1, ip2, ip3, ip4);
+        }
+        else if (_gs_response_lines == 1) {
             _gs_response_lines = RESPONSE_LINES_ENDED;
         }
         break;
@@ -755,8 +737,10 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
 
         parseByte( _serial->read() );
 
-        if ( (_gs_ok || _gs_failure) &&
-             (_gs_response_lines == RESPONSE_LINES_ENDED || _gs_commandmode == GSCOMMANDMODE_NONE) ) {
+        if ( _gs_failure ||
+             (_gs_ok &&
+              (_gs_response_lines == RESPONSE_LINES_ENDED ||
+               _gs_commandmode    == GSCOMMANDMODE_NONE)) ) {
             _gs_commandmode = GSCOMMANDMODE_NONE;
             setBusy(false);
             break;
@@ -846,6 +830,9 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
     }
 
     if (did_timeout_) {
+        return -1;
+    }
+    if (_gs_failure) {
         return -1;
     }
 
@@ -1024,19 +1011,6 @@ int8_t GSwifi::get(const char *path, GSEventHandler handler) {
 
 int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler) {
     return request( GSMETHOD_POST, path, body, length, handler );
-}
-
-int8_t GSwifi::postDoor (const char *key, GSEventHandler handler) {
-    char body[41]; // 4 + 36 + 1
-    sprintf(body, "key=%s", key);
-    return post( PB("/door",1), body, 40, handler );
-}
-
-int8_t GSwifi::getMessages (const char *key, GSEventHandler handler) {
-    // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
-    char path[80];
-    sprintf(path, P("/messages?key=%s&newer_than=%ld"), key, newest_message_id);
-    return get(path, handler);
 }
 
 // for test

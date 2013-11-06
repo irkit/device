@@ -25,6 +25,7 @@ MorseListener listener(MICROPHONE,13);
 
 Keys keys;
 static int8_t getMessageTimer = -1; // -1: off, 0: dispatch, >0: timer running
+static uint32_t newest_message_id = 0; // on memory only should be fine
 
 //--- declaration
 
@@ -42,7 +43,11 @@ int8_t onPostMessagesRequest();
 int8_t onRequest();
 int8_t onPostDoorResponse();
 int8_t onGetMessagesResponse();
+void   postDoor();
+int8_t getMessages();
+void   postKeys();
 void   connect();
+void   startNormalOperation();
 void   letterCallback( char letter );
 void   wordCallback();
 void   errorCallback();
@@ -96,7 +101,7 @@ void IrReceiveLoop(void) {
 void timerLoop() {
     if (getMessageTimer == 0) {
         getMessageTimer = -1;
-        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
+        getMessages();
     }
 }
 
@@ -168,7 +173,7 @@ void jsonDetectedData( uint8_t key, uint32_t value ) {
     Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
     switch (key) {
     case IrJsonParserDataKeyId:
-        gs.newest_message_id = value;
+        newest_message_id = value;
         break;
     case IrJsonParserDataKeyFreq:
         IrCtrl.freq = value;
@@ -205,6 +210,18 @@ int8_t onPostMessagesRequest() {
     return 0;
 }
 
+int8_t onPostKeysRequest() {
+    if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+        // close other client requests
+        if (gs.clientRequest.cid != CID_UNDEFINED) {
+            gs.close( gs.clientRequest.cid );
+        }
+
+        // POST /keys to server
+        postKeys();
+    }
+}
+
 int8_t onRequest() {
     Serial.println(P("onRequest"));
 
@@ -214,6 +231,11 @@ int8_t onRequest() {
 
     case 1: // POST /messages
         return onPostMessagesRequest();
+
+    case 2: // POST /keys
+        // when client requests for a new key,
+        // we request server for one, and respond to client with the result from server
+        return onPostKeysRequest();
 
     default:
         break;
@@ -230,6 +252,7 @@ int8_t onPostDoorResponse() {
         keys.setKeyValid(true);
         // save only independent area, since gBuffer might be populated by IR or so.
         keys.save2();
+        startNormalOperation();
         break;
     case 401:
         // keys have expired, we have to start from morse sequence again
@@ -238,7 +261,7 @@ int8_t onPostDoorResponse() {
     case 408:
     default:
         // try again
-        gs.postDoor( keys.getKey(), &onPostDoorResponse );
+        postDoor();
         break;
     }
 
@@ -274,6 +297,61 @@ int8_t onGetMessagesResponse() {
     return 0;
 }
 
+int8_t onPostKeysResponse() {
+    uint16_t status = gs.clientRequest.status_code;
+
+    Serial.print(P("onPostKeysResponse ")); Serial.println(status);
+
+    if (gs.clientRequest.state != GSwifi::GSRESPONSESTATE_RECEIVED) {
+        return 0;
+    }
+
+    if (gs.serverRequest.cid == CID_UNDEFINED) {
+        getMessageTimer = 0;
+        return 0;
+    }
+
+    gs.writeHead( status );
+
+    switch (status) {
+    case 200:
+        while (!ring_isempty(gs._buf_cmd)) {
+            char letter;
+            ring_get(gs._buf_cmd, &letter, 1);
+            gs.write( letter );
+        }
+        gs.end();
+        getMessageTimer = 0; // immediately
+        break;
+    default:
+        ring_clear(gs._buf_cmd);
+        gs.end();
+        getMessageTimer = 25; // 5sec
+        break;
+    }
+
+    return 0;
+}
+
+void postDoor() {
+    char body[41]; // 4 + 36 + 1
+    sprintf(body, "key=%s", keys.getKey());
+    gs.post( PB("/door",1), body, 40, &onPostDoorResponse );
+}
+
+int8_t getMessages() {
+    // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
+    char path[80];
+    sprintf(path, P("/messages?key=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
+    return gs.get(path, &onGetMessagesResponse);
+}
+
+void postKeys() {
+    char body[41]; // 4 + 36 + 1
+    sprintf(body, "key=%s", keys.getKey());
+    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse );
+}
+
 void connect() {
     // load wifi credentials from EEPROM
     gBufferMode = GBufferModeWifiCredentials;
@@ -286,6 +364,25 @@ void connect() {
                 keys.getSSID(),
                 keys.getPassword());
     }
+
+    if (gs.isJoined()) {
+        color.setLedColor( 0, 1, 0, true );
+
+        // 0
+        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
+        // 1
+        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
+        // 2
+        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
+
+        gs.setRequestHandler( &onRequest );
+
+        // start http server
+        gs.listen(80);
+
+        // start mDNS
+        gs.setupMDNS();
+    }
     else {
         Serial.println(P("!!!CLEAR"));
         keys.dump();
@@ -296,36 +393,23 @@ void connect() {
         listener.enable(true);
     }
 
-    if (gs.isJoined()) {
-        color.setLedColor( 0, 1, 0, true );
-
-        // 0
-        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
-        // 1
-        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
-
-        gs.setRequestHandler( &onRequest );
-
-        // start http server
-        gs.listen(80);
-
-        // start mDNS
-        gs.setupMDNS();
-    }
-
     if (gs.isListening()) {
         color.setLedColor( 0, 1, 0, false );
 
-        gBufferMode = GBufferModeUnused;
-        IR_state( IR_IDLE );
+        if (keys.isAPIKeySet() && ! keys.isValid()) {
+            postDoor();
+        }
+        else if (keys.isValid()) {
+            startNormalOperation();
+        }
     }
+}
 
-    if (keys.isAPIKeySet() && ! keys.isValid()) {
-        gs.postDoor( keys.getKey(), &onPostDoorResponse );
-    }
-    else if (keys.isValid()) {
-        gs.getMessages( keys.getKey(), &onGetMessagesResponse );
-    }
+void startNormalOperation() {
+    getMessages();
+
+    gBufferMode = GBufferModeUnused;
+    IR_state( IR_IDLE );
 }
 
 void letterCallback( char letter ) {
@@ -479,7 +563,7 @@ void IRKit_loop() {
             Serial.println();
         }
         else if (last_character == 'p') {
-            gs.postDoor( keys.getKey(), &onPostDoorResponse );
+            postDoor();
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));
