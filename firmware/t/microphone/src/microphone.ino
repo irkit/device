@@ -4,37 +4,37 @@
 #include "pgmStrToRAM.h"
 #include "MorseListener.h"
 #include "Global.h"
-#include "WifiCredentials.h"
+#include "Keys.h"
 
 MorseListener listener(MICROPHONE,13);
 
-WifiCredentials credentials;
+Keys keys;
 
 void letterCallback( char letter ) {
     Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
-    int8_t result = credentials.put( letter );
+    int8_t result = keys.put( letter );
     if ( result != 0 ) {
-        credentials.clear();
+        keys.clear();
         Serial.println(P("cleared"));
     }
 }
 
 void wordCallback() {
     Serial.println(P("word"));
-    int8_t result = credentials.putDone();
+    int8_t result = keys.putDone();
     if ( result != 0 ) {
-        credentials.clear();
+        keys.clear();
         Serial.println(P("cleared"));
     }
     else {
         Serial.println(P("let's try connecting to wifi"));
-        credentials.dump();
+        keys.dump();
     }
 }
 
 void errorCallback() {
     Serial.println(P("error"));
-    credentials.clear();
+    keys.clear();
 }
 
 void setup() {
@@ -111,7 +111,7 @@ void loop() {
             listener.setup(); // for debug output
         }
         else if (last_character == 'd') {
-            credentials.dump();
+            keys.dump();
         }
     }
 
