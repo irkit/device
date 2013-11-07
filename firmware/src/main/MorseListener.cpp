@@ -7,7 +7,46 @@
 // 0-1023
 #define ON_MIN_THRESHOLD 600
 
-prog_char morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
+// # standard morse tree
+// T _    M _ _    O _ _ _    CH _ _ _ _
+//                            Ö _ _ _ .
+//                 G _ _ .    Q _ _ . _
+//                            Z _ _ . .
+//        N _ .    K _ . _    Y _ . _ _
+//                            C _ . _ .
+//                 D _ . .    X _ . . _
+//                            B _ . . .
+// E .    A . _    W . _ _    J . _ _ _
+//                            P . _ _ .
+//                 R . _ .    Ä . _ . _
+//                            L . _ . .
+//        I . .    U . . _    Ü . . _ _
+//                            F . . _ .
+//                 S . . .    V . . . _
+//                            H . . . .
+
+// # hex+/ morse tree
+// # 4,5 should be used more frequently than others because they're used in ascii alphabet
+// 4 _    3 _ _    0 _ _ _    ? _ _ _ _
+//                            ? _ _ _ .
+//                 1 _ _ .    ? _ _ . _
+//                            ? _ _ . .
+//        6 _ .    8 _ . _    ? _ . _ _
+//                            ? _ . _ .
+//                 9 _ . .    ? _ . . _
+//                            A _ . . .
+// 5 .    2 . _    B . _ _    ? . _ _ _
+//                            ? . _ _ .
+//                 C . _ .    ? . _ . _
+//                            ? . _ . .
+//        7 . .    D . . _    ? . . _ _
+//                            ? . . _ .
+//                 E . . .    F . . . _
+//                            / . . . .
+
+// prog_char morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
+// morse table specialized to hex+/ [0-9A-F/]
+prog_char morseTable[] PROGMEM = "547263EDCB9810/F******A*******";
 
 MorseListener::MorseListener(int pin, uint16_t wpm) :
     pin_(pin)
