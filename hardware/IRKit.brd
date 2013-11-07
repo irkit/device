@@ -2931,7 +2931,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="9.0965" y="10.988" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="6.314" y="9.812" size="0.8128" layer="27" rot="R270"/>
 </element>
-<element name="R6" library="my" package="SMD2012" value="1k" x="11.2" y="9.05" smashed="yes" rot="R270">
+<element name="R6" library="my" package="SMD2012" value="680" x="11.2" y="9.05" smashed="yes" rot="R270">
 <attribute name="NAME" x="11.6965" y="11.0005" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="8.914" y="9.812" size="0.8128" layer="27" rot="R270"/>
 </element>
@@ -3102,7 +3102,7 @@ design rules under a new name.</description>
 <element name="LED2" library="my" package="LED5MMRGB" value="5MMRGBLED" x="11.5" y="4" smashed="yes">
 <attribute name="NAME" x="13.725" y="0.775" size="0.8128" layer="21"/>
 </element>
-<element name="R7" library="my" package="SMD2012" value="2.2k" x="13.8" y="9.05" smashed="yes" rot="R270">
+<element name="R7" library="my" package="SMD2012" value="1k" x="13.8" y="9.05" smashed="yes" rot="R270">
 <attribute name="NAME" x="15.45" y="7.425" size="0.8128" layer="25" rot="R90"/>
 <attribute name="VALUE" x="11.9" y="10.05" size="1.016" layer="27" rot="R270"/>
 </element>
