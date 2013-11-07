@@ -6,29 +6,37 @@
 #include "Global.h"
 #include "Keys.h"
 
-MorseListener listener(MICROPHONE,13);
+MorseListener listener(MICROPHONE,100);
 
 Keys keys;
 
+bool enable_key_setting = true;
+
 void letterCallback( char letter ) {
     Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
-    int8_t result = keys.put( letter );
-    if ( result != 0 ) {
-        keys.clear();
-        Serial.println(P("cleared"));
+
+    if (enable_key_setting) {
+        int8_t result = keys.put( letter );
+        if ( result != 0 ) {
+            keys.clear();
+            Serial.println(P(" cleared"));
+        }
     }
 }
 
 void wordCallback() {
     Serial.println(P("word"));
-    int8_t result = keys.putDone();
-    if ( result != 0 ) {
-        keys.clear();
-        Serial.println(P("cleared"));
-    }
-    else {
-        Serial.println(P("let's try connecting to wifi"));
-        keys.dump();
+
+    if (enable_key_setting) {
+        int8_t result = keys.putDone();
+        if ( result != 0 ) {
+            keys.clear();
+            Serial.println(P(" cleared"));
+        }
+        else {
+            Serial.println(P(" let's try connecting to wifi"));
+            keys.dump();
+        }
     }
 }
 
@@ -106,12 +114,31 @@ void loop() {
             listener.setup(); // for debug output
         }
         else if (last_character == '5') {
-            Serial.println(P("WPM set to 1000"));
-            listener.setWPM(1000);
+            Serial.println(P("WPM set to 200"));
+            listener.setWPM(200);
+            listener.setup(); // for debug output
+        }
+        else if (last_character == '6') {
+            Serial.println(P("WPM set to 300"));
+            listener.setWPM(300);
+            listener.setup(); // for debug output
+        }
+        else if (last_character == '7') {
+            Serial.println(P("WPM set to 400"));
+            listener.setWPM(400);
             listener.setup(); // for debug output
         }
         else if (last_character == 'd') {
             keys.dump();
+        }
+        else if (last_character == 'e') {
+            enable_key_setting = ! enable_key_setting;
+            if (enable_key_setting) {
+                Serial.println(P("key setting enabled"));
+            }
+            else {
+                Serial.println(P("listening only"));
+            }
         }
     }
 

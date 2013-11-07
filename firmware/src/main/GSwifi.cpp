@@ -23,6 +23,7 @@
 #include "Arduino.h"
 #include "pgmStrToRAM.h"
 #include "GSwifi.h"
+#include "GSwifi_const.h"
 #include "MemoryFree.h"
 #include "convert.h"
 #include "ringbuffer.h"

@@ -26,7 +26,7 @@
 #define DEBUG
 
 #include "Arduino.h"
-#include "GSwifi_conf.h"
+#include "GSwifi_const.h"
 #include "ringbuffer.h"
 
 #define CID_UNDEFINED     0xFF
@@ -36,15 +36,6 @@
  */
 class GSwifi {
 public:
-
-    enum GSSECURITY {
-        GSSECURITY_AUTO     = 0,
-        GSSECURITY_NONE     = 0,
-        GSSECURITY_OPEN     = 1,
-        GSSECURITY_WEP      = 2,
-        GSSECURITY_WPA_PSK  = 4,
-        GSSECURITY_WPA2_PSK = 8,
-    };
 
     enum GSMETHOD {
         GSMETHOD_GET     = 0,

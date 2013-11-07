@@ -567,7 +567,7 @@ void IRKit_loop() {
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));
-            keys.set(GSwifi::GSSECURITY_WPA2_PSK,
+            keys.set(GSSECURITY_WPA2_PSK,
                      PB("Rhodos",1),
                      PB("aaaaaaaaaaaaa",2));
             keys.setKey(P("5bd38a24-77e3-46ea-954f-571071055dac"));

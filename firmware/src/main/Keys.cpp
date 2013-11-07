@@ -1,4 +1,5 @@
 #include "Keys.h"
+#include "Arduino.h"
 #include <avr/eeprom.h>
 #include "pgmStrToRAM.h"
 #include "CRC8.h"
@@ -45,22 +46,22 @@ bool Keys::isCRCOK()
 // crc8 is ok and wifi credentials are valid
 bool Keys::isWifiCredentialsSet()
 {
-    return data->is_set;
+    return data->wifi_is_set;
 }
 
 bool Keys::isAPIKeySet()
 {
-    return data2.is_set;
+    return data2.key_is_set;
 }
 
 bool Keys::isValid()
 {
-    return data2.is_set && data2.is_valid;
+    return data2.key_is_set && data2.key_is_valid;
 }
 
-GSwifi::GSSECURITY Keys::getSecurity()
+GSSECURITY Keys::getSecurity()
 {
-    return data->security;
+    return (GSSECURITY)data->security;
 }
 
 const char* Keys::getSSID()
@@ -78,23 +79,23 @@ const char* Keys::getKey()
     return data2.key;
 }
 
-void Keys::set(GSwifi::GSSECURITY security, const char *ssid, const char *pass)
+void Keys::set(GSSECURITY security, const char *ssid, const char *pass)
 {
     data->security = security;
     strcpy(data->ssid,     ssid);
     strcpy(data->password, pass);
-    data->is_set = true;
+    data->wifi_is_set = true;
 }
 
 void Keys::setKey(const char *key)
 {
     strcpy(data2.key, key);
-    data2.is_set = true;
+    data2.key_is_set = true;
 }
 
 void Keys::setKeyValid(bool valid)
 {
-    data2.is_valid = valid;
+    data2.key_is_valid = valid;
 }
 
 void Keys::save(void)
@@ -111,9 +112,7 @@ void Keys::save2(void)
 
 void Keys::clear(void)
 {
-    data->is_set = false;
-    memset( data->ssid,     0, sizeof(data->ssid) );
-    memset( data->password, 0, sizeof(data->password) );
+    memset( data, 0, sizeof(data) );
 
     clearKey();
 
@@ -125,14 +124,13 @@ void Keys::clear(void)
 
 void Keys::clearKey(void)
 {
-    data2.is_set   = false;
-    data2.is_valid = false;
-    memset( data2.key, 0, sizeof(data2.key) );
+    memset( &data2, 0, sizeof(data2) );
 }
 
 // we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
+// [01248]/#{SSID}/#{Password}/#{Key}/#{CRC}
 int8_t Keys::put(char code)
 {
     static uint8_t character;
@@ -147,8 +145,8 @@ int8_t Keys::put(char code)
         case KeysFillerStatePassword:
             data->password[ filler.index ] = 0;
             break;
-        case KeysFillerStateToken:
-            data2.key[ filler.index ] = 0;
+        case KeysFillerStateKey:
+            data->temp_key[ filler.index ] = 0;
             break;
         default:
             break;
@@ -173,7 +171,7 @@ int8_t Keys::put(char code)
         case '2': // GSwifi::GSSECURITY_WEP:
         case '4': // GSwifi::GSSECURITY_WPA_PSK:
         case '8': // GSwifi::GSSECURITY_WPA2_PSK:
-            data->security = (GSwifi::GSSECURITY)x2i(code);
+            data->security = (GSSECURITY)x2i(code);
             return 0;
         default:
             Serial.print(P("unexpected security: 0x")); Serial.println( code, HEX );
@@ -208,12 +206,12 @@ int8_t Keys::put(char code)
         }
         data->password[ filler.index ++ ] = character;
         break;
-    case KeysFillerStateToken:
+    case KeysFillerStateKey:
         if (filler.index == MAX_KEY_LENGTH) {
             Serial.println(P("overflow 3"));
             return -1;
         }
-        data2.key[ filler.index ++ ] = character;
+        data->temp_key[ filler.index ++ ] = character;
         break;
     case KeysFillerStateCRC:
         if (filler.index > 0) {
@@ -237,13 +235,17 @@ int8_t Keys::putDone()
         return -1;
     }
 
-    data->is_set = true;
-    data2.is_set = true;
+    data->wifi_is_set = true;
 
     if (isCRCOK()) {
+        // copy to data2 area
+        strcpy(data2.key, data->temp_key);
+        data2.key_is_set   = true;
+        data2.key_is_valid = false;
         return 0;
     }
     else {
+        dump();
         Serial.println(P("crc error"));
         return -1;
     }
@@ -252,27 +254,27 @@ int8_t Keys::putDone()
 void Keys::dump(void)
 {
     Serial.print(P("wifi is_set: "));
-    Serial.println(data->is_set);
+    Serial.println(data->wifi_is_set);
     Serial.print(P("key is_set: "));
-    Serial.println(data2.is_set);
+    Serial.println(data2.key_is_set);
     Serial.print(P("key is_valid: "));
-    Serial.println(data2.is_valid);
+    Serial.println(data2.key_is_valid);
 
     Serial.print(P("security: "));
     switch (data->security) {
-    case GSwifi::GSSECURITY_AUTO:
+    case GSSECURITY_AUTO:
         Serial.println(P("auto/none"));
         break;
-    case GSwifi::GSSECURITY_OPEN:
+    case GSSECURITY_OPEN:
         Serial.println(P("open"));
         break;
-    case GSwifi::GSSECURITY_WEP:
+    case GSSECURITY_WEP:
         Serial.println(P("wep"));
         break;
-    case GSwifi::GSSECURITY_WPA_PSK:
+    case GSSECURITY_WPA_PSK:
         Serial.println(P("wpa-psk"));
         break;
-    case GSwifi::GSSECURITY_WPA2_PSK:
+    case GSSECURITY_WPA2_PSK:
         Serial.println(P("wpa2-psk"));
         break;
     default:
@@ -288,6 +290,12 @@ void Keys::dump(void)
     Serial.print(P("key: "));
     Serial.println((const char*)data2.key);
 
+    Serial.print(P("temp_key: "));
+    Serial.println((const char*)data->temp_key);
+
     Serial.print(P("crc8: 0x"));
     Serial.println(data->crc8, HEX);
+
+    Serial.print(P("calculated crc: 0x"));
+    Serial.println( crc8( (uint8_t*)data, sizeof(KeysCRCed) ), HEX );
 }

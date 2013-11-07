@@ -5,7 +5,7 @@
 // #define DEBUG
 
 // 0-1023
-#define ON_MIN_THRESHOLD 800
+#define ON_MIN_THRESHOLD 600
 
 prog_char morseTable[] PROGMEM = "ETIANMSURWDKGOHVF*L*PJBXCYZQ**54*3***2**+****16=/*****7***8*90*";
 
@@ -59,7 +59,8 @@ void MorseListener::loop() {
     int  raw   = analogRead(pin_);
     static bool input = false;
 #ifdef DEBUG
-    // Serial.print("raw: "); Serial.println(raw); // add delay when enabling this
+    Serial.print("raw: "); Serial.println(raw); // add delay when enabling this
+    delay(1);
 #endif
 
     unsigned long interval = 0;

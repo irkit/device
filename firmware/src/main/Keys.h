@@ -1,8 +1,8 @@
 #ifndef __KEYS_H__
 #define __KEYS_H__
 
-#include <Arduino.h>
-#include "GSwifi.h"
+#include "GSwifi_const.h"
+#include <inttypes.h>
 
 // SSID is max 32 bytes
 // see 7.3.1.2 of IEEE 802.11
@@ -19,7 +19,7 @@ enum KeysFillerState {
     KeysFillerStateSecurity = 0,
     KeysFillerStateSSID     = 1,
     KeysFillerStatePassword = 2,
-    KeysFillerStateToken    = 3,
+    KeysFillerStateKey      = 3,
     KeysFillerStateCRC      = 4,
 };
 
@@ -42,8 +42,8 @@ class Keys {
     const char* getSSID();
     const char* getPassword();
     const char* getKey();
-    GSwifi::GSSECURITY getSecurity();
-    void set(GSwifi::GSSECURITY security, const char *ssid, const char *pass);
+    GSSECURITY getSecurity();
+    void set(GSSECURITY security, const char *ssid, const char *pass);
     void setKey(const char *key);
     void setKeyValid(bool valid);
     void save();
@@ -55,40 +55,48 @@ class Keys {
 
     void dump();
 
- private:
-    // Both SharedArea and IndependentArea are saved in EEPROM
-    // SharedArea includes Wifi credentials, which is only needed
+    // Both KeysShared and KeysIndependent are saved in EEPROM
+    // KeysShared includes Wifi credentials, which is only needed
     // when we lost Wifi connection or haven't established it,
     // and no other classes will use gBuffer without Wifi connection.
-    // IndependentArea is used to store key,
+    // So KeysShared area is shared with gBuffer.
+    // KeysIndependent is used to store key,
     // which is needed to communicate with server,
-    // and that's going to happen when other classes (ex: IR) uses gBuffer
-    // CRC is used to detect EEPROM corruption, so let's just use SharedArea for simplicity
+    // and that's going to happen when other classes (ex: IR) uses gBuffer.
+    // CRC is used to detect EEPROM corruption and corruption during Morse communication
 
     struct KeysShared
     {
-        GSwifi::GSSECURITY security;
-        char               ssid    [MAX_WIFI_SSID_LENGTH     + 1];
-        char               password[MAX_WIFI_PASSWORD_LENGTH + 1];
-        bool               is_set;
-        uint8_t            crc8;
-    };
+        uint8_t    security;
+        char       ssid    [MAX_WIFI_SSID_LENGTH     + 1];
+        char       password[MAX_WIFI_PASSWORD_LENGTH + 1];
+        uint8_t    wifi_is_set;
+        // temp_key is only used when
+        // receiving key through morse communication.
+        // when morse communication is done, we copy key to KeysIndependent area
+        // and key is accessed through KeysIndependent afterwards
+        char       temp_key[MAX_KEY_LENGTH           + 1];
+
+        uint8_t    crc8;
+    } __attribute__ ((packed));
 
     struct KeysCRCed
     {
-        GSwifi::GSSECURITY security;
-        char               ssid    [MAX_WIFI_SSID_LENGTH     + 1];
-        char               password[MAX_WIFI_PASSWORD_LENGTH + 1];
-        bool               is_set;
-    };
+        uint8_t    security;
+        char       ssid    [MAX_WIFI_SSID_LENGTH     + 1];
+        char       password[MAX_WIFI_PASSWORD_LENGTH + 1];
+        uint8_t    wifi_is_set;
+        char       temp_key[MAX_KEY_LENGTH           + 1];
+    } __attribute__ ((packed));
 
     struct KeysIndependent
     {
-        char key[MAX_KEY_LENGTH + 1];
-        bool is_set;
-        bool is_valid; // POST /door succeeded
+        char       key     [MAX_KEY_LENGTH           + 1];
+        bool       key_is_set;
+        bool       key_is_valid; // POST /door succeeded
     };
 
+ private:
     bool isCRCOK();
 
     KeysShared      *data;
