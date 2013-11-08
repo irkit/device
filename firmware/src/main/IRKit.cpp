@@ -27,6 +27,7 @@ Keys keys;
 static int8_t getMessageTimer = -1; // -1: off, 0: dispatch, >0: timer running
 static uint32_t newest_message_id = 0; // on memory only should be fine
 static uint32_t retry_after = 0;
+static bool morse_error = 0;
 
 //--- declaration
 
@@ -51,7 +52,6 @@ void   connect();
 void   startNormalOperation();
 void   letterCallback( char letter );
 void   wordCallback();
-void   errorCallback();
 void   printGuide(void);
 void   IRKit_setup();
 void   IRKit_loop();
@@ -100,9 +100,16 @@ void IrReceiveLoop(void) {
 }
 
 void timerLoop() {
+    // long poll
     if (getMessageTimer == 0) {
         getMessageTimer = -1;
         getMessages();
+    }
+
+    // reconnect
+    if (retry_after && (global.now > retry_after)) {
+        retry_after = 0;
+        connect();
     }
 }
 
@@ -424,40 +431,37 @@ void startNormalOperation() {
 
 void letterCallback( char letter ) {
     Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
-    int8_t result = keys.put( letter );
-    if ( result != 0 ) {
-        keys.clear();
-        Serial.println(P("cleared"));
 
-        color.setLedColor( 1, 0, 0, false ); // red
+    if (morse_error) {
+        return;
     }
-    else {
-        color.setLedColor( 1, 0, 0, true ); // red blink
+
+    uint8_t result = keys.put( letter );
+    if (result != 0) {
+        // postpone til this "word" ends
+        morse_error = true;
     }
 }
 
 void wordCallback() {
     Serial.println(P("word"));
+
+    if (morse_error) {
+        morse_error = false;
+        keys.clear();
+        return;
+    }
+
     int8_t result = keys.putDone();
     if ( result != 0 ) {
         keys.clear();
         Serial.println(P("cleared"));
-
-        // continue morse
-        color.setLedColor( 1, 0, 0, true ); // red blink
     }
     else {
         keys.dump();
         keys.save();
         connect();
     }
-}
-
-void errorCallback() {
-    Serial.println(P("error"));
-    keys.clear();
-
-    color.setLedColor( 1, 0, 0, false ); // red
 }
 
 void printGuide(void) {
@@ -481,7 +485,6 @@ void IRKit_setup() {
 
     listener.letterCallback = &letterCallback;
     listener.wordCallback   = &wordCallback;
-    listener.errorCallback  = &errorCallback;
     listener.setup();
 
     //--- initialize IR
@@ -514,12 +517,6 @@ void IRKit_loop() {
     IrReceiveLoop();
 
     timerLoop();
-
-    // reconnect
-    if (retry_after && (global.now > retry_after)) {
-        retry_after = 0;
-        connect();
-    }
 
     // wifi
     gs.loop();

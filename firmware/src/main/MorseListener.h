@@ -18,9 +18,6 @@ public:
     // called when a word space is detected
     void (*wordCallback)();
 
-    // called when an error occured
-    void (*errorCallback)();
-
 private:
     int pin_;
     uint16_t wpm_;
