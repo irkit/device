@@ -551,6 +551,11 @@ void IRKit_loop() {
             IR_dump();
             Serial.println();
         }
+        else if (last_character == 'i') {
+            keys.setKeyValid(false);
+            keys.save2();
+            Serial.println("invalidate key_is_valid");
+        }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));
             keys.set(GSSECURITY_WPA2_PSK,
