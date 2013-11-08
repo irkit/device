@@ -7,8 +7,9 @@
 int main() {
     Keys::KeysCRCed data;
     memset( (void*)&data, 0, sizeof(data) );
-    data.security    = GSSECURITY_WPA2_PSK;
-    data.wifi_is_set = true;
+    data.security       = GSSECURITY_WPA2_PSK;
+    data.wifi_is_set    = true;
+    data.wifi_was_valid = false;
     strcpy( data.ssid,     "Rhodos" );
     strcpy( data.password, "aaaaaaaaaaaaa" );
     strcpy( data.temp_key, "abc" );

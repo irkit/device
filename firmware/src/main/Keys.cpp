@@ -59,6 +59,11 @@ bool Keys::isValid()
     return data2.key_is_set && data2.key_is_valid;
 }
 
+bool Keys::wasWifiValid()
+{
+    return data->wifi_was_valid;
+}
+
 GSSECURITY Keys::getSecurity()
 {
     return (GSSECURITY)data->security;
@@ -93,6 +98,11 @@ void Keys::setKey(const char *key)
     data2.key_is_set = true;
 }
 
+void Keys::setWifiWasValid(bool valid)
+{
+    data->wifi_was_valid = valid;
+}
+
 void Keys::setKeyValid(bool valid)
 {
     data2.key_is_valid = valid;
@@ -112,7 +122,7 @@ void Keys::save2(void)
 
 void Keys::clear(void)
 {
-    memset( data, 0, sizeof(data) );
+    memset( data, 0, sizeof(KeysShared) );
 
     clearKey();
 
@@ -124,7 +134,7 @@ void Keys::clear(void)
 
 void Keys::clearKey(void)
 {
-    memset( &data2, 0, sizeof(data2) );
+    memset( &data2, 0, sizeof(KeysIndependent) );
 }
 
 // we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
@@ -255,6 +265,8 @@ void Keys::dump(void)
 {
     Serial.print(P("wifi is_set: "));
     Serial.println(data->wifi_is_set);
+    Serial.print(P("wifi was_valid: "));
+    Serial.println(data->wifi_was_valid);
     Serial.print(P("key is_set: "));
     Serial.println(data2.key_is_set);
     Serial.print(P("key is_valid: "));

@@ -26,6 +26,7 @@ MorseListener listener(MICROPHONE,13);
 Keys keys;
 static int8_t getMessageTimer = -1; // -1: off, 0: dispatch, >0: timer running
 static uint32_t newest_message_id = 0; // on memory only should be fine
+static uint32_t retry_after = 0;
 
 //--- declaration
 
@@ -366,6 +367,9 @@ void connect() {
     }
 
     if (gs.isJoined()) {
+        keys.setWifiWasValid(true);
+        keys.save();
+
         color.setLedColor( 0, 1, 0, true );
 
         // 0
@@ -384,13 +388,19 @@ void connect() {
         gs.setupMDNS();
     }
     else {
-        Serial.println(P("!!!CLEAR"));
+        Serial.println(P("!!!join failed"));
         keys.dump();
-        keys.clear();
 
-        color.setLedColor( 1, 0, 0, false );
-
-        listener.enable(true);
+        if (keys.wasWifiValid()) {
+            // retry
+            color.setLedColor( 1, 0, 0, false );
+            retry_after = millis() + 5000;
+        }
+        else {
+            keys.clear();
+            color.setLedColor( 1, 0, 0, true );
+            listener.enable(true);
+        }
     }
 
     if (gs.isListening()) {
@@ -433,7 +443,8 @@ void wordCallback() {
         keys.clear();
         Serial.println(P("cleared"));
 
-        color.setLedColor( 1, 0, 0, false ); // red
+        // continue morse
+        color.setLedColor( 1, 0, 0, true ); // red blink
     }
     else {
         keys.dump();
@@ -453,7 +464,6 @@ void printGuide(void) {
     Serial.println(P("Operations Menu:"));
     Serial.println(P("c) clear"));
     Serial.println(P("d) dump"));
-    Serial.println(P("p) POST /door"));
     Serial.println(P("s) set keys"));
     Serial.println(P("v) version"));
 }
@@ -496,8 +506,6 @@ void IRKit_setup() {
 }
 
 void IRKit_loop() {
-    static bool is_command_mode = false;
-
     global.loop(); // always run first
 
     listener.loop();
@@ -507,49 +515,33 @@ void IRKit_loop() {
 
     timerLoop();
 
+    // reconnect
+    if (retry_after && (global.now > retry_after)) {
+        retry_after = 0;
+        connect();
+    }
+
     // wifi
-    if ( ! is_command_mode ) {
-        gs.loop();
-    }
-    else {
-        if (Serial1.available()) {
-            while (Serial1.available()) {
-                uint8_t ch = Serial1.read();
-                Serial.print(P("< 0x"));
-                Serial.print(ch, HEX); Serial.print(P(" ")); Serial.write(ch); Serial.println();
-            }
-        }
-    }
+    gs.loop();
 
     // Wifi UART interface test
     if (Serial.available()) {
-        char tmp[2];
         static uint8_t last_character = '0';
         last_character = Serial.read();
 
-        Serial.print(P("> 0x"));
-        sprintf( tmp, P("%x"), last_character );
-        Serial.print(tmp);
+        Serial.print(P("> 0x")); Serial.print(last_character, HEX);
         Serial.print(P(" "));
         Serial.write(last_character);
         Serial.println();
         Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
-        if (is_command_mode) {
-            Serial1.write(last_character);
-            if ( last_character == 0x1B ) {
-                is_command_mode = false;
-                Serial.println(P("<<c"));
-            }
-        }
-        else if (last_character == 0x1B) {
-            is_command_mode = true;
-            Serial.println(P(">>c"));
-        }
-        else if (last_character == 'c') {
+        if (last_character == 'c') {
             keys.clear();
+            Serial.println("cleared keys");
         }
         else if (last_character == 'd') {
+            keys.load();
+
             Serial.println(P("---keys---"));
             keys.dump();
             Serial.println();
@@ -561,9 +553,6 @@ void IRKit_loop() {
             Serial.println(P("---ir---"));
             IR_dump();
             Serial.println();
-        }
-        else if (last_character == 'p') {
-            postDoor();
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));

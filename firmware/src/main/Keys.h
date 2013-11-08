@@ -39,12 +39,14 @@ class Keys {
     bool isWifiCredentialsSet();
     bool isAPIKeySet();
     bool isValid();
+    bool wasWifiValid();
     const char* getSSID();
     const char* getPassword();
     const char* getKey();
     GSSECURITY getSecurity();
     void set(GSSECURITY security, const char *ssid, const char *pass);
     void setKey(const char *key);
+    void setWifiWasValid(bool valid);
     void setKeyValid(bool valid);
     void save();
     void save2();
@@ -70,7 +72,14 @@ class Keys {
         uint8_t    security;
         char       ssid    [MAX_WIFI_SSID_LENGTH     + 1];
         char       password[MAX_WIFI_PASSWORD_LENGTH + 1];
-        uint8_t    wifi_is_set;
+        bool       wifi_is_set;
+
+        // wifi credentials was once valid.
+        // if it was valid previously, we won't clear nor start morse communication
+        // if it was never valid (false),
+        // we clear credentials when 1st attempt to join infrastructure fails
+        bool       wifi_was_valid;
+
         // temp_key is only used when
         // receiving key through morse communication.
         // when morse communication is done, we copy key to KeysIndependent area
@@ -85,7 +94,9 @@ class Keys {
         uint8_t    security;
         char       ssid    [MAX_WIFI_SSID_LENGTH     + 1];
         char       password[MAX_WIFI_PASSWORD_LENGTH + 1];
-        uint8_t    wifi_is_set;
+        bool       wifi_is_set;
+        bool       wifi_was_valid;
+
         char       temp_key[MAX_KEY_LENGTH           + 1];
     } __attribute__ ((packed));
 
