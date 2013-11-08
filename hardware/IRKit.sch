@@ -49,6 +49,7 @@
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
+<layer number="57" name="tCAD" color="7" fill="1" visible="no" active="no"/>
 <layer number="59" name="Invisible" color="7" fill="1" visible="no" active="no"/>
 <layer number="61" name="stand" color="7" fill="1" visible="no" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
@@ -86,8 +87,12 @@
 <layer number="131" name="tAdjust" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="132" name="bAdjust" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="144" name="Drill_legend" color="7" fill="1" visible="no" active="yes"/>
+<layer number="150" name="Notes" color="7" fill="1" visible="no" active="yes"/>
 <layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="152" name="_bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="153" name="FabDoc1" color="6" fill="1" visible="no" active="no"/>
+<layer number="154" name="FabDoc2" color="2" fill="1" visible="no" active="no"/>
+<layer number="155" name="FabDoc3" color="7" fill="15" visible="no" active="no"/>
 <layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="200" name="200bmp" color="1" fill="10" visible="no" active="no"/>
 <layer number="201" name="201bmp" color="2" fill="1" visible="no" active="no"/>
@@ -5072,14 +5077,17 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <text x="-1.386" y="-2.93" size="1.27" layer="21">-</text>
 </package>
 <package name="MIC_SMD_4MM">
-<circle x="0" y="0" radius="1.35" width="0.8" layer="31"/>
-<circle x="0" y="0" radius="1.35" width="0.9" layer="29"/>
-<circle x="0" y="0" radius="2" width="0.3" layer="21"/>
-<smd name="2" x="0" y="1.4" dx="0.5" dy="0.5" layer="1" roundness="100" stop="no" thermals="no" cream="no"/>
-<pad name="1" x="0" y="0" drill="0.3048" diameter="0.8128"/>
-<circle x="0" y="0" radius="1.35" width="0.9" layer="1"/>
-<text x="1.9" y="1.5" size="0.8128" layer="25">&gt;NAME</text>
-<text x="1.9" y="-2.2" size="0.8128" layer="27">&gt;VALUE</text>
+<circle x="1.9" y="0" radius="1.35" width="0.8" layer="31"/>
+<circle x="1.9" y="0" radius="1.35" width="0.9" layer="29"/>
+<circle x="1.9" y="0" radius="2" width="0.3" layer="51"/>
+<pad name="1" x="1.9" y="0" drill="0.6" rot="R180"/>
+<circle x="1.9" y="0" radius="1.35" width="0.9" layer="1"/>
+<text x="0" y="-1.5" size="0.8128" layer="25" rot="R180">&gt;NAME</text>
+<text x="0" y="2.2" size="0.8128" layer="27" rot="R180">&gt;VALUE</text>
+<pad name="2" x="0" y="0" drill="0.6" rot="R180"/>
+<circle x="0.95" y="-1" radius="3" width="0.3" layer="51"/>
+<wire x1="3.93" y1="-0.54" x2="1.55" y2="1.96" width="0.3" layer="21" curve="-290.083731"/>
+<wire x1="0.11" y1="-0.89" x2="0.13" y2="0.93" width="0.3048" layer="21" curve="305.976541"/>
 </package>
 <package name="MMSOP08">
 <description>&lt;b&gt;Molded Mini Small Outline Package&lt;/b&gt; 8 - Lead (0.118" Wide)&lt;p&gt;
