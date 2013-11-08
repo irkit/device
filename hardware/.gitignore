@@ -6,3 +6,4 @@
 *.zip
 .DS_Store
 eagle.epf
+*.scr
