@@ -5148,35 +5148,6 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <text x="-5.334" y="-2.921" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="-3.556" y="-0.635" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 </package>
-<package name="SO08">
-<description>&lt;b&gt;Small Outline Package 8&lt;/b&gt;&lt;br&gt;
-NS Package M08A</description>
-<wire x1="2.4" y1="1.9" x2="2.4" y2="-1.4" width="0.2032" layer="51"/>
-<wire x1="2.4" y1="-1.4" x2="2.4" y2="-1.9" width="0.2032" layer="51"/>
-<wire x1="2.4" y1="-1.9" x2="-2.4" y2="-1.9" width="0.2032" layer="51"/>
-<wire x1="-2.4" y1="-1.9" x2="-2.4" y2="-1.4" width="0.2032" layer="51"/>
-<wire x1="-2.4" y1="-1.4" x2="-2.4" y2="1.9" width="0.2032" layer="51"/>
-<wire x1="-2.4" y1="1.9" x2="2.4" y2="1.9" width="0.2032" layer="51"/>
-<wire x1="2.4" y1="-1.4" x2="-2.4" y2="-1.4" width="0.2032" layer="51"/>
-<smd name="2" x="-0.635" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="7" x="-0.635" y="2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="1" x="-1.905" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="3" x="0.635" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="4" x="1.905" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="8" x="-1.905" y="2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="6" x="0.635" y="2.6" dx="0.6" dy="2.2" layer="1"/>
-<smd name="5" x="1.905" y="2.6" dx="0.6" dy="2.2" layer="1"/>
-<text x="-2.667" y="-1.905" size="1.27" layer="25" rot="R90">&gt;NAME</text>
-<text x="3.937" y="-1.905" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
-<rectangle x1="-2.15" y1="-3.1" x2="-1.66" y2="-2" layer="51"/>
-<rectangle x1="-0.88" y1="-3.1" x2="-0.39" y2="-2" layer="51"/>
-<rectangle x1="0.39" y1="-3.1" x2="0.88" y2="-2" layer="51"/>
-<rectangle x1="1.66" y1="-3.1" x2="2.15" y2="-2" layer="51"/>
-<rectangle x1="1.66" y1="2" x2="2.15" y2="3.1" layer="51"/>
-<rectangle x1="0.39" y1="2" x2="0.88" y2="3.1" layer="51"/>
-<rectangle x1="-0.88" y1="2" x2="-0.39" y2="3.1" layer="51"/>
-<rectangle x1="-2.15" y1="2" x2="-1.66" y2="3.1" layer="51"/>
-</package>
 <package name="LED5MMRGB">
 <circle x="0" y="0" radius="2.5" width="0.127" layer="51"/>
 <wire x1="-2.54" y1="1.905" x2="-2.54" y2="0" width="0.127" layer="51"/>
@@ -5209,6 +5180,36 @@ NS Package M08A</description>
 <package name="LED-CAP">
 </package>
 <package name="SCREW-M3">
+</package>
+<package name="SO08">
+<description>&lt;b&gt;Small Outline Package 8&lt;/b&gt;&lt;br&gt;
+NS Package M08A</description>
+<wire x1="2.4" y1="1.9" x2="2.4" y2="-1.4" width="0.2032" layer="51"/>
+<wire x1="2.4" y1="-1.4" x2="2.4" y2="-1.9" width="0.2032" layer="51"/>
+<wire x1="2.4" y1="-1.9" x2="-2.4" y2="-1.9" width="0.2032" layer="51"/>
+<wire x1="-2.4" y1="-1.9" x2="-2.4" y2="-1.4" width="0.2032" layer="51"/>
+<wire x1="-2.4" y1="-1.4" x2="-2.4" y2="1.9" width="0.2032" layer="51"/>
+<wire x1="-2.4" y1="1.9" x2="2.4" y2="1.9" width="0.2032" layer="51"/>
+<wire x1="2.4" y1="-1.4" x2="-2.4" y2="-1.4" width="0.2032" layer="51"/>
+<smd name="2" x="-0.635" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="7" x="-0.635" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="1" x="-1.905" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="3" x="0.635" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="4" x="1.905" y="-2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="8" x="-1.905" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="6" x="0.635" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<smd name="5" x="1.905" y="2.6" dx="0.6" dy="2.2" layer="1"/>
+<text x="-2.667" y="-1.905" size="1.27" layer="25" rot="R90">&gt;NAME</text>
+<text x="3.937" y="-1.905" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
+<rectangle x1="-2.15" y1="-3.1" x2="-1.66" y2="-2" layer="51"/>
+<rectangle x1="-0.88" y1="-3.1" x2="-0.39" y2="-2" layer="51"/>
+<rectangle x1="0.39" y1="-3.1" x2="0.88" y2="-2" layer="51"/>
+<rectangle x1="1.66" y1="-3.1" x2="2.15" y2="-2" layer="51"/>
+<rectangle x1="1.66" y1="2" x2="2.15" y2="3.1" layer="51"/>
+<rectangle x1="0.39" y1="2" x2="0.88" y2="3.1" layer="51"/>
+<rectangle x1="-0.88" y1="2" x2="-0.39" y2="3.1" layer="51"/>
+<rectangle x1="-2.15" y1="2" x2="-1.66" y2="3.1" layer="51"/>
+<circle x="-3" y="-2.5" radius="0.4472125" width="0.3048" layer="21"/>
 </package>
 </packages>
 <symbols>
@@ -9033,7 +9034,7 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="V2" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="SP1" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
 <part name="SP2" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
-<part name="IC3" library="my" deviceset="LM386?-*" device="MM" technology="1"/>
+<part name="IC3" library="my" deviceset="LM386?-*" device="M" technology="1" value="LM386M-1"/>
 <part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0323"/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
 <part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
@@ -9047,7 +9048,6 @@ Please send any comments to: &lt;a href="mailto:messi@users.sourceforge.net"&gt;
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V6" library="supply1" deviceset="+3V3" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
-<part name="R17" library="my" deviceset="RESISTOR-US" device="2012" value="0"/>
 <part name="C18" library="my" deviceset="CAPACITOR" device="2012" value="0.047uF"/>
 <part name="R18" library="my" deviceset="RESISTOR-US" device="2012" value="10"/>
 <part name="GND18" library="supply1" deviceset="GND" device=""/>
@@ -9243,14 +9243,13 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="GND22" gate="1" x="269.24" y="7.62"/>
 <instance part="GND23" gate="1" x="276.86" y="7.62"/>
 <instance part="X24" gate="G$1" x="281.94" y="25.4"/>
-<instance part="C17" gate="G$1" x="294.64" y="50.8" rot="R90"/>
+<instance part="C17" gate="G$1" x="284.48" y="43.18" rot="R90"/>
 <instance part="+3V5" gate="G$1" x="251.46" y="68.58"/>
 <instance part="+3V6" gate="G$1" x="332.74" y="137.16"/>
 <instance part="P+9" gate="1" x="276.86" y="68.58"/>
-<instance part="R17" gate="G$1" x="284.48" y="50.8" rot="R270"/>
-<instance part="C18" gate="G$1" x="294.64" y="27.94"/>
-<instance part="R18" gate="G$1" x="294.64" y="17.78"/>
-<instance part="GND18" gate="1" x="294.64" y="7.62"/>
+<instance part="C18" gate="G$1" x="299.72" y="27.94"/>
+<instance part="R18" gate="G$1" x="299.72" y="17.78"/>
+<instance part="GND18" gate="1" x="299.72" y="7.62"/>
 <instance part="LED2" gate="G$1" x="68.58" y="27.94" rot="R180"/>
 <instance part="R7" gate="G$1" x="78.74" y="53.34"/>
 <instance part="C16" gate="G$1" x="261.62" y="35.56" rot="R90"/>
@@ -9645,7 +9644,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="GND18" gate="1" pin="GND"/>
 <pinref part="R18" gate="G$1" pin="2"/>
-<wire x1="294.64" y1="10.16" x2="294.64" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="299.72" y1="10.16" x2="299.72" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND21" gate="1" pin="GND"/>
@@ -10395,12 +10394,12 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 </segment>
 <segment>
 <pinref part="IC3" gate="G$1" pin="OUT"/>
-<wire x1="289.56" y1="33.02" x2="294.64" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="289.56" y1="33.02" x2="299.72" y2="33.02" width="0.1524" layer="91"/>
 <label x="302.26" y="33.02" size="1.778" layer="95" xref="yes"/>
 <pinref part="C18" gate="G$1" pin="1"/>
-<wire x1="294.64" y1="33.02" x2="302.26" y2="33.02" width="0.1524" layer="91"/>
-<wire x1="294.64" y1="30.48" x2="294.64" y2="33.02" width="0.1524" layer="91"/>
-<junction x="294.64" y="33.02"/>
+<wire x1="299.72" y1="33.02" x2="302.26" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="299.72" y1="30.48" x2="299.72" y2="33.02" width="0.1524" layer="91"/>
+<junction x="299.72" y="33.02"/>
 </segment>
 </net>
 <net name="D1/WIFITX" class="0">
@@ -10449,31 +10448,25 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="IC3" gate="G$1" pin="GAIN@1"/>
 <wire x1="279.4" y1="38.1" x2="281.94" y2="38.1" width="0.1524" layer="91"/>
-<pinref part="R17" gate="G$1" pin="2"/>
-<wire x1="279.4" y1="38.1" x2="279.4" y2="50.8" width="0.1524" layer="91"/>
+<pinref part="C17" gate="G$1" pin="+"/>
+<wire x1="279.4" y1="38.1" x2="279.4" y2="43.18" width="0.1524" layer="91"/>
+<wire x1="279.4" y1="43.18" x2="281.94" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$1" class="0">
 <segment>
 <pinref part="IC3" gate="G$1" pin="GAIN@2"/>
-<wire x1="284.48" y1="38.1" x2="302.26" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="302.26" y1="38.1" x2="302.26" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="284.48" y1="38.1" x2="292.1" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="292.1" y1="38.1" x2="292.1" y2="43.18" width="0.1524" layer="91"/>
 <pinref part="C17" gate="G$1" pin="-"/>
-<wire x1="302.26" y1="50.8" x2="299.72" y2="50.8" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$2" class="0">
-<segment>
-<pinref part="C17" gate="G$1" pin="+"/>
-<pinref part="R17" gate="G$1" pin="1"/>
-<wire x1="292.1" y1="50.8" x2="289.56" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="292.1" y1="43.18" x2="289.56" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$14" class="0">
 <segment>
 <pinref part="R18" gate="G$1" pin="1"/>
 <pinref part="C18" gate="G$1" pin="2"/>
-<wire x1="294.64" y1="22.86" x2="294.64" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="299.72" y1="22.86" x2="299.72" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$17" class="0">
