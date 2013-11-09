@@ -52,7 +52,6 @@ void   connect();
 void   startNormalOperation();
 void   letterCallback( char letter );
 void   wordCallback();
-void   printGuide(void);
 void   IRKit_setup();
 void   IRKit_loop();
 
@@ -83,17 +82,6 @@ void IrReceiveLoop(void) {
         IR_state(IR_IDLE);
         return;
     }
-
-    // can't receive here
-
-    sprintf( tmp, P("%lu"), IrCtrl.overflowed );
-    Serial.print(P("overflowed: "));  Serial.println( tmp );
-
-    sprintf( tmp, P("%d"), freeMemory() );
-    Serial.print(P("free:"));         Serial.println( tmp );
-
-    sprintf( tmp, P("%x"), IrCtrl.len );
-    Serial.print(P("received len:")); Serial.println( tmp );
 
     // start receiving again while leaving received data readable from central
     IR_state( IR_RECVED_IDLE );
@@ -464,14 +452,6 @@ void wordCallback() {
     }
 }
 
-void printGuide(void) {
-    Serial.println(P("Operations Menu:"));
-    Serial.println(P("c) clear"));
-    Serial.println(P("d) dump"));
-    Serial.println(P("s) set keys"));
-    Serial.println(P("v) version"));
-}
-
 void IRKit_setup() {
     //--- initialize LED
 
@@ -504,8 +484,6 @@ void IRKit_setup() {
     gs.setup( &onDisconnect, &onReset );
 
     connect();
-
-    printGuide();
 }
 
 void IRKit_loop() {
@@ -550,11 +528,6 @@ void IRKit_loop() {
             Serial.println(P("---ir---"));
             IR_dump();
             Serial.println();
-        }
-        else if (last_character == 'i') {
-            keys.setKeyValid(false);
-            keys.save2();
-            Serial.println("invalidate key_is_valid");
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));

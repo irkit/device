@@ -593,7 +593,7 @@ void GSwifi::parseLine () {
 void GSwifi::parseCmdResponse (char *buf) {
     Serial.print(P("parseCmd: ")); Serial.println(buf);
 
-    if (strcmp(buf, P("OK")) == 0) {
+    if (strncmp(buf, P("OK"), 3) == 0) {
         _gs_ok = true;
     }
     else if (strncmp(buf, P("ERROR"), 5) == 0) {
@@ -962,6 +962,30 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     sprintf(cmd, P("AT+NCTCP=%s,80"), _ipaddr);
     // clientRequest.cid is filled
     command(cmd, GSCOMMANDMODE_CONNECT);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    // TCP_MAXRT = 10
+    // AT+SETSOCKOPT=0,6,10,10,4
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,10,10,4"), clientRequest.cid);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
+    // Enable TCP_KEEPALIVE on this socket
+    // AT+SETSOCKOPT=0,65535,8,1,4
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,65535,8,1,4"), clientRequest.cid);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
+    // TCP_KEEPALIVE_PROBES = 2
+    // AT+SETSOCKOPT=0,6,4005,2,4
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4005,2,4"), clientRequest.cid);
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
+    // TCP_KEEPALIVE_INTVL = 150
+    // AT+SETSOCKOPT=0,6,4001,150,4
+    // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4001,150,4"), clientRequest.cid);
+    command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
