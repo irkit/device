@@ -423,7 +423,7 @@ void connect() {
 }
 
 void startNormalOperation() {
-    getMessages();
+    getMessageTimer = 0;
 
     gBufferMode = GBufferModeUnused;
     IR_state( IR_IDLE );
