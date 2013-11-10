@@ -201,11 +201,11 @@ public:
 
     /**
      * HTTP request
-     * @param timeout closes connection and dispatches callback with status_code 498 after this number of times caller calls onTimer()
+     * @param timeout_second closes connection and dispatches callback with status_code 498 after this number of times caller calls onTimer()
      */
-    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler, uint8_t timeout);
-    int8_t get (const char *path, GSEventHandler handler, uint8_t timeout);
-    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout);
+    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler, uint8_t timeout_second);
+    int8_t get (const char *path, GSEventHandler handler, uint8_t timeout_second);
+    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout_second);
     int8_t close(uint8_t cid);
 
     // TODO make accessor or rename

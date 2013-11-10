@@ -12,8 +12,6 @@
 #include "IrJsonParser.h"
 #include "timer.h"
 
-#define LED_BLINK_INTERVAL 200
-
 // down -1- up -2- down -3- up -4- down -5- up
 #define VALID_IR_LEN_MIN   5
 
@@ -25,9 +23,9 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 MorseListener listener(MICROPHONE,13);
 
 Keys keys;
-volatile static uint8_t message_timer = TIMER_OFF;
+volatile static uint8_t message_timer   = TIMER_OFF;
+volatile static uint8_t reconnect_timer = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
-static uint32_t retry_after       = 0;
 static bool     morse_error       = 0;
 
 //--- declaration
@@ -96,17 +94,17 @@ void timerLoop() {
     }
 
     // reconnect
-    if (retry_after && (global.now > retry_after)) {
-        retry_after = 0;
+    if (TIMER_FIRED(reconnect_timer)) {
+        TIMER_STOP(reconnect_timer);
         connect();
     }
 }
 
 // inside ISR, be careful
 void onTimer() {
-    color.toggleBlink();
+    color.toggleBlink(); // 200msec blink
 
-    TIMER_RUN( message_timer );
+    TIMER_TICK( message_timer );
 
     gs.onTimer();
 }
@@ -285,15 +283,13 @@ int8_t onGetMessagesResponse() {
         }
 
         if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-            message_timer = TIMER_FIRE; // immediately
+            TIMER_START(message_timer, 0);
         }
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
     case 503: // heroku responds with 503 if longer than 30sec
-        message_timer = 25;
-        break;
     default:
-        message_timer = 25; // 5sec
+        TIMER_START(message_timer, 5);
         break;
     }
 
@@ -310,7 +306,7 @@ int8_t onPostKeysResponse() {
     }
 
     if (gs.serverRequest.cid == CID_UNDEFINED) {
-        message_timer = TIMER_FIRE;
+        TIMER_START(message_timer, 0);
         return 0;
     }
 
@@ -324,12 +320,12 @@ int8_t onPostKeysResponse() {
             gs.write( letter );
         }
         gs.end();
-        message_timer = TIMER_FIRE; // immediately
+        TIMER_START(message_timer, 0);
         break;
     default:
         ring_clear(gs._buf_cmd);
         gs.end();
-        message_timer = 25; // 5sec
+        TIMER_START(message_timer, 5);
         break;
     }
 
@@ -339,20 +335,20 @@ int8_t onPostKeysResponse() {
 void postDoor() {
     char body[41]; // 4 + 36 + 1
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( PB("/door",1), body, 40, &onPostDoorResponse, 250 ); // 50sec timeout
+    gs.post( PB("/door",1), body, 40, &onPostDoorResponse, 50 );
 }
 
 int8_t getMessages() {
     // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
     char path[80];
     sprintf(path, P("/messages?key=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
-    return gs.get(path, &onGetMessagesResponse, 250); // 50sec timeout
+    return gs.get(path, &onGetMessagesResponse, 50);
 }
 
 void postKeys() {
     char body[41]; // 4 + 36 + 1
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 50 ); // 10sec timeout
+    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 10 );
 }
 
 void connect() {
@@ -396,7 +392,7 @@ void connect() {
         if (keys.wasWifiValid()) {
             // retry
             color.setLedColor( 1, 0, 0, false );
-            retry_after = millis() + 5000;
+            TIMER_START(reconnect_timer, 5);
         }
         else {
             keys.clear();
@@ -418,7 +414,7 @@ void connect() {
 }
 
 void startNormalOperation() {
-    message_timer = TIMER_FIRE;
+    TIMER_START(message_timer, 0);
 
     gBufferMode = GBufferModeUnused;
     IR_state( IR_IDLE );
@@ -462,7 +458,7 @@ void wordCallback() {
 void IRKit_setup() {
     //--- initialize LED
 
-    FlexiTimer2::set( LED_BLINK_INTERVAL, &onTimer );
+    FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
     FlexiTimer2::start();
     color.setLedColor( 1, 0, 0, false );
 

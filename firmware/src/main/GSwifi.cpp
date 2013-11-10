@@ -636,7 +636,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 
                 clientRequest.cid   = cid;
                 clientRequest.state = GSRESPONSESTATE_HEAD1;
-                clientRequest.timer = TIMER_OFF;
+                TIMER_STOP(clientRequest.timer);
             }
         }
         break;
@@ -1015,17 +1015,17 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // ignore timeout, we always timeout here
     escape( "E" );
 
-    clientRequest.timer = timeout;
+    TIMER_START(clientRequest.timer, timeout);
 
     return 0;
 }
 
-int8_t GSwifi::get(const char *path, GSEventHandler handler, uint8_t timeout) {
-    return request( GSMETHOD_GET, path, NULL, 0, handler, timeout );
+int8_t GSwifi::get(const char *path, GSEventHandler handler, uint8_t timeout_second) {
+    return request( GSMETHOD_GET, path, NULL, 0, handler, timeout_second );
 }
 
-int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout) {
-    return request( GSMETHOD_POST, path, body, length, handler, timeout );
+int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout_second) {
+    return request( GSMETHOD_POST, path, body, length, handler, timeout_second );
 }
 
 // careful, called from ISR
