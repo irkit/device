@@ -28,6 +28,7 @@
 #include "convert.h"
 #include "ringbuffer.h"
 #include "version.h"
+#include "timer.h"
 
 #define DOMAIN "wifi-morse-setup.herokuapp.com"
 
@@ -123,6 +124,16 @@ void GSwifi::reset () {
 
 void GSwifi::loop() {
     checkActivity( 0 );
+
+    if ( (clientRequest.cid != CID_UNDEFINED) &&
+         TIMER_FIRED(clientRequest.timer) ) {
+        TIMER_STOP(clientRequest.timer);
+
+        close( clientRequest.cid );
+        clientRequest.cid         = CID_UNDEFINED;
+        clientRequest.status_code = HTTP_STATUSCODE_CLIENT_TIMEOUT;
+        dispatchResponseHandler();
+    }
 }
 
 // received a character from UART
@@ -625,6 +636,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 
                 clientRequest.cid   = cid;
                 clientRequest.state = GSRESPONSESTATE_HEAD1;
+                clientRequest.timer = TIMER_OFF;
             }
         }
         break;
@@ -948,7 +960,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler) {
+int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler, uint8_t timeout) {
     _responseHandler = handler;
 
     char cmd[ GS_CMD_SIZE ];
@@ -962,30 +974,6 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     sprintf(cmd, P("AT+NCTCP=%s,80"), _ipaddr);
     // clientRequest.cid is filled
     command(cmd, GSCOMMANDMODE_CONNECT);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    // TCP_MAXRT = 10
-    // AT+SETSOCKOPT=0,6,10,10,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,10,10,4"), clientRequest.cid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    // Enable TCP_KEEPALIVE on this socket
-    // AT+SETSOCKOPT=0,65535,8,1,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,65535,8,1,4"), clientRequest.cid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    // TCP_KEEPALIVE_PROBES = 2
-    // AT+SETSOCKOPT=0,6,4005,2,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4005,2,4"), clientRequest.cid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    // TCP_KEEPALIVE_INTVL = 150
-    // AT+SETSOCKOPT=0,6,4001,150,4
-    // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4001,150,4"), clientRequest.cid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
@@ -1027,15 +1015,25 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // ignore timeout, we always timeout here
     escape( "E" );
 
+    clientRequest.timer = timeout;
+
     return 0;
 }
 
-int8_t GSwifi::get(const char *path, GSEventHandler handler) {
-    return request( GSMETHOD_GET, path, NULL, 0, handler );
+int8_t GSwifi::get(const char *path, GSEventHandler handler, uint8_t timeout) {
+    return request( GSMETHOD_GET, path, NULL, 0, handler, timeout );
 }
 
-int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler) {
-    return request( GSMETHOD_POST, path, body, length, handler );
+int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout) {
+    return request( GSMETHOD_POST, path, body, length, handler, timeout );
+}
+
+// careful, called from ISR
+void GSwifi::onTimer() {
+    if ( (clientRequest.cid != CID_UNDEFINED) &&
+         TIMER_RUNNING(clientRequest.timer) ) {
+        TIMER_COUNTDOWN(clientRequest.timer);
+    }
 }
 
 // for test

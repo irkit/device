@@ -10,6 +10,7 @@
 #include "Global.h"
 #include "MorseListener.h"
 #include "IrJsonParser.h"
+#include "timer.h"
 
 #define LED_BLINK_INTERVAL 200
 
@@ -24,10 +25,10 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 MorseListener listener(MICROPHONE,13);
 
 Keys keys;
-static int8_t getMessageTimer = -1; // -1: off, 0: dispatch, >0: timer running
+volatile static uint8_t message_timer = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
-static uint32_t retry_after = 0;
-static bool morse_error = 0;
+static uint32_t retry_after       = 0;
+static bool     morse_error       = 0;
 
 //--- declaration
 
@@ -89,8 +90,8 @@ void IrReceiveLoop(void) {
 
 void timerLoop() {
     // long poll
-    if (getMessageTimer == 0) {
-        getMessageTimer = -1;
+    if (TIMER_FIRED(message_timer)) {
+        TIMER_STOP(message_timer);
         getMessages();
     }
 
@@ -105,9 +106,9 @@ void timerLoop() {
 void onTimer() {
     color.toggleBlink();
 
-    if (getMessageTimer > 0) {
-        getMessageTimer --;
-    }
+    TIMER_RUN( message_timer );
+
+    gs.onTimer();
 }
 
 int8_t onReset() {
@@ -251,10 +252,12 @@ int8_t onPostDoorResponse() {
         startNormalOperation();
         break;
     case 401:
+    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
         // keys have expired, we have to start from morse sequence again
         keys.clear();
         break;
     case 408:
+    case 503: // heroku responds with 503 if longer than 30sec
     default:
         // try again
         postDoor();
@@ -282,11 +285,15 @@ int8_t onGetMessagesResponse() {
         }
 
         if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-            getMessageTimer = 0; // immediately
+            message_timer = TIMER_FIRE; // immediately
         }
         break;
+    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+    case 503: // heroku responds with 503 if longer than 30sec
+        message_timer = 25;
+        break;
     default:
-        getMessageTimer = 25; // 5sec
+        message_timer = 25; // 5sec
         break;
     }
 
@@ -303,7 +310,7 @@ int8_t onPostKeysResponse() {
     }
 
     if (gs.serverRequest.cid == CID_UNDEFINED) {
-        getMessageTimer = 0;
+        message_timer = TIMER_FIRE;
         return 0;
     }
 
@@ -317,12 +324,12 @@ int8_t onPostKeysResponse() {
             gs.write( letter );
         }
         gs.end();
-        getMessageTimer = 0; // immediately
+        message_timer = TIMER_FIRE; // immediately
         break;
     default:
         ring_clear(gs._buf_cmd);
         gs.end();
-        getMessageTimer = 25; // 5sec
+        message_timer = 25; // 5sec
         break;
     }
 
@@ -332,20 +339,20 @@ int8_t onPostKeysResponse() {
 void postDoor() {
     char body[41]; // 4 + 36 + 1
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( PB("/door",1), body, 40, &onPostDoorResponse );
+    gs.post( PB("/door",1), body, 40, &onPostDoorResponse, 250 ); // 50sec timeout
 }
 
 int8_t getMessages() {
     // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
     char path[80];
     sprintf(path, P("/messages?key=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
-    return gs.get(path, &onGetMessagesResponse);
+    return gs.get(path, &onGetMessagesResponse, 250); // 50sec timeout
 }
 
 void postKeys() {
     char body[41]; // 4 + 36 + 1
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse );
+    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 50 ); // 10sec timeout
 }
 
 void connect() {
@@ -411,7 +418,7 @@ void connect() {
 }
 
 void startNormalOperation() {
-    getMessageTimer = 0;
+    message_timer = TIMER_FIRE;
 
     gBufferMode = GBufferModeUnused;
     IR_state( IR_IDLE );

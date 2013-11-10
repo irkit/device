@@ -31,6 +31,9 @@
 
 #define CID_UNDEFINED     0xFF
 
+// nginx took 499
+#define HTTP_STATUSCODE_CLIENT_TIMEOUT 498
+
 /**
  * GSwifi class
  */
@@ -98,6 +101,7 @@ public:
         uint8_t         cid;    // can be 1 <= cid, because cid == 0 is our http server
         GSRESPONSESTATE state;
         uint16_t        status_code; // status code when error occured
+        uint8_t         timer;  // see timer.h
     };
 
     struct GSRoute {
@@ -115,7 +119,7 @@ public:
     /**
      * setup call once after initialization
      */
-    int8_t setup( GSEventHandler disconnect, GSEventHandler  );
+    int8_t setup( GSEventHandler onDisconnect, GSEventHandler onReset );
     int8_t setupMDNS();
 
     void loop();
@@ -195,16 +199,22 @@ public:
     void write (const uint16_t data);
     int8_t end ();
 
-    // HTTP Request
-    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler);
-    int8_t get (const char *path, GSEventHandler handler);
-    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler);
+    /**
+     * HTTP request
+     * @param timeout closes connection and dispatches callback with status_code 498 after this number of times caller calls onTimer()
+     */
+    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler, uint8_t timeout);
+    int8_t get (const char *path, GSEventHandler handler, uint8_t timeout);
+    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout);
     int8_t close(uint8_t cid);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
     struct GSServerRequest serverRequest;
-    struct GSClientRequest clientRequest;
+    volatile struct GSClientRequest clientRequest;
+
+    // on timer ISR
+    void onTimer();
 
 #ifdef DEBUG
     void dump ();
