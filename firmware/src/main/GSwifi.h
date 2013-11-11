@@ -119,7 +119,7 @@ public:
     /**
      * setup call once after initialization
      */
-    int8_t setup( GSEventHandler onDisconnect, GSEventHandler onReset );
+    int8_t setup( GSEventHandler on_disconnect, GSEventHandler on_reset );
     int8_t setupMDNS();
 
     void loop();
@@ -230,32 +230,32 @@ protected:
     GSMETHOD x2method(const char *method);
 
 private:
-    HardwareSerial*    _serial;
-    bool               _joined, _listening, _dhcp;
-    bool               _gs_ok, _gs_failure;
-    int                _gs_response_lines;
-    GSMODE             _gs_mode;
-    GSCOMMANDMODE      _gs_commandmode;
-    bool               _escape;
-    char               _ipaddr[16]; // xxx.xxx.xxx.xxx
-    char               _mac[17];    // 00:1d:c9:01:99:99
+    HardwareSerial*    serial_;
+    bool               joined_, listening_, dhcp_;
+    bool               gs_ok_, gs_failure_;
+    int                gs_response_lines_;
+    GSMODE             gs_mode_;
+    GSCOMMANDMODE      gs_commandmode_;
+    char               ipaddr_[16]; // xxx.xxx.xxx.xxx
+    char               mac_[17];    // 00:1d:c9:01:99:99
 
-    struct GSRoute     _routes[GS_MAX_ROUTES];
-    uint8_t            _route_count;
-    GSEventHandler     _requestHandler;
-    GSEventHandler     _responseHandler;
+    struct GSRoute     routes_[GS_MAX_ROUTES];
+    uint8_t            route_count_;
+    GSEventHandler     request_handler_;
+    GSEventHandler     response_handler_;
 
     uint32_t           timeout_start_;
     bool               busy_;
     bool               did_timeout_;
-    GSEventHandler     onDisconnect_;
-    GSEventHandler     onReset_;
-    uint8_t            checkActivity(uint32_t timeout_ms);
+    GSEventHandler     on_disconnect_;
+    GSEventHandler     on_reset_;
+    struct RingBuffer  ring_buffer_;
+
+    uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
     int8_t             dispatchRequestHandler();
     int8_t             dispatchResponseHandler();
-    struct RingBuffer  ringbuffer;
 };
 
 #endif // __GSWIFI_H__

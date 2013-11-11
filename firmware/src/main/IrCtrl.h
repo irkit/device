@@ -37,12 +37,12 @@
 typedef struct _irstruct {
     uint8_t   enabled;
     uint8_t   state;        // Communication state
-    uint8_t   trailerCount; // Number of T_TRAIL time to wait to determine signal ended
+    uint8_t   trailer_count; // Number of T_TRAIL time to wait to determine signal ended
     uint8_t   freq;         // carrier wave freq in kHz
     uint8_t   xmit_timer;   // xmit timeout timer
     uint8_t   recv_timer;   // recv timeout timer
     uint16_t  len;          // Size of buff used
-    uint16_t  txIndex;      // 0 < txIndex < len
+    uint16_t  tx_index;      // 0 < tx_index < len
     uint16_t *buff;         // pointer to global buffer
 } IR_STRUCT;
 

@@ -219,7 +219,7 @@ ISR_CAPTURE()
         last_interrupt         = counter;
 
         IrCtrl.buff[ IrCtrl.len ++ ] = low_width;
-        IrCtrl.trailerCount = T_TRAIL_COUNT;
+        IrCtrl.trailer_count = T_TRAIL_COUNT;
 
         IR_CAPTURE_FALL();
         IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
@@ -236,7 +236,7 @@ ISR_CAPTURE()
     }
     else { // is IR_RECVING
         uint8_t trailer;
-        for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailerCount; trailer--) {
+        for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailer_count; trailer--) {
             IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
             IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
             if (IrCtrl.len >= IR_BUFF_SIZE) {
@@ -254,8 +254,8 @@ ISR_CAPTURE()
 ISR_COMPARE()
 {
     if (IrCtrl.state == IR_XMITTING) {
-        if ((IrCtrl.txIndex >= IrCtrl.len) ||
-            (IrCtrl.txIndex >= IR_BUFF_SIZE)) {
+        if ((IrCtrl.tx_index >= IrCtrl.len) ||
+            (IrCtrl.tx_index >= IR_BUFF_SIZE)) {
             // tx successfully finished
             IR_state( IR_IDLE );
             if (onXmitCompleteCallback != NULL) {
@@ -263,7 +263,7 @@ ISR_COMPARE()
             }
             return;
         }
-        uint16_t next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
+        uint16_t next = IrCtrl.buff[ IrCtrl.tx_index ++ ];
         if (IR_TX_IS_ON()) {
             // toggle
             IR_TX_OFF();
@@ -275,7 +275,7 @@ ISR_COMPARE()
             }
             else {
                 // continue for another uin16_t loop
-                next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
+                next = IrCtrl.buff[ IrCtrl.tx_index ++ ];
                 IR_TX_OFF();
             }
         }
@@ -284,8 +284,8 @@ ISR_COMPARE()
         return;
     }
     else if (IrCtrl.state == IR_RECVING) {
-        IrCtrl.trailerCount --;
-        if (IrCtrl.trailerCount == 0) {
+        IrCtrl.trailer_count --;
+        if (IrCtrl.trailer_count == 0) {
             // Trailer detected
             IR_state( IR_RECVED );
         }
@@ -319,7 +319,7 @@ int IR_xmit (IRXmitCompleteCallback callback)
         IR_TX_38K();
     }
     IR_TX_ON();
-    IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.txIndex ++ ] );
+    IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.tx_index ++ ] );
 
     return 1;
 }
@@ -328,7 +328,7 @@ void IR_clear (void)
 {
     uint16_t i;
     IrCtrl.len        = 0;
-    IrCtrl.txIndex    = 0;
+    IrCtrl.tx_index    = 0;
     IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
     for (i=0; i<IR_BUFF_SIZE; i++) {
         IrCtrl.buff[i] = 0;
@@ -411,7 +411,7 @@ void IR_state (uint8_t nextState)
     case IR_XMITTING:
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
-        IrCtrl.txIndex = 0;
+        IrCtrl.tx_index = 0;
         TIMER_START( IrCtrl.xmit_timer, XMIT_TIMEOUT );
         break;
     case IR_DISABLED:
@@ -461,8 +461,8 @@ void IR_dump (void)
         break;
     }
     Serial.print(P(" .len: "));            Serial.println(IrCtrl.len,HEX);
-    Serial.print(P(" .trailerCount: "));   Serial.println(IrCtrl.trailerCount,HEX);
-    Serial.print(P(" .txIndex: "));        Serial.println(IrCtrl.txIndex,HEX);
+    Serial.print(P(" .trailer_count: "));  Serial.println(IrCtrl.trailer_count,HEX);
+    Serial.print(P(" .tx_index: "));       Serial.println(IrCtrl.tx_index,HEX);
     Serial.print(P(" .recv_timer: "));     Serial.println(IrCtrl.recv_timer);
     Serial.print(P(" .xmit_timer: "));     Serial.println(IrCtrl.xmit_timer);
     for (uint16_t i=0; i<IrCtrl.len; i++) {
