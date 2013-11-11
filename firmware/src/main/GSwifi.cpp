@@ -164,11 +164,8 @@ void GSwifi::parseByte(uint8_t dat) {
             // esc
             switch (dat) {
             case 'O':
-                gs_ok_      = true;
-                break;
             case 'F':
-                Serial.println(P("!!!E3"));
-                gs_failure_ = true;
+                // ignore
                 break;
             case 'Z':
             case 'H':
@@ -478,9 +475,6 @@ int8_t GSwifi::writeHead (uint16_t status_code) {
     cmd[ 1 ]  = serverRequest.cid + '0';
 
     escape( cmd );
-    if (did_timeout_) {
-        return -1;
-    }
 
     serial_->print(P("HTTP/1.0 "));
     char *msg;
@@ -523,9 +517,6 @@ void GSwifi::write (const uint16_t data) {
 
 int8_t GSwifi::end () {
     escape( "E" );
-    if (did_timeout_) {
-        // close anyway
-    }
 
     int8_t ret = close( serverRequest.cid );
     serverRequest.cid = CID_UNDEFINED;
@@ -731,9 +722,6 @@ void GSwifi::escape (const char *cmd, uint8_t timeout_second) {
     serial_->print(cmd); // without ln
 
     Serial.println(cmd);
-
-    setBusy(true);
-    waitResponse(timeout_second);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
@@ -1020,9 +1008,6 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     sprintf(cmd, "S%d", clientRequest.cid);
     escape( cmd );
-    if (did_timeout_) {
-        return -1;
-    }
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("POST "));
