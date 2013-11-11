@@ -8,7 +8,7 @@
 class LongPressButton
 {
 public:
-    LongPressButton(int pin, uint32_t longThreshold);
+    LongPressButton(int pin, uint32_t long_threshold);
     void loop();
 
     // called when button pressed longer than threshold
@@ -17,9 +17,9 @@ public:
 
 private:
     int pin_;
-    unsigned long longThreshold_;
-    unsigned long buttonDownAt_;
-    bool buttonState_;
+    unsigned long long_threshold_;
+    unsigned long button_down_at_;
+    bool button_state_;
 };
 
 #endif // __LONGPRESSBUTTON_H__

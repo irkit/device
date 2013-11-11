@@ -2,30 +2,31 @@
 #include "LongPressButton.h"
 #include "Global.h"
 
-LongPressButton::LongPressButton(int pin, unsigned long longThreshold) :
+LongPressButton::LongPressButton(int pin, unsigned long long_threshold) :
     pin_(pin),
-    longThreshold_(longThreshold)
+    long_threshold_(long_threshold)
 {
     pinMode( pin_, INPUT );
-    buttonState_ = BUTTON_OFF;
+    button_state_ = BUTTON_OFF;
 }
 
 void LongPressButton::loop() {
-    bool nextButtonState = digitalRead( pin_ );
+    bool next_button_state = digitalRead( pin_ );
 
-    if ((BUTTON_OFF == buttonState_) &&
-        (BUTTON_ON  == nextButtonState)) {
+    if ((BUTTON_OFF == button_state_) &&
+        (BUTTON_ON  == next_button_state)) {
         // OFF -> ON
-        buttonDownAt_ = global.now;
+        button_down_at_ = global.now;
     }
-    else if ((BUTTON_ON == buttonState_) &&
-             (BUTTON_ON == nextButtonState)) {
+    else if ((BUTTON_ON == button_state_) &&
+             (BUTTON_ON == next_button_state)) {
         // still pressing
-        if (global.now - buttonDownAt_ > longThreshold_) {
+        // forget overflow, it won't happen within between button down/up
+        if (global.now - button_down_at_ > long_threshold_) {
             callback();
-            buttonState_ = BUTTON_OFF;
+            button_state_ = BUTTON_OFF;
             return;
         }
     }
-    buttonState_ = nextButtonState;
+    button_state_ = next_button_state;
 }
