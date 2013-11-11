@@ -22,6 +22,7 @@
 #include "IrCtrl.h"
 #include "pgmStrToRAM.h"
 #include "Global.h"
+#include "timer.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -176,7 +177,9 @@
 // clear overflowed state after XXX ms
 #define OVERFLOW_CLEAR_TIMEOUT 1000 // [ms]
 
-#define RECV_TIMEOUT           1000
+// my air conditioner takes 270ms, 2sec should be enough (probably)
+#define RECV_TIMEOUT           2
+
 #define XMIT_TIMEOUT           1000
 
 // Working area for IR communication
@@ -336,9 +339,9 @@ int IR_xmit (IRXmitCompleteCallback callback)
     return 1;
 }
 
-uint8_t IRDidRecvTimeout ()
+uint8_t IRDidXmitTimeout ()
 {
-    return (IrCtrl.state == IR_RECVING) &&  (millis() - IrCtrl.recvStart > RECV_TIMEOUT);
+    return (IrCtrl.state == IR_XMITTING) && (millis() - IrCtrl.xmitStart > XMIT_TIMEOUT);
 }
 
 void IR_clear (void)
@@ -362,6 +365,20 @@ void IR_put (uint16_t data)
     IrCtrl.buff[ IrCtrl.len ++ ] = data;
 }
 
+void IR_timer (void)
+{
+    if (IrCtrl.state == IR_RECVING) {
+        TIMER_TICK( IrCtrl.recv_timer );
+
+        if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
+            TIMER_STOP( IrCtrl.recv_timer );
+
+            Serial.println(P("!!!\tIR recv timeout"));
+            IR_state( IR_IDLE );
+        }
+    }
+}
+
 void IR_state (uint8_t nextState)
 {
     switch (nextState) {
@@ -377,12 +394,14 @@ void IR_state (uint8_t nextState)
         break;
     case IR_RECVING:
         IR_clear();
-
-        IrCtrl.recvStart = millis();
+        TIMER_START( IrCtrl.recv_timer, RECV_TIMEOUT );
         break;
     case IR_RECVED:
+        TIMER_STOP( IrCtrl.recv_timer );
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
+
+        IR_dump();
         break;
     case IR_RECVED_IDLE:
         IR_CAPTURE_FALL();
@@ -417,6 +436,7 @@ void IR_initialize (void)
     IR_INIT_XMIT();
 
     IrCtrl.buff = (uint16_t*)global.buffer;
+    TIMER_STOP( IrCtrl.recv_timer );
 
     IR_state( IR_DISABLED );
 

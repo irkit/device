@@ -68,11 +68,6 @@ void reset3V3 () {
 }
 
 void IrReceiveLoop(void) {
-    if ( IRDidRecvTimeout() ) {
-        Serial.println(P("!!!\tIR recv timeout"));
-        IR_state(IR_IDLE);
-        return;
-    }
     if (IrCtrl.state != IR_RECVED) {
         return;
     }
@@ -107,6 +102,8 @@ void onTimer() {
     TIMER_TICK( message_timer );
 
     gs.onTimer();
+
+    IR_timer();
 }
 
 int8_t onReset() {

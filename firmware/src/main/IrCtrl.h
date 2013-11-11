@@ -42,7 +42,7 @@ typedef struct _irstruct {
     uint8_t freq;                // carrier wave freq in kHz
     unsigned long overflowed;    // Receive buffer overflowed time by millis()
     unsigned long xmitStart;     // xmit started at millis()
-    unsigned long recvStart;     // recv started at millis()
+    uint8_t  recv_timer;         // recv started at millis()
     uint16_t len;                // Size of buff used
     uint16_t txIndex;            // 0 < txIndex < len
     uint16_t *buff;              // pointer to global buffer
@@ -60,6 +60,7 @@ int IR_xmit (IRXmitCompleteCallback);
 uint8_t IRDidRecvTimeout ();
 uint8_t IRDidXmitTimeout ();
 void IR_put (uint16_t);
+void IR_timer (void);
 void IR_state (uint8_t);
 void IR_dump (void);
 
