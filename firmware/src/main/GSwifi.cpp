@@ -40,6 +40,10 @@
 #define NEXT_TOKEN_LENGTH 3
 #define NEXT_TOKEN_DATA   4
 
+#define BULK_DATA_SOURCE_UNKNOWN  0
+#define BULK_DATA_SOURCE_RESPONSE 1
+#define BULK_DATA_SOURCE_REQUEST  2
+
 #define ESCAPE           0x1B
 
 GSwifi::GSwifi( HardwareSerial *serial ) :
@@ -154,10 +158,10 @@ void GSwifi::parseByte(uint8_t dat) {
     static uint8_t continous_newlines = 0;
     static bool escape = false;
 
-    // true  : data from gswifi is response to request from gswifi
-    // false : data from gswifi is request from other client
-    static bool is_response = 0;
-    static bool is_request  = 0;
+    // 0: unknown
+    // 1: is response
+    // 2: is request
+    static uint8_t bulk_data_source = BULK_DATA_SOURCE_UNKNOWN;
 
     if (gs_mode_ == GSMODE_COMMAND) {
         if (escape) {
@@ -208,11 +212,13 @@ void GSwifi::parseByte(uint8_t dat) {
             len         = 0;
             if (clientRequest.cid == cid) {
                 // following data is response to our request from gswifi
-                is_response = true;
+                bulk_data_source = BULK_DATA_SOURCE_RESPONSE;
+                Serial.println(P("is_response"));
             }
             else if (serverRequest.cid == cid) {
                 // following data is request from other client in same wifi
-                is_request = true;
+                bulk_data_source = BULK_DATA_SOURCE_REQUEST;
+                Serial.println(P("is_request"));
             }
         }
         else if (next_token == NEXT_TOKEN_LENGTH) {
@@ -223,10 +229,10 @@ void GSwifi::parseByte(uint8_t dat) {
                 len        = atoi(tmp); // length of data
                 next_token = NEXT_TOKEN_DATA;
 
-                if (is_response) {
+                if (bulk_data_source == BULK_DATA_SOURCE_RESPONSE) {
                     clientRequest.state = GSRESPONSESTATE_HEAD1;
                 }
-                else if (is_request) {
+                else if (bulk_data_source == BULK_DATA_SOURCE_REQUEST) {
                     serverRequest.state = GSREQUESTSTATE_HEAD1;
                 }
                 ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
@@ -237,7 +243,7 @@ void GSwifi::parseByte(uint8_t dat) {
         else if (next_token == NEXT_TOKEN_DATA) {
             len --;
 
-            if (is_response) {
+            if (bulk_data_source == BULK_DATA_SOURCE_RESPONSE) {
                 switch (clientRequest.state) {
                 case GSRESPONSESTATE_HEAD1:
                     if (dat != '\n') {
@@ -267,7 +273,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         clientRequest.status_code = atoi(status_code);
                         clientRequest.state       = GSRESPONSESTATE_HEAD2;
                         continous_newlines        = 0;
-                        Serial.println(P("next: head2"));
+                        Serial.println(P("res next: head2"));
                     }
                     break;
                 case GSRESPONSESTATE_HEAD2:
@@ -286,7 +292,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         // if detected double (\r)\n, switch to body mode
                         clientRequest.state = GSRESPONSESTATE_BODY;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("next: body"));
+                        Serial.println(P("res next: body"));
                     }
                     break;
                 case GSRESPONSESTATE_BODY:
@@ -302,7 +308,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
 
                 if (len == 0) {
-                    Serial.println(P("len==0"));
+                    Serial.println(P("res len==0"));
 
                     escape             = false;
                     gs_mode_            = GSMODE_COMMAND;
@@ -319,9 +325,9 @@ void GSwifi::parseByte(uint8_t dat) {
                     }
                 }
                 return;
-            } // is_response
+            } // response
 
-            if (is_request) {
+            if (bulk_data_source == BULK_DATA_SOURCE_REQUEST) {
                 switch (serverRequest.state) {
                 case GSREQUESTSTATE_HEAD1:
                     if (dat != '\n') {
@@ -360,7 +366,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         serverRequest.routeid = routeid;
                         serverRequest.state   = GSREQUESTSTATE_HEAD2;
                         continous_newlines    = 0;
-                        Serial.println(P("next: head2"));
+                        Serial.println(P("req next: head2"));
                     }
                     break;
                 case GSREQUESTSTATE_HEAD2:
@@ -377,12 +383,12 @@ void GSwifi::parseByte(uint8_t dat) {
                         // if detected double (\r)\n, switch to body mode
                         serverRequest.state = GSREQUESTSTATE_BODY;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("next: body"));
+                        Serial.println(P("req next: body"));
                     }
                     break;
                 case GSREQUESTSTATE_BODY:
                     if (ring_isfull(_buf_cmd)) {
-                        Serial.println(P("full"));
+                        Serial.println(P("req full"));
                         dispatchRequestHandler(); // POST, user callback should write()
                     }
                     ring_put(_buf_cmd, dat);
@@ -396,7 +402,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
 
                 if (len == 0) {
-                    Serial.println(P("len==0"));
+                    Serial.println(P("req len==0"));
 
                     escape  = false;
                     gs_mode_ = GSMODE_COMMAND;
@@ -411,14 +417,13 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_clear(_buf_cmd);
                 }
                 return;
-            } // is_request
+            } // request
 
             // if not request nor response,
             // it's leftover data of closed clientRequest or serverRequest
             // ignore it
             if (len == 0) {
                 Serial.println(P("leftover len==0"));
-                ring_clear( _buf_cmd );
             }
         } // (next_token == NEXT_TOKEN_DATA)
     } // (gs_mode_ == GSMODE_DATA_RX_BULK)
@@ -577,8 +582,8 @@ void GSwifi::parseLine () {
             // 2nd cid is for client
             // next line will be "[ESC]Z10140GET / ..."
 
-            Serial.println(buf);
             uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
+            Serial.print(P("connect ")); Serial.println(cid);
 
             if ( (serverRequest.cid != CID_UNDEFINED) &&
                  (serverRequest.cid != cid) ){
