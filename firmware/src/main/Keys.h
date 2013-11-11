@@ -60,11 +60,11 @@ class Keys {
     // Both KeysShared and KeysIndependent are saved in EEPROM
     // KeysShared includes Wifi credentials, which is only needed
     // when we lost Wifi connection or haven't established it,
-    // and no other classes will use gBuffer without Wifi connection.
-    // So KeysShared area is shared with gBuffer.
+    // and no other classes will use global.buffer without Wifi connection.
+    // So KeysShared area is shared with global.buffer.
     // KeysIndependent is used to store key,
     // which is needed to communicate with server,
-    // and that's going to happen when other classes (ex: IR) uses gBuffer.
+    // and that's going to happen when other classes (ex: IR) uses global.buffer.
     // CRC is used to detect EEPROM corruption and corruption during Morse communication
 
     struct KeysShared

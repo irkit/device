@@ -52,9 +52,11 @@ typedef struct _irstruct {
 extern
 volatile IR_STRUCT IrCtrl;
 
+typedef void (*IRXmitCompleteCallback)();
+
 /* Prototypes */
 void IR_initialize (void);
-int IR_xmit (void);
+int IR_xmit (IRXmitCompleteCallback);
 uint8_t IRDidRecvTimeout ();
 uint8_t IRDidXmitTimeout ();
 void IR_put (uint16_t);

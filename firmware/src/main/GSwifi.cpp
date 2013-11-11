@@ -308,7 +308,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     clientRequest.cid   = CID_UNDEFINED;
                 }
                 return;
-            }
+            } // is_response
 
             switch (serverRequest.state) {
             case GSREQUESTSTATE_HEAD1:

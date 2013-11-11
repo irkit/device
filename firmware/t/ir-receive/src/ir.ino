@@ -98,6 +98,7 @@ void loop() {
         else if (lastCharacter == 's') {
             Serial.println(P("writing"));
             // Apple Remote Play/Pause
+            IR_state( IR_WRITING );
             IR_put(0x46E1); IR_put(0x2325); IR_put(0x04CE); IR_put(0x044C);
             IR_put(0x04CC); IR_put(0x0D0B); IR_put(0x04CF); IR_put(0x0D09);
             IR_put(0x049E); IR_put(0x0D3B); IR_put(0x049E); IR_put(0x047C);

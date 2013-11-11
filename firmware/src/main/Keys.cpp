@@ -25,7 +25,7 @@ KeysFiller::KeysFiller ()
 
 Keys::Keys()
 {
-    data = (KeysShared*)gBuffer;
+    data = (KeysShared*)global.buffer;
 }
 
 void Keys::load()

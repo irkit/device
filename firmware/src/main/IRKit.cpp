@@ -40,6 +40,7 @@ int8_t onGetMessagesRequest();
 void   jsonDetectedStart();
 void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
+void   onIRXmitComplete();
 int8_t onPostMessagesRequest();
 int8_t onRequest();
 int8_t onPostDoorResponse();
@@ -67,7 +68,6 @@ void reset3V3 () {
 }
 
 void IrReceiveLoop(void) {
-    char tmp[10];
     if ( IRDidRecvTimeout() ) {
         Serial.println(P("!!!\tIR recv timeout"));
         IR_state(IR_IDLE);
@@ -131,13 +131,13 @@ int8_t onGetMessagesRequest() {
         return -1;
     }
     gs.writeHead(200);
-    if (IrCtrl.len <= 0) {
+
+    if ( (global.buffer_mode == GBufferModeWifiCredentials) ||
+         (IrCtrl.len <= 0) ) {
         // if no data
         gs.end();
         return 0;
     }
-
-    // TODO lock IrCtrl.buff
 
     gs.write(P("{"));
     gs.write(P("\"format\":\"raw\",")); // format fixed to "raw" for now
@@ -160,12 +160,19 @@ int8_t onGetMessagesRequest() {
 void jsonDetectedStart() {
     Serial.println(P("json start"));
 
-    gBufferMode = GBufferModeIR;
-    IR_state( IR_WRITING );
+    if (global.buffer_mode != GBufferModeWifiCredentials) {
+        IR_state( IR_WRITING );
+    }
 }
 
 void jsonDetectedData( uint8_t key, uint32_t value ) {
     Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
+
+    if ( (IrCtrl.state != IR_WRITING) ||
+         (global.buffer_mode != GBufferModeIR) ) {
+        return;
+    }
+
     switch (key) {
     case IrJsonParserDataKeyId:
         newest_message_id = value;
@@ -182,8 +189,22 @@ void jsonDetectedData( uint8_t key, uint32_t value ) {
 }
 
 void jsonDetectedEnd() {
-    Serial.println(P("json end, xmit"));
-    IR_xmit();
+    Serial.println(P("json end"));
+
+    if ( (IrCtrl.state != IR_WRITING) ||
+         (global.buffer_mode != GBufferModeIR) ) {
+        Serial.print("buffer_mode:"); Serial.println(global.buffer_mode);
+        IR_dump();
+        return;
+    }
+
+    Serial.println(P("xmit"));
+    IR_xmit(&onIRXmitComplete);
+}
+
+// careful, called in ISR
+void onIRXmitComplete() {
+    Serial.println(P("xmit complete"));
 }
 
 int8_t onPostMessagesRequest() {
@@ -198,6 +219,13 @@ int8_t onPostMessagesRequest() {
     }
 
     if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+        // should be xmitting or idle (xmit finished)
+        if (IrCtrl.state == IR_WRITING) {
+            // invalid json
+            gs.writeHead(400);
+            gs.end();
+            return 0;
+        }
         gs.writeHead(200);
         gs.end();
     }
@@ -245,7 +273,7 @@ int8_t onPostDoorResponse() {
     switch (status) {
     case 200:
         keys.setKeyValid(true);
-        // save only independent area, since gBuffer might be populated by IR or so.
+        // save only independent area, since global.buffer might be populated by IR or so.
         keys.save2();
         startNormalOperation();
         break;
@@ -283,6 +311,12 @@ int8_t onGetMessagesResponse() {
         }
 
         if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
+            // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
+            if (IrCtrl.state == IR_WRITING) {
+                // prevent from locking in WRITING state forever
+                IR_state( IR_IDLE );
+            }
+
             TIMER_START(message_timer, 0);
         }
         break;
@@ -352,8 +386,10 @@ void postKeys() {
 }
 
 void connect() {
+    global.buffer_mode = GBufferModeWifiCredentials;
+    IR_state( IR_DISABLED );
+
     // load wifi credentials from EEPROM
-    gBufferMode = GBufferModeWifiCredentials;
     keys.load();
 
     if (keys.isWifiCredentialsSet()) {
@@ -414,9 +450,12 @@ void connect() {
 }
 
 void startNormalOperation() {
+    Serial.println(P("startNormal"));
+
     TIMER_START(message_timer, 0);
 
-    gBufferMode = GBufferModeUnused;
+    global.buffer_mode = GBufferModeIR;
+
     IR_state( IR_IDLE );
 }
 
@@ -519,6 +558,8 @@ void IRKit_loop() {
         }
         else if (last_character == 'd') {
             keys.load();
+
+            Serial.print("buffer_mode: "); Serial.println(global.buffer_mode);
 
             Serial.println(P("---keys---"));
             keys.dump();

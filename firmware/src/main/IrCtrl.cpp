@@ -182,6 +182,8 @@
 // Working area for IR communication
 volatile IR_STRUCT IrCtrl;
 
+static IRXmitCompleteCallback onXmitCompleteCallback;
+
 // IR receiving interrupt on either edge of input
 ISR_CAPTURE()
 {
@@ -268,6 +270,9 @@ ISR_COMPARE()
             (IrCtrl.txIndex >= IR_BUFF_SIZE)) {
             // tx successfully finished
             IR_state( IR_IDLE );
+            if (onXmitCompleteCallback != NULL) {
+                onXmitCompleteCallback();
+            }
             return;
         }
         uint16_t next = IrCtrl.buff[ IrCtrl.txIndex ++ ];
@@ -305,16 +310,18 @@ ISR_COMPARE()
     IR_state( IR_IDLE );
 }
 
-int IR_xmit ()
+int IR_xmit (IRXmitCompleteCallback callback)
 {
+    onXmitCompleteCallback = callback;
+
     // TODO errcode
     if ((IrCtrl.len == 0) ||
         (IrCtrl.len > IR_BUFF_SIZE)) {
         return 0;
     }
-    // if ( IrCtrl.state != IR_WRITING ) {
-    //     return 0; // Abort when collision detected
-    // }
+    if ( IrCtrl.state != IR_WRITING ) {
+        return 0; // Abort when collision detected
+    }
 
     IR_state( IR_XMITTING );
     if (IrCtrl.freq == 40) {
@@ -334,11 +341,6 @@ uint8_t IRDidRecvTimeout ()
     return (IrCtrl.state == IR_RECVING) &&  (millis() - IrCtrl.recvStart > RECV_TIMEOUT);
 }
 
-uint8_t IRDidXmitTimeout ()
-{
-    return (IrCtrl.state == IR_XMITTING) && (millis() - IrCtrl.xmitStart > XMIT_TIMEOUT);
-}
-
 void IR_clear (void)
 {
     uint16_t i;
@@ -354,7 +356,8 @@ void IR_clear (void)
 void IR_put (uint16_t data)
 {
     if ( IrCtrl.state != IR_WRITING ) {
-        IR_state( IR_WRITING );
+        // caller should change state to IR_WRITING before calling
+        return;
     }
     IrCtrl.buff[ IrCtrl.len ++ ] = data;
 }
@@ -413,9 +416,11 @@ void IR_initialize (void)
     IR_INIT_TIMER();
     IR_INIT_XMIT();
 
-    IrCtrl.buff = (uint16_t*)gBuffer;
+    IrCtrl.buff = (uint16_t*)global.buffer;
 
     IR_state( IR_DISABLED );
+
+    onXmitCompleteCallback = NULL;
 }
 
 void IR_dump (void)
