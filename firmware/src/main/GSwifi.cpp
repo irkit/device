@@ -157,6 +157,7 @@ void GSwifi::parseByte(uint8_t dat) {
     // true  : data from gswifi is response to request from gswifi
     // false : data from gswifi is request from other client
     static bool is_response = 0;
+    static bool is_request  = 0;
 
     if (gs_mode_ == GSMODE_COMMAND) {
         if (escape) {
@@ -209,9 +210,9 @@ void GSwifi::parseByte(uint8_t dat) {
                 // following data is response to our request from gswifi
                 is_response = true;
             }
-            else {
+            else if (serverRequest.cid == cid) {
                 // following data is request from other client in same wifi
-                is_response = false;
+                is_request = true;
             }
         }
         else if (next_token == NEXT_TOKEN_LENGTH) {
@@ -225,7 +226,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 if (is_response) {
                     clientRequest.state = GSRESPONSESTATE_HEAD1;
                 }
-                else {
+                else if (is_request) {
                     serverRequest.state = GSREQUESTSTATE_HEAD1;
                 }
                 ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
@@ -313,98 +314,111 @@ void GSwifi::parseByte(uint8_t dat) {
                     // invalidate before close, because close waits for UART communication from GS,
                     // and cid should be undefined then
                     clientRequest.cid = CID_UNDEFINED;
-                    close( cid );
+                    if (cid != CID_UNDEFINED) {
+                        close( cid );
+                    }
                 }
                 return;
             } // is_response
 
-            switch (serverRequest.state) {
-            case GSREQUESTSTATE_HEAD1:
-                if (dat != '\n') {
-                    ring_put( _buf_cmd, dat );
-                }
-                else {
-                    // end of request line
-                    char    method[8];
-                    uint8_t method_size = 7;
-                    char    path[ GS_MAX_PATH_LENGTH + 1 ];
-                    uint8_t path_size   = GS_MAX_PATH_LENGTH;
-                    int8_t  result      = parseRequestLine((char*)method, method_size);
-                    if ( result == 0 ) {
-                        Serial.print(P("method:")); Serial.println(method);
-                        result = parseRequestLine((char*)path, path_size);
+            if (is_request) {
+                switch (serverRequest.state) {
+                case GSREQUESTSTATE_HEAD1:
+                    if (dat != '\n') {
+                        ring_put( _buf_cmd, dat );
                     }
-                    if ( result != 0 ) {
-                        // couldn't detect method or path
-                        serverRequest.state      = GSREQUESTSTATE_ERROR;
-                        serverRequest.error_code = 400;
-                        ring_clear(_buf_cmd);
-                        Serial.println(P("error400"));
-                        break;
-                    }
-                    Serial.print(P("path:")); Serial.println(path);
-                    GSMETHOD gsmethod = x2method(method);
+                    else {
+                        // end of request line
+                        char    method[8];
+                        uint8_t method_size = 7;
+                        char    path[ GS_MAX_PATH_LENGTH + 1 ];
+                        uint8_t path_size   = GS_MAX_PATH_LENGTH;
+                        int8_t  result      = parseRequestLine((char*)method, method_size);
+                        if ( result == 0 ) {
+                            Serial.print(P("method:")); Serial.println(method);
+                            result = parseRequestLine((char*)path, path_size);
+                        }
+                        if ( result != 0 ) {
+                            // couldn't detect method or path
+                            serverRequest.state      = GSREQUESTSTATE_ERROR;
+                            serverRequest.error_code = 400;
+                            ring_clear(_buf_cmd);
+                            Serial.println(P("error400"));
+                            break;
+                        }
+                        Serial.print(P("path:")); Serial.println(path);
+                        GSMETHOD gsmethod = x2method(method);
 
-                    int8_t routeid = router(gsmethod, path);
-                    if ( routeid < 0 ) {
-                        serverRequest.state      = GSREQUESTSTATE_ERROR;
-                        serverRequest.error_code = 404;
-                        ring_clear(_buf_cmd);
-                        Serial.println(P("error404"));
-                        break;
+                        int8_t routeid = router(gsmethod, path);
+                        if ( routeid < 0 ) {
+                            serverRequest.state      = GSREQUESTSTATE_ERROR;
+                            serverRequest.error_code = 404;
+                            ring_clear(_buf_cmd);
+                            Serial.println(P("error404"));
+                            break;
+                        }
+                        serverRequest.routeid = routeid;
+                        serverRequest.state   = GSREQUESTSTATE_HEAD2;
+                        continous_newlines    = 0;
+                        Serial.println(P("next: head2"));
                     }
-                    serverRequest.routeid = routeid;
-                    serverRequest.state   = GSREQUESTSTATE_HEAD2;
-                    continous_newlines    = 0;
-                    Serial.println(P("next: head2"));
+                    break;
+                case GSREQUESTSTATE_HEAD2:
+                    if (dat == '\n') {
+                        continous_newlines ++;
+                    }
+                    else if (dat == '\r') {
+                        // preserve
+                    }
+                    else {
+                        continous_newlines = 0;
+                    }
+                    if (continous_newlines == 2) {
+                        // if detected double (\r)\n, switch to body mode
+                        serverRequest.state = GSREQUESTSTATE_BODY;
+                        ring_clear(_buf_cmd);
+                        Serial.println(P("next: body"));
+                    }
+                    break;
+                case GSREQUESTSTATE_BODY:
+                    if (ring_isfull(_buf_cmd)) {
+                        Serial.println(P("full"));
+                        dispatchRequestHandler(); // POST, user callback should write()
+                    }
+                    ring_put(_buf_cmd, dat);
+                    break;
+                case GSREQUESTSTATE_ERROR:
+                    // skip until received whole request
+                    break;
+                case GSREQUESTSTATE_RECEIVED:
+                default:
+                    break;
                 }
-                break;
-            case GSREQUESTSTATE_HEAD2:
-                if (dat == '\n') {
-                    continous_newlines ++;
-                }
-                else if (dat == '\r') {
-                    // preserve
-                }
-                else {
-                    continous_newlines = 0;
-                }
-                if (continous_newlines == 2) {
-                    // if detected double (\r)\n, switch to body mode
-                    serverRequest.state = GSREQUESTSTATE_BODY;
+
+                if (len == 0) {
+                    Serial.println(P("len==0"));
+
+                    escape  = false;
+                    gs_mode_ = GSMODE_COMMAND;
+                    if ( serverRequest.state == GSREQUESTSTATE_ERROR ) {
+                        writeHead( serverRequest.error_code );
+                        end();
+                    }
+                    else {
+                        serverRequest.state = GSREQUESTSTATE_RECEIVED;
+                        dispatchRequestHandler(); // user callback should write() and end()
+                    }
                     ring_clear(_buf_cmd);
-                    Serial.println(P("next: body"));
                 }
-                break;
-            case GSREQUESTSTATE_BODY:
-                if (ring_isfull(_buf_cmd)) {
-                    Serial.println(P("full"));
-                    dispatchRequestHandler(); // POST, user callback should write()
-                }
-                ring_put(_buf_cmd, dat);
-                break;
-            case GSREQUESTSTATE_ERROR:
-                // skip until received whole request
-                break;
-            case GSREQUESTSTATE_RECEIVED:
-            default:
-                break;
-            }
+                return;
+            } // is_request
 
+            // if not request nor response,
+            // it's leftover data of closed clientRequest or serverRequest
+            // ignore it
             if (len == 0) {
-                Serial.println(P("len==0"));
-
-                escape  = false;
-                gs_mode_ = GSMODE_COMMAND;
-                if ( serverRequest.state == GSREQUESTSTATE_ERROR ) {
-                    writeHead( serverRequest.error_code );
-                    end();
-                }
-                else {
-                    serverRequest.state = GSREQUESTSTATE_RECEIVED;
-                    dispatchRequestHandler(); // user callback should write() and end()
-                }
-                ring_clear(_buf_cmd);
+                Serial.println(P("leftover len==0"));
+                ring_clear( _buf_cmd );
             }
         } // (next_token == NEXT_TOKEN_DATA)
     } // (gs_mode_ == GSMODE_DATA_RX_BULK)

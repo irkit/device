@@ -564,6 +564,10 @@ void IRKit_loop() {
             IR_dump();
             Serial.println();
         }
+        else if (last_character == 'r') {
+            Serial.print(P("reset"));
+            reset3V3();
+        }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));
             keys.set(GSSECURITY_WPA2_PSK,
