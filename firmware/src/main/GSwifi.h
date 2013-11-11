@@ -93,8 +93,6 @@ public:
         uint8_t        cid;     // can be 1 <= cid, because cid == 0 is our http server
         int8_t         routeid;
         GSREQUESTSTATE state;
-        uint16_t       length;
-        uint16_t       error_code; // status code when error occured
     };
 
     struct GSClientRequest {
@@ -250,6 +248,7 @@ private:
     GSEventHandler     on_disconnect_;
     GSEventHandler     on_reset_;
     struct RingBuffer  ring_buffer_;
+    uint8_t            cid_bitmap_; // cid:0/1
 
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
