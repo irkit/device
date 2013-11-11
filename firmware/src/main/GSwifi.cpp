@@ -308,8 +308,12 @@ void GSwifi::parseByte(uint8_t dat) {
                     clientRequest.state = GSRESPONSESTATE_RECEIVED;
                     dispatchResponseHandler();
                     ring_clear( _buf_cmd );
-                    close( clientRequest.cid );
-                    clientRequest.cid   = CID_UNDEFINED;
+
+                    uint8_t cid = clientRequest.cid;
+                    // invalidate before close, because close waits for UART communication from GS,
+                    // and cid should be undefined then
+                    clientRequest.cid = CID_UNDEFINED;
+                    close( cid );
                 }
                 return;
             } // is_response
