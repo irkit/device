@@ -2,11 +2,18 @@
 #include "pins.h"
 #include "LongPressButton.h"
 #include "Global.h"
+#include "FlexiTimer2.h"
+#include "timer.h"
 
-LongPressButton button( RESET_SWITCH, 3000 );
+LongPressButton button( RESET_SWITCH, 3 );
 
 void longPressed() {
     Serial.println("long pressed");
+}
+
+// inside ISR, be careful
+void onTimer() {
+    button.onTimer();
 }
 
 void setup() {
@@ -16,6 +23,9 @@ void setup() {
     Serial.begin(115200);
 
     while (! Serial) ;
+
+    FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
+    FlexiTimer2::start();
 }
 
 void loop() {

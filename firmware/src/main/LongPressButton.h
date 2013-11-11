@@ -8,8 +8,9 @@
 class LongPressButton
 {
 public:
-    LongPressButton(int pin, uint32_t long_threshold);
+    LongPressButton(int pin, uint8_t threshold_time);
     void loop();
+    void onTimer(); // called from ISR
 
     // called when button pressed longer than threshold
     // will be called repeatedly with threshold interval
@@ -17,9 +18,8 @@ public:
 
 private:
     int pin_;
-    unsigned long long_threshold_;
-    unsigned long button_down_at_;
-    bool button_state_;
+    uint8_t threshold_time_;
+    volatile uint8_t timer_;
 };
 
 #endif // __LONGPRESSBUTTON_H__

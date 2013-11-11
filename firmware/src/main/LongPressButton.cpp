@@ -1,32 +1,37 @@
 #include <Arduino.h>
 #include "LongPressButton.h"
 #include "Global.h"
+#include "timer.h"
 
-LongPressButton::LongPressButton(int pin, unsigned long long_threshold) :
+LongPressButton::LongPressButton(int pin, uint8_t threshold_time) :
     pin_(pin),
-    long_threshold_(long_threshold)
+    threshold_time_(threshold_time)
 {
     pinMode( pin_, INPUT );
-    button_state_ = BUTTON_OFF;
 }
 
 void LongPressButton::loop() {
+    static bool button_state = BUTTON_OFF;
+
     bool next_button_state = digitalRead( pin_ );
 
-    if ((BUTTON_OFF == button_state_) &&
+    if ((BUTTON_OFF == button_state) &&
         (BUTTON_ON  == next_button_state)) {
         // OFF -> ON
-        button_down_at_ = global.now;
+        TIMER_START( timer_, threshold_time_ );
     }
-    else if ((BUTTON_ON == button_state_) &&
+    else if ((BUTTON_ON == button_state) &&
              (BUTTON_ON == next_button_state)) {
         // still pressing
-        // forget overflow, it won't happen within between button down/up
-        if (global.now - button_down_at_ > long_threshold_) {
+        if (TIMER_FIRED( timer_ )) {
             callback();
-            button_state_ = BUTTON_OFF;
+            button_state = BUTTON_OFF;
             return;
         }
     }
-    button_state_ = next_button_state;
+    button_state = next_button_state;
+}
+
+void LongPressButton::onTimer() {
+    TIMER_TICK( timer_ );
 }
