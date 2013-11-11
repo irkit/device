@@ -141,19 +141,15 @@ int8_t onGetMessagesRequest() {
 
     IR_state( IR_READING );
 
-    gs.write(P("{"));
-    gs.write(P("\"format\":\"raw\",")); // format fixed to "raw" for now
-    gs.write(P("\"freq\":"));
+    gs.write(P("{\"format\":\"raw\",\"freq\":")); // format fixed to "raw" for now
     gs.write(IrCtrl.freq);
-    gs.write(P(","));
-    gs.write(P("\"data\":["));
+    gs.write(P(",\"data\":["));
     for (uint16_t i=0; i<IrCtrl.len; i++) {
         gs.write(IrCtrl.buff[i]);
         if (i != IrCtrl.len - 1) {
-            gs.write(P(","));
+            gs.write(",");
         }
     }
-    Serial.print(P(" "));
     gs.write(P("]}"));
     gs.end();
 
@@ -204,12 +200,7 @@ void jsonDetectedEnd() {
     }
 
     Serial.println(P("xmit"));
-    IR_xmit(&onIRXmitComplete);
-}
-
-// careful, called in ISR
-void onIRXmitComplete() {
-    Serial.println(P("xmit complete"));
+    IR_xmit();
 }
 
 int8_t onPostMessagesRequest() {
@@ -572,7 +563,7 @@ void IRKit_loop() {
             Serial.println();
 
             Serial.println(P("---wifi---"));
-            // gs.dump();
+            gs.dump();
             Serial.println();
 
             Serial.println(P("---ir---"));

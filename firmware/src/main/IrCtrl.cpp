@@ -184,8 +184,6 @@
 // Working area for IR communication
 volatile IR_STRUCT IrCtrl;
 
-static IRXmitCompleteCallback onXmitCompleteCallback;
-
 // IR receiving interrupt on either edge of input
 ISR_CAPTURE()
 {
@@ -258,9 +256,6 @@ ISR_COMPARE()
             (IrCtrl.tx_index >= IR_BUFF_SIZE)) {
             // tx successfully finished
             IR_state( IR_IDLE );
-            if (onXmitCompleteCallback != NULL) {
-                onXmitCompleteCallback();
-            }
             return;
         }
         uint16_t next = IrCtrl.buff[ IrCtrl.tx_index ++ ];
@@ -298,10 +293,8 @@ ISR_COMPARE()
     IR_state( IR_IDLE );
 }
 
-int IR_xmit (IRXmitCompleteCallback callback)
+int IR_xmit ()
 {
-    onXmitCompleteCallback = callback;
-
     // TODO errcode
     if ((IrCtrl.len == 0) ||
         (IrCtrl.len > IR_BUFF_SIZE)) {
@@ -430,36 +423,11 @@ void IR_initialize (void)
     IrCtrl.buff = (uint16_t*)global.buffer;
 
     IR_state( IR_DISABLED );
-
-    onXmitCompleteCallback = NULL;
 }
 
 void IR_dump (void)
 {
-    Serial.print(P("IR .state: "));
-    switch (IrCtrl.state) {
-    case IR_IDLE:
-        Serial.println(P("IDLE"));
-        break;
-    case IR_RECVING:
-        Serial.println(P("RECVING"));
-        break;
-    case IR_RECVED:
-        Serial.println(P("RECVED"));
-        break;
-    case IR_READING:
-        Serial.println(P("READING"));
-        break;
-    case IR_WRITING:
-        Serial.println(P("WRITING"));
-        break;
-    case IR_XMITTING:
-        Serial.println(P("XMITTING"));
-        break;
-    default:
-        Serial.println(P("!!! UNEXPECTED !!!"));
-        break;
-    }
+    Serial.print(P("IR .state: "));        Serial.println(IrCtrl.state);
     Serial.print(P(" .len: "));            Serial.println(IrCtrl.len,HEX);
     Serial.print(P(" .trailer_count: "));  Serial.println(IrCtrl.trailer_count,HEX);
     Serial.print(P(" .tx_index: "));       Serial.println(IrCtrl.tx_index,HEX);
