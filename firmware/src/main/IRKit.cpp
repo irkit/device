@@ -311,6 +311,8 @@ int8_t onGetMessagesResponse() {
         }
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+        TIMER_START(message_timer, 5);
+        break;
     case 503: // heroku responds with 503 if longer than 30sec
     default:
         if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
