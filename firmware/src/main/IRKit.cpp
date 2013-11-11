@@ -11,6 +11,7 @@
 #include "MorseListener.h"
 #include "IrJsonParser.h"
 #include "timer.h"
+#include "LongPressButton.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
 GSwifi gs(&Serial1);
@@ -18,6 +19,8 @@ GSwifi gs(&Serial1);
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
 MorseListener listener(MICROPHONE,13);
+
+LongPressButton clear_button(RESET_SWITCH, 5);
 
 Keys keys;
 volatile static uint8_t message_timer   = TIMER_OFF;
@@ -28,6 +31,7 @@ static bool     morse_error       = 0;
 //--- declaration
 
 void   reset3V3();
+void   longPressed();
 void   timerLoop();
 void   onTimer();
 int8_t onReset();
@@ -38,9 +42,11 @@ void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
 void   onIRXmitComplete();
 int8_t onPostMessagesRequest();
+int8_t onPostKeysRequest();
 int8_t onRequest();
 int8_t onPostDoorResponse();
 int8_t onGetMessagesResponse();
+int8_t onPostKeysResponse();
 void   postDoor();
 int8_t getMessages();
 void   postKeys();
@@ -61,6 +67,12 @@ void reset3V3 () {
 
     // wait til gs wakes up
     delay( 1000 );
+}
+
+void longPressed() {
+    Serial.println(P("long pressed"));
+    keys.clear();
+    reset3V3();
 }
 
 void timerLoop() {
@@ -92,6 +104,8 @@ void onTimer() {
     gs.onTimer();
 
     IR_timer();
+
+    clear_button.onTimer();
 }
 
 int8_t onReset() {
@@ -496,6 +510,10 @@ void IRKit_setup() {
     FlexiTimer2::start();
     color.setLedColor( 1, 0, 0, false );
 
+    //--- initialize long press button
+
+    clear_button.callback = &longPressed;
+
     //--- initialize morse listener
 
     pinMode(MICROPHONE,  INPUT);
@@ -530,6 +548,8 @@ void IRKit_loop() {
 
     timerLoop();
 
+    clear_button.loop();
+
     // wifi
     gs.loop();
 
@@ -538,17 +558,11 @@ void IRKit_loop() {
         static uint8_t last_character = '0';
         last_character = Serial.read();
 
-        Serial.print(P("> 0x")); Serial.print(last_character, HEX);
-        Serial.print(P(" "));
         Serial.write(last_character);
         Serial.println();
         Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
-        if (last_character == 'c') {
-            keys.clear();
-            Serial.println("cleared keys");
-        }
-        else if (last_character == 'd') {
+        if (last_character == 'd') {
             keys.load();
 
             Serial.print("buffer_mode: "); Serial.println(global.buffer_mode);
@@ -558,7 +572,7 @@ void IRKit_loop() {
             Serial.println();
 
             Serial.println(P("---wifi---"));
-            gs.dump();
+            // gs.dump();
             Serial.println();
 
             Serial.println(P("---ir---"));
