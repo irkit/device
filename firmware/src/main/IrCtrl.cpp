@@ -174,9 +174,12 @@
 #define T_TRAIL       65535
 #define T_TRAIL_COUNT 4
 
-// my air conditioner takes 270ms, 2sec should be enough (probably)
+// my air conditioner takes 270ms, 2sec should be enough
 #define RECV_TIMEOUT           2
 #define XMIT_TIMEOUT           2
+
+// down -1- up -2- down -3- up -4- down -5- up
+#define VALID_IR_LEN_MIN   5
 
 // Working area for IR communication
 volatile IR_STRUCT IrCtrl;
@@ -389,6 +392,12 @@ void IR_state (uint8_t nextState)
         IR_COMPARE_DISABLE();
 
         IR_dump();
+
+        if (IrCtrl.len < VALID_IR_LEN_MIN) {
+            // received, but probably noise
+            IR_state( IR_IDLE );
+            return;
+        }
         break;
     case IR_READING:
         IR_CAPTURE_DISABLE();

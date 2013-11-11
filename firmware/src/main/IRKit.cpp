@@ -12,9 +12,6 @@
 #include "IrJsonParser.h"
 #include "timer.h"
 
-// down -1- up -2- down -3- up -4- down -5- up
-#define VALID_IR_LEN_MIN   5
-
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
 GSwifi gs(&Serial1);
 
