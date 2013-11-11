@@ -122,11 +122,15 @@ void GSwifi::reset () {
 }
 
 void GSwifi::loop() {
-    checkActivity( 0 );
+    TIMER_STOP( timeout_timer_ );
+
+    checkActivity();
 
     if ( (clientRequest.cid != CID_UNDEFINED) &&
          TIMER_FIRED(clientRequest.timer) ) {
         TIMER_STOP(clientRequest.timer);
+
+        Serial.println(P("!!! request timeout"));
 
         close( clientRequest.cid );
         clientRequest.cid         = CID_UNDEFINED;
@@ -697,7 +701,7 @@ void GSwifi::parseCmdResponse (char *buf) {
     return;
 }
 
-void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout) {
+void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
     Serial.print(P("c> "));
 
     resetResponse(res);
@@ -707,10 +711,10 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout) {
     Serial.println(cmd);
 
     setBusy(true);
-    waitResponse(timeout);
+    waitResponse(timeout_second);
 }
 
-void GSwifi::escape (const char *cmd, uint32_t timeout) {
+void GSwifi::escape (const char *cmd, uint8_t timeout_second) {
     Serial.print(P("e> "));
 
     resetResponse(GSCOMMANDMODE_NONE);
@@ -721,7 +725,7 @@ void GSwifi::escape (const char *cmd, uint32_t timeout) {
     Serial.println(cmd);
 
     setBusy(true);
-    waitResponse(timeout);
+    waitResponse(timeout_second);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
@@ -733,8 +737,7 @@ void GSwifi::resetResponse (GSCOMMANDMODE res) {
 
 bool GSwifi::setBusy(bool busy) {
     if (busy) {
-        timeout_start_ = millis();
-        did_timeout_   = false;
+        did_timeout_  = false;
         // if (onBusy) onBusy();
     } else {
         // lastError = false;
@@ -743,10 +746,9 @@ bool GSwifi::setBusy(bool busy) {
     return busy_ = busy;
 }
 
-uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
+uint8_t GSwifi::checkActivity() {
     while ( serial_->available() &&
-            ( (timeout_ms == 0) ||
-              millis() - timeout_start_ < timeout_ms ) ) {
+            ! TIMER_FIRED(timeout_timer_) ) {
 
         parseByte( serial_->read() );
 
@@ -760,9 +762,9 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
         }
     }
 
-    if ( (timeout_ms > 0) &&
-         busy_ &&
-         (millis() - timeout_start_ >= timeout_ms) ) {
+    if ( busy_ &&
+         TIMER_FIRED(timeout_timer_) ) {
+        TIMER_STOP(timeout_timer_);
         Serial.println(P("!!! did timeout !!!"));
         did_timeout_ = true;
         setBusy(false);
@@ -771,8 +773,10 @@ uint8_t GSwifi::checkActivity(uint32_t timeout_ms) {
     return busy_;
 }
 
-void GSwifi::waitResponse (uint32_t ms) {
-    while ( checkActivity(ms) ) {
+void GSwifi::waitResponse (uint8_t timeout_second) {
+    TIMER_START( timeout_timer_, timeout_second );
+
+    while ( checkActivity() ) {
     }
 }
 
@@ -975,6 +979,9 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     if (did_timeout_) {
         return -1;
     }
+    if (clientRequest.cid == CID_UNDEFINED) {
+        return -1;
+    }
 
     sprintf(cmd, "S%d", clientRequest.cid);
     escape( cmd );
@@ -1032,6 +1039,8 @@ void GSwifi::onTimer() {
          TIMER_RUNNING(clientRequest.timer) ) {
         TIMER_COUNTDOWN(clientRequest.timer);
     }
+
+    TIMER_TICK( timeout_timer_ );
 }
 
 // for test
@@ -1040,4 +1049,5 @@ void GSwifi::dump () {
     Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
     Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
     Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
+    Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
 }

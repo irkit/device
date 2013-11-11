@@ -67,7 +67,10 @@ void timerLoop() {
     // long poll
     if (TIMER_FIRED(message_timer)) {
         TIMER_STOP(message_timer);
-        getMessages();
+        int8_t result = getMessages();
+        if ( result != 0 ) {
+            TIMER_START(message_timer, 5);
+        }
     }
 
     // reconnect
@@ -310,7 +313,9 @@ int8_t onGetMessagesResponse() {
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
     case 503: // heroku responds with 503 if longer than 30sec
     default:
-        TIMER_START(message_timer, 5);
+        if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
+            TIMER_START(message_timer, 5);
+        }
         break;
     }
 

@@ -15,5 +15,6 @@
 #define TIMER_COUNTDOWN(a) (a --)
 #define TIMER_TICK(a)      if (TIMER_RUNNING(a)) { TIMER_COUNTDOWN(a); }
 #define TIMER_FIRED(a)     (a == TIMER_FIRE)
+#define TIMER_STOPPED(a)   (a == TIMER_OFF)
 
 #endif // __TIMER_H__

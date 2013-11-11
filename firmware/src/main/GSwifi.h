@@ -127,8 +127,8 @@ public:
     /**
      * send command
      */
-    void command (const char *cmd, GSCOMMANDMODE res, uint32_t timeout = GS_TIMEOUT);
-    void escape (const char *sequence, uint32_t timeout = GS_TIMEOUT);
+    void command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout = GS_TIMEOUT);
+    void escape (const char *sequence, uint8_t timeout = GS_TIMEOUT);
     /**
      * reset recv responce
      */
@@ -136,7 +136,7 @@ public:
     /**
      * wait recv responce
      */
-    void waitResponse (uint32_t ms);
+    void waitResponse (uint8_t timeout_second);
     /**
      * associate infrastructure
      * @param sec GSSEC_OPEN, GSSEC_WEP, GSSEC_WPA_PSK, GSSEC_WPA2_PSK
@@ -244,7 +244,7 @@ private:
     GSEventHandler     request_handler_;
     GSEventHandler     response_handler_;
 
-    uint32_t           timeout_start_;
+    volatile uint8_t   timeout_timer_;
     bool               busy_;
     bool               did_timeout_;
     GSEventHandler     on_disconnect_;
