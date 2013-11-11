@@ -990,6 +990,9 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     if (did_timeout_) {
         return -1;
     }
+    if (gs_failure_) {
+        return -1;
+    }
 
     sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
     // clientRequest.cid is filled

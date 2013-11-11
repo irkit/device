@@ -69,7 +69,8 @@ void timerLoop() {
         TIMER_STOP(message_timer);
         int8_t result = getMessages();
         if ( result != 0 ) {
-            TIMER_START(message_timer, 5);
+            // reset if any error happens
+            reset3V3();
         }
     }
 
