@@ -19,21 +19,21 @@ public:
     void (*wordCallback)();
 
 private:
-    int pin_;
-    uint16_t wpm_;
-    int8_t index_; // index of morseTable
-    bool enabled_;
-    bool isOn_;
-    bool wordStarted_;
-    bool didCallLetterCallback_;
-    unsigned long lastChanged_;
-    unsigned long lastOn_;
+    int           pin_;
+    uint16_t      wpm_;
+    int8_t        index_;       // index of morseTable
+    bool          enabled_;
+    bool          is_on_;
+    bool          word_started_;
+    bool          did_call_letter_callback_;
+    unsigned long last_changed_;
+    unsigned long last_on_;
 
     // if raw input was higher than threshold more than once per period: it's HIGH
     // if raw input was always lower than threshold for period: it's LOW
-    uint16_t debouncePeriod_;
-    uint16_t minLetterSpace_;
-    uint16_t minWordSpace_;
+    uint16_t      debounce_period_;
+    uint16_t      min_letter_space_;
+    uint16_t      min_word_space_;
 };
 
 #endif // __MORSE_LISTENER__

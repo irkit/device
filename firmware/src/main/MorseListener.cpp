@@ -59,31 +59,31 @@ MorseListener::MorseListener(int pin, uint16_t wpm) :
 }
 
 void MorseListener::clear() {
-    index_                 = -1; // next index = (index + 1) * 2 + (isDah ? 1 : 0)
-    isOn_                  = false;
-    wordStarted_           = false;
-    didCallLetterCallback_ = false;
-    lastChanged_           = 0;
-    lastOn_                = 0;
+    index_                    = -1; // next index = (index + 1) * 2 + (isDah ? 1 : 0)
+    is_on_                    = false;
+    word_started_             = false;
+    did_call_letter_callback_ = false;
+    last_changed_             = 0;
+    last_on_                  = 0;
 }
 
 void MorseListener::setWPM(uint16_t wpm) {
     wpm_ = wpm;
 
     uint16_t t = 1200 / wpm_;
-    debouncePeriod_ = t / 2;
-    minLetterSpace_ = t * 2; // TODO: is this too short?
-    minWordSpace_   = t * 4;
+    debounce_period_  = t / 2;
+    min_letter_space_ = t * 2;  // TODO: is this too short?
+    min_word_space_   = t * 4;
 }
 
 void MorseListener::setup() {
     // when 13:
-    //  minLetterSpace_ 184
-    //  minWordSpace_   369
+    //  min_letter_space_ 184
+    //  min_word_space_   369
 #ifdef DEBUG
-    Serial.print(P("t/2 debouncePeriod:")); Serial.println(debouncePeriod_);
-    Serial.print(P("tx2 minLetterSpace:")); Serial.println(minLetterSpace_);
-    Serial.print(P("tx4 minWordSpace:"));   Serial.println(minWordSpace_);
+    Serial.print(P("t/2 debouncePeriod:")); Serial.println(debounce_period_);
+    Serial.print(P("tx2 minLetterSpace:")); Serial.println(min_letter_space_);
+    Serial.print(P("tx4 minWordSpace:"));   Serial.println(min_word_space_);
     float letter = 1200. / (float)wpm_;
     Serial.print(P("tx1 dit interval:")); Serial.println(letter);
     Serial.print(P("tx3 dah interval:")); Serial.println(letter * 3);
@@ -108,29 +108,29 @@ void MorseListener::loop() {
     // we smooth it here
 
     if ( raw > ON_MIN_THRESHOLD ) {
-        input   = true;
-        lastOn_ = global.now;
+        input    = true;
+        last_on_ = global.now;
     }
-    else if ( global.now - lastOn_ > debouncePeriod_ ) {
-        input   = false;
+    else if ( global.now - last_on_ > debounce_period_ ) {
+        input    = false;
     }
-    else if ( global.now < lastOn_ ) {
-        lastOn_ = 0; // just in case, millis() passed unsigned long limit
+    else if ( global.now < last_on_ ) {
+        last_on_ = 0; // just in case, millis() passed unsigned long limit
     }
 
     // check ON/OFF state change
 
     if ( input ) {
         // ON
-        if ( ! isOn_ ) {
+        if ( ! is_on_ ) {
             // OFF -> ON
-            if (wordStarted_) {
+            if (word_started_) {
                 // interval: duration of OFF time
-                interval = global.now - lastChanged_;
+                interval = global.now - last_changed_;
             }
-            isOn_        = true;
-            lastChanged_ = global.now;
-            wordStarted_ = true;
+            is_on_        = true;
+            last_changed_ = global.now;
+            word_started_ = true;
 
 #ifdef DEBUG
             Serial.print(P("off->on: ")); Serial.println(interval);
@@ -140,13 +140,13 @@ void MorseListener::loop() {
     }
     else {
         // OFF
-        interval = global.now - lastChanged_;
-        if ( isOn_ && wordStarted_ ) {
+        interval = global.now - last_changed_;
+        if ( is_on_ && word_started_ ) {
             // ON -> OFF
             // interval: duration of ON time
-            isOn_                  = false;
-            lastChanged_           = global.now;
-            didCallLetterCallback_ = false; // can call again after 1st letter
+            is_on_                  = false;
+            last_changed_           = global.now;
+            did_call_letter_callback_ = false; // can call again after 1st letter
 
 #ifdef DEBUG
             Serial.print(P("on->off: ")); Serial.println(interval);
@@ -161,13 +161,13 @@ void MorseListener::loop() {
 
     // decode
 
-    if ( (interval > 0) && (! isOn_) && (lastChanged_ == global.now) ) {
+    if ( (interval > 0) && (! is_on_) && (last_changed_ == global.now) ) {
         // ON -> OFF
         // interval: duration of ON time
 
         index_ = (index_ + 1) * 2;
         // dah length == letter space length
-        if (interval > minLetterSpace_) {
+        if (interval > min_letter_space_) {
             // dah detected
             index_ ++;
         }
@@ -181,12 +181,12 @@ void MorseListener::loop() {
 
         // interval: duration of OFF time
 
-        if ( ! wordStarted_ ) {
+        if ( ! word_started_ ) {
             // OFF continously
         }
-        else if ( (! didCallLetterCallback_) && (interval > minLetterSpace_) ) {
+        else if ( (! did_call_letter_callback_) && (interval > min_letter_space_) ) {
             // detected letter space
-            didCallLetterCallback_ = true;
+            did_call_letter_callback_ = true;
 
 #ifdef DEBUG
             Serial.print(P("index: ")); Serial.println(index_);
@@ -199,7 +199,7 @@ void MorseListener::loop() {
             // after letter detected
             index_ = -1;
         }
-        else if ( interval > minWordSpace_ ) {
+        else if ( interval > min_word_space_ ) {
             // detected word space
 
             wordCallback();
