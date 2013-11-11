@@ -512,7 +512,8 @@ int8_t GSwifi::writeHead (uint16_t status_code) {
     }
 
     serial_->println(msg);
-    serial_->println(P("Content-Type: text/plain\r\n")); // TODO json
+    serial_->println(P("Access-Control-Allow-Origin: *"));
+    serial_->println(P("Content-Type: text/plain\r\n"));
 }
 
 void GSwifi::write (const char *data) {
