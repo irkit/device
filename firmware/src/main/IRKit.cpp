@@ -83,6 +83,8 @@ void onTimer() {
 
     TIMER_TICK( message_timer );
 
+    TIMER_TICK( reconnect_timer );
+
     gs.onTimer();
 
     IR_timer();
