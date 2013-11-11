@@ -174,13 +174,9 @@
 #define T_TRAIL       65535
 #define T_TRAIL_COUNT 4
 
-// clear overflowed state after XXX ms
-#define OVERFLOW_CLEAR_TIMEOUT 1000 // [ms]
-
 // my air conditioner takes 270ms, 2sec should be enough (probably)
 #define RECV_TIMEOUT           2
-
-#define XMIT_TIMEOUT           1000
+#define XMIT_TIMEOUT           2
 
 // Working area for IR communication
 volatile IR_STRUCT IrCtrl;
@@ -194,17 +190,7 @@ ISR_CAPTURE()
 
     _timer_reg_t counter = IR_CAPTURE_REG();
 
-    unsigned int now = millis();
-
-    if ((IrCtrl.overflowed > 0) &&
-        ((now < IrCtrl.overflowed + OVERFLOW_CLEAR_TIMEOUT) || (now < IrCtrl.overflowed))) {
-        // continue overflowed state if receiving IR data continuously
-        IrCtrl.overflowed = now;
-        return;
-    }
-
-    IrCtrl.overflowed = 0;
-    if (IrCtrl.state == IR_RECVED_IDLE) {
+    if (IrCtrl.state == IR_RECVED) {
         IR_state( IR_IDLE );
     }
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
@@ -213,9 +199,7 @@ ISR_CAPTURE()
     if (IrCtrl.len >= IR_BUFF_SIZE) {
         // receive buffer overflow
         // data in buffer might be valid (later data might just be "repeat" data)
-        // so let's successfully finish receiving
-        IR_state( IR_RECVED );
-        IrCtrl.overflowed = millis();
+        // so wait for recv timeout and successfully transit to RECVED state
         return;
     }
 
@@ -253,8 +237,6 @@ ISR_CAPTURE()
             IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
             IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
             if (IrCtrl.len >= IR_BUFF_SIZE) {
-                IR_state( IR_RECVED );
-                IrCtrl.overflowed = millis();
                 return;
             }
         }
@@ -339,18 +321,12 @@ int IR_xmit (IRXmitCompleteCallback callback)
     return 1;
 }
 
-uint8_t IRDidXmitTimeout ()
-{
-    return (IrCtrl.state == IR_XMITTING) && (millis() - IrCtrl.xmitStart > XMIT_TIMEOUT);
-}
-
 void IR_clear (void)
 {
     uint16_t i;
     IrCtrl.len        = 0;
     IrCtrl.txIndex    = 0;
     IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
-    IrCtrl.overflowed = 0;
     for (i=0; i<IR_BUFF_SIZE; i++) {
         IrCtrl.buff[i] = 0;
     }
@@ -374,6 +350,17 @@ void IR_timer (void)
             TIMER_STOP( IrCtrl.recv_timer );
 
             Serial.println(P("!!!\tIR recv timeout"));
+            IR_state( IR_RECVED );
+        }
+    }
+
+    if (IrCtrl.state == IR_XMITTING) {
+        TIMER_TICK( IrCtrl.xmit_timer );
+
+        if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
+            TIMER_STOP( IrCtrl.xmit_timer );
+
+            Serial.println(P("!!!\tIR xmit timeout"));
             IR_state( IR_IDLE );
         }
     }
@@ -397,15 +384,11 @@ void IR_state (uint8_t nextState)
         TIMER_START( IrCtrl.recv_timer, RECV_TIMEOUT );
         break;
     case IR_RECVED:
-        TIMER_STOP( IrCtrl.recv_timer );
-        IR_CAPTURE_DISABLE();
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
         IR_COMPARE_DISABLE();
 
         IR_dump();
-        break;
-    case IR_RECVED_IDLE:
-        IR_CAPTURE_FALL();
-        IR_CAPTURE_ENABLE();
         break;
     case IR_READING:
         IR_CAPTURE_DISABLE();
@@ -420,7 +403,7 @@ void IR_state (uint8_t nextState)
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
         IrCtrl.txIndex = 0;
-        IrCtrl.xmitStart = millis();
+        TIMER_START( IrCtrl.xmit_timer, XMIT_TIMEOUT );
         break;
     case IR_DISABLED:
         IR_CAPTURE_DISABLE();
@@ -436,7 +419,6 @@ void IR_initialize (void)
     IR_INIT_XMIT();
 
     IrCtrl.buff = (uint16_t*)global.buffer;
-    TIMER_STOP( IrCtrl.recv_timer );
 
     IR_state( IR_DISABLED );
 
@@ -456,9 +438,6 @@ void IR_dump (void)
     case IR_RECVED:
         Serial.println(P("RECVED"));
         break;
-    case IR_RECVED_IDLE:
-        Serial.println(P("RECVED_IDLE"));
-        break;
     case IR_READING:
         Serial.println(P("READING"));
         break;
@@ -472,11 +451,11 @@ void IR_dump (void)
         Serial.println(P("!!! UNEXPECTED !!!"));
         break;
     }
-    Serial.print(P(" .len: "));          Serial.println(IrCtrl.len,HEX);
-    Serial.print(P(" .trailerCount: ")); Serial.println(IrCtrl.trailerCount,HEX);
-    Serial.print(P(" .overflowed: "));   Serial.println(IrCtrl.overflowed);
-    Serial.print(P(" .txIndex: "));   Serial.println(IrCtrl.txIndex,HEX);
-    Serial.print(P(" .xmitStart: "));   Serial.println(IrCtrl.xmitStart);
+    Serial.print(P(" .len: "));            Serial.println(IrCtrl.len,HEX);
+    Serial.print(P(" .trailerCount: "));   Serial.println(IrCtrl.trailerCount,HEX);
+    Serial.print(P(" .txIndex: "));        Serial.println(IrCtrl.txIndex,HEX);
+    Serial.print(P(" .recv_timer: "));     Serial.println(IrCtrl.recv_timer);
+    Serial.print(P(" .xmit_timer: "));     Serial.println(IrCtrl.xmit_timer);
     for (uint16_t i=0; i<IrCtrl.len; i++) {
         if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
         if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }

@@ -29,23 +29,21 @@
 #define IR_IDLE        0    /* In idle state, ready to receive/transmit */
 #define IR_RECVING     1    /* An IR frame is being received */
 #define IR_RECVED      2    /* An IR frame has been received and data is valid */
-#define IR_RECVED_IDLE 3    /* Received IR frame is on memory til next receive and transmit */
 #define IR_READING     4    /* BLE central is reading IR data, can't receive IR */
 #define IR_WRITING     10   /* BLE central is wrinting IR data, can't receive IR */
 #define IR_XMITTING    11   /* IR transmission is in progress */
 #define IR_DISABLED    0xFF /* disabled */
 
 typedef struct _irstruct {
-    uint8_t enabled;
-    uint8_t state;               // Communication state
-    uint8_t trailerCount;        // Number of T_TRAIL time to wait to determine signal ended
-    uint8_t freq;                // carrier wave freq in kHz
-    unsigned long overflowed;    // Receive buffer overflowed time by millis()
-    unsigned long xmitStart;     // xmit started at millis()
-    uint8_t  recv_timer;         // recv started at millis()
-    uint16_t len;                // Size of buff used
-    uint16_t txIndex;            // 0 < txIndex < len
-    uint16_t *buff;              // pointer to global buffer
+    uint8_t   enabled;
+    uint8_t   state;        // Communication state
+    uint8_t   trailerCount; // Number of T_TRAIL time to wait to determine signal ended
+    uint8_t   freq;         // carrier wave freq in kHz
+    uint8_t   xmit_timer;   // xmit timeout timer
+    uint8_t   recv_timer;   // recv timeout timer
+    uint16_t  len;          // Size of buff used
+    uint16_t  txIndex;      // 0 < txIndex < len
+    uint16_t *buff;         // pointer to global buffer
 } IR_STRUCT;
 
 /* The work area for IR_CTRL is defined in ir_ctrl.c */
@@ -57,8 +55,6 @@ typedef void (*IRXmitCompleteCallback)();
 /* Prototypes */
 void IR_initialize (void);
 int IR_xmit (IRXmitCompleteCallback);
-uint8_t IRDidRecvTimeout ();
-uint8_t IRDidXmitTimeout ();
 void IR_put (uint16_t);
 void IR_timer (void);
 void IR_state (uint8_t);

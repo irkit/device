@@ -31,7 +31,6 @@ static bool     morse_error       = 0;
 //--- declaration
 
 void   reset3V3();
-void   IrReceiveLoop();
 void   timerLoop();
 void   onTimer();
 int8_t onReset();
@@ -65,20 +64,6 @@ void reset3V3 () {
 
     // wait til gs wakes up
     delay( 1000 );
-}
-
-void IrReceiveLoop(void) {
-    if (IrCtrl.state != IR_RECVED) {
-        return;
-    }
-    if (IrCtrl.len < VALID_IR_LEN_MIN) {
-        // data is too short = should be noise
-        IR_state(IR_IDLE);
-        return;
-    }
-
-    // start receiving again while leaving received data readable from central
-    IR_state( IR_RECVED_IDLE );
 }
 
 void timerLoop() {
@@ -130,11 +115,14 @@ int8_t onGetMessagesRequest() {
     gs.writeHead(200);
 
     if ( (global.buffer_mode == GBufferModeWifiCredentials) ||
-         (IrCtrl.len <= 0) ) {
+         (IrCtrl.len <= 0) ||
+         (IrCtrl.state != IR_RECVED) ) {
         // if no data
         gs.end();
         return 0;
     }
+
+    IR_state( IR_READING );
 
     gs.write(P("{"));
     gs.write(P("\"format\":\"raw\",")); // format fixed to "raw" for now
@@ -151,6 +139,9 @@ int8_t onGetMessagesRequest() {
     Serial.print(P(" "));
     gs.write(P("]}"));
     gs.end();
+
+    IR_state( IR_IDLE );
+
     return 0;
 }
 
@@ -529,9 +520,6 @@ void IRKit_loop() {
     global.loop(); // always run first
 
     listener.loop();
-
-    // check if received
-    IrReceiveLoop();
 
     timerLoop();
 
