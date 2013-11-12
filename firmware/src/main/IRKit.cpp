@@ -232,8 +232,8 @@ int8_t onPostMessagesRequest() {
 
 int8_t onPostKeysRequest() {
     if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-        // don't close other client requests,
-        // "close" and it's response mixing up makes things difficult
+        // don't close other client requests, we can handle multiple concurrent client requests
+        // and "close" and it's response mixing up makes things difficult
 
         // respond to this cid, when we get a new key
         post_keys_cid = gs.serverRequest.cid;

@@ -140,10 +140,11 @@ void GSwifi::loop() {
 
         Serial.println(P("!!! request timeout"));
 
+        uint8_t cid = clientRequest.cid;
         close( clientRequest.cid );
         clientRequest.cid         = CID_UNDEFINED;
         clientRequest.status_code = HTTP_STATUSCODE_CLIENT_TIMEOUT;
-        dispatchResponseHandler();
+        dispatchResponseHandler(cid);
     }
 }
 
@@ -384,7 +385,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 break;
             case GSRESPONSESTATE_BODY:
                 if (ring_isfull(_buf_cmd)) {
-                    dispatchResponseHandler();
+                    dispatchResponseHandler(clientRequest.cid);
                 }
                 ring_put(_buf_cmd, dat);
                 break;
@@ -400,7 +401,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 escape             = false;
                 gs_mode_            = GSMODE_COMMAND;
                 clientRequest.state = GSRESPONSESTATE_RECEIVED;
-                dispatchResponseHandler();
+                dispatchResponseHandler(clientRequest.cid);
                 ring_clear( _buf_cmd );
 
                 uint8_t cid = clientRequest.cid;
@@ -459,15 +460,15 @@ int8_t GSwifi::registerRoute (GSwifi::GSMETHOD method, const char *path) {
 }
 
 void GSwifi::setRequestHandler (GSEventHandler handler) {
-    request_handler_ = handler;
+    handlers_[ 0 ] = handler;
 }
 
 int8_t GSwifi::dispatchRequestHandler () {
-    return request_handler_();
+    return handlers_[ 0 ]();
 }
 
-int8_t GSwifi::dispatchResponseHandler () {
-    return response_handler_();
+int8_t GSwifi::dispatchResponseHandler (uint8_t cid) {
+    return handlers_[ cid ]();
 }
 
 int8_t GSwifi::writeHead (uint16_t status_code) {
@@ -959,8 +960,6 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 }
 
 int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler, uint8_t timeout) {
-    response_handler_ = handler;
-
     char cmd[ GS_CMD_SIZE ];
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
@@ -981,6 +980,8 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     if (clientRequest.cid == CID_UNDEFINED) {
         return -1;
     }
+
+    handlers_[ clientRequest.cid ] = handler;
 
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4

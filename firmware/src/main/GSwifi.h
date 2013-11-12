@@ -239,8 +239,6 @@ private:
 
     struct GSRoute     routes_[GS_MAX_ROUTES];
     uint8_t            route_count_;
-    GSEventHandler     request_handler_;
-    GSEventHandler     response_handler_;
 
     volatile uint8_t   timeout_timer_;
     bool               busy_;
@@ -250,11 +248,13 @@ private:
     struct RingBuffer  ring_buffer_;
     uint8_t            cid_bitmap_; // cid:0/1
 
+    GSEventHandler     handlers_[16]; // handler for each cid
+
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
     int8_t             dispatchRequestHandler();
-    int8_t             dispatchResponseHandler();
+    int8_t             dispatchResponseHandler(uint8_t);
 };
 
 #endif // __GSWIFI_H__
