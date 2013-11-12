@@ -29,6 +29,11 @@ static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
 static uint8_t  post_keys_cid;
 
+#define NEXT_TICK_POST_KEYS 1
+#define NEXT_TICK_NOP       0
+
+static uint8_t on_next_tick = NEXT_TICK_NOP;
+
 //--- declaration
 
 void   reset3V3();
@@ -92,6 +97,16 @@ void timerLoop() {
         TIMER_STOP(reconnect_timer);
         connect();
     }
+
+    switch (on_next_tick) {
+    case NEXT_TICK_POST_KEYS:
+        postKeys();
+        break;
+    case NEXT_TICK_NOP:
+    default:
+        break;
+    }
+    on_next_tick = NEXT_TICK_NOP;
 }
 
 // inside ISR, be careful
@@ -238,8 +253,9 @@ int8_t onPostKeysRequest() {
         // respond to this cid, when we get a new key
         post_keys_cid = gs.serverRequest.cid;
 
+        // delay execution to next tick (we get clean stack)
         // POST /keys to server
-        postKeys();
+        on_next_tick = NEXT_TICK_POST_KEYS;
     }
 }
 
