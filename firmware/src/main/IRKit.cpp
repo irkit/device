@@ -66,7 +66,10 @@ void   IRKit_loop();
 //--- implementation
 
 void reset3V3 () {
-    Serial.println(P("hardware reset"));
+    Serial.println(P("!!!reset!!!"));
+
+    gs.reset();
+
     digitalWrite( LDO33_ENABLE, LOW );
     delay( 3000 );
     digitalWrite( LDO33_ENABLE, HIGH );
@@ -103,6 +106,10 @@ void timerLoop() {
     case NEXT_TICK_POST_KEYS:
         postKeys();
         break;
+    case NEXT_TICK_SETUP:
+        gs.setup( &onDisconnect, &onReset );
+        connect();
+        break;
     case NEXT_TICK_NOP:
     default:
         break;
@@ -129,11 +136,7 @@ int8_t onReset() {
     Serial.println(P("!!! onReset"));
     Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
-    gs.setup( &onDisconnect, &onReset );
-
-    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
-
-    connect();
+    on_next_tick = NEXT_TICK_SETUP;
     return 0;
 }
 
@@ -590,6 +593,10 @@ void IRKit_loop() {
         else if (last_character == 'r') {
             Serial.print(P("reset"));
             reset3V3();
+        }
+        else if (last_character == 'R') {
+            Serial.print(P("software reset"));
+            gs.reset();
         }
         else if (last_character == 's') {
             Serial.println(P("setting keys in EEPROM"));

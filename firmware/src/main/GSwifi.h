@@ -121,6 +121,7 @@ public:
     int8_t setupMDNS();
 
     void loop();
+    void reset();
 
     /**
      * send command
@@ -219,7 +220,7 @@ public:
 #endif
 
 protected:
-    void reset ();
+    void clear ();
 
     int8_t   parseRequestLine (char *token, uint8_t token_size);
     void     parseLine ();

@@ -5,6 +5,7 @@
 
 #define GS_TIMEOUT             10 // [s]
 #define GS_TIMEOUT2            50 // [s]
+#define GS_TIMEOUT_NOWAIT       0
 
 #define GS_CMD_SIZE            64
 

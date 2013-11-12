@@ -74,7 +74,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     on_disconnect_ = on_disconnect;
     on_reset_      = on_reset;
 
-    reset();
+    clear();
 
     serial_->begin(38400);
 
@@ -129,7 +129,7 @@ int8_t GSwifi::close (uint8_t cid) {
     return 0;
 }
 
-void GSwifi::reset () {
+void GSwifi::clear () {
     joined_         = false;
     listening_      = false;
     resetResponse(GSCOMMANDMODE_NONE);
@@ -156,6 +156,10 @@ void GSwifi::loop() {
         clientRequest.status_code = HTTP_STATUSCODE_CLIENT_TIMEOUT;
         dispatchResponseHandler(cid);
     }
+}
+
+void GSwifi::reset () {
+    command(PB("AT+RESET",1), GSCOMMANDMODE_NONE, GS_TIMEOUT_NOWAIT);
 }
 
 // received a character from UART
@@ -627,14 +631,14 @@ void GSwifi::parseLine () {
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
                  strncmp(buf, P("Disassociation Event"), 20) == 0 ) {
-            reset();
+            clear();
             on_disconnect_();
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
                  strncmp(buf, P("APP Reset-APP SW Reset"), 22) == 0 ||
                  strncmp(buf, P("APP Reset-Wlan Except"), 21) == 0 ) {
             Serial.println(P("disassociate"));
-            reset();
+            clear();
             on_reset_();
         }
         else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
@@ -750,6 +754,9 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second
 
     Serial.println(cmd);
 
+    if (timeout_second == GS_TIMEOUT_NOWAIT) {
+        return;
+    }
     setBusy(true);
     waitResponse(timeout_second);
 }
