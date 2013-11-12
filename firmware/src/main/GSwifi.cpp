@@ -67,7 +67,7 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
 // factory should issue following commands:
 // % AT
 // % ATE0
-// % ATB=57600
+// % ATB=38400
 // % AT&W0
 // % AT&Y0
 int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
@@ -76,7 +76,16 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     reset();
 
-    serial_->begin(57600);
+    serial_->begin(38400);
+
+    // how to change baud rate
+    // command(PB("ATB=38400",1), GSCOMMANDMODE_NORMAL);
+    // setBaud(38400);
+    // command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
+    // command(PB("AT&Y0",1), GSCOMMANDMODE_NORMAL);
+
+    // need this to ignore initial response
+    command(PB("AT",1), GSCOMMANDMODE_NORMAL);
 
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
