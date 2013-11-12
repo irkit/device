@@ -29,8 +29,9 @@ static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
 static uint8_t  post_keys_cid;
 
-#define NEXT_TICK_POST_KEYS 1
 #define NEXT_TICK_NOP       0
+#define NEXT_TICK_POST_KEYS 1
+#define NEXT_TICK_SETUP     2
 
 static uint8_t on_next_tick = NEXT_TICK_NOP;
 
@@ -182,7 +183,7 @@ int8_t onGetMessagesRequest() {
 }
 
 void jsonDetectedStart() {
-    Serial.println(P("json start"));
+    Serial.println(P("json<<"));
 
     if (global.buffer_mode != GBufferModeWifiCredentials) {
         IR_state( IR_WRITING );
@@ -213,7 +214,7 @@ void jsonDetectedData( uint8_t key, uint32_t value ) {
 }
 
 void jsonDetectedEnd() {
-    Serial.println(P("json end"));
+    Serial.println(P(">>json"));
 
     if ( (IrCtrl.state != IR_WRITING) ||
          (global.buffer_mode != GBufferModeIR) ) {
@@ -240,6 +241,7 @@ int8_t onPostMessagesRequest() {
     if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
         // should be xmitting or idle (xmit finished)
         if (IrCtrl.state == IR_WRITING) {
+            Serial.println(P("!!!E7"));
             // invalid json
             gs.writeHead(400);
             gs.end();

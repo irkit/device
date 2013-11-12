@@ -164,12 +164,15 @@ void GSwifi::reset () {
 
 // received a character from UART
 void GSwifi::parseByte(uint8_t dat) {
-    if (dat != 0x1b) {
-        Serial.write(dat);
-    }
-
     static uint8_t  next_token; // split each byte into tokens (cid,ip,port,length,data)
     static bool     escape = false;
+
+    if (dat == 0x1b) {
+        Serial.write('$');
+    }
+    else { // if (next_token != NEXT_TOKEN_DATA) {
+        Serial.write(dat);
+    }
 
     if (gs_mode_ == GSMODE_COMMAND) {
         if (escape) {
@@ -199,7 +202,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 parseLine();
             }
             else if (dat != '\r') {
-                // command
+                // commands are proved to be short enough to fit into buf
                 if ( ! ring_isfull(_buf_cmd) ) {
                     ring_put(_buf_cmd, dat);
                 }
@@ -249,8 +252,6 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
             }
             ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
-
-            Serial.print("len:"); Serial.println(len_chars);
         }
     }
     else if (next_token == NEXT_TOKEN_DATA) {
@@ -262,7 +263,11 @@ void GSwifi::parseByte(uint8_t dat) {
             switch (serverRequest.state) {
             case GSREQUESTSTATE_HEAD1:
                 if (dat != '\n') {
-                    ring_put( _buf_cmd, dat );
+                    // TODO: document max request line length
+                    if ( ! ring_isfull(_buf_cmd) ) {
+                        ring_put( _buf_cmd, dat );
+                    }
+                    // ignore overflowed
                 }
                 else {
                     // end of request line
@@ -272,7 +277,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     uint8_t path_size   = GS_MAX_PATH_LENGTH;
                     int8_t  result      = parseRequestLine((char*)method, method_size);
                     if ( result == 0 ) {
-                        Serial.print(P("method:")); Serial.println(method);
+                        Serial.print("M:"); Serial.println(method);
                         result = parseRequestLine((char*)path, path_size);
                     }
                     if ( result != 0 ) {
@@ -280,10 +285,10 @@ void GSwifi::parseByte(uint8_t dat) {
                         serverRequest.state = GSREQUESTSTATE_ERROR;
                         error_code          = 400;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("error400"));
+                        Serial.println(P("E400"));
                         break;
                     }
-                    Serial.print(P("path:")); Serial.println(path);
+                    Serial.print("P:"); Serial.println(path);
                     GSMETHOD gsmethod = x2method(method);
 
                     int8_t routeid = router(gsmethod, path);
@@ -291,7 +296,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         serverRequest.state = GSREQUESTSTATE_ERROR;
                         error_code          = 404;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("error404"));
+                        Serial.println(P("E404"));
                         break;
                     }
                     serverRequest.routeid = routeid;
@@ -313,7 +318,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     // if detected double (\r)\n, switch to body mode
                     serverRequest.state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
-                    Serial.println(P("req2"));
+                    Serial.println("rq1");
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -331,7 +336,7 @@ void GSwifi::parseByte(uint8_t dat) {
             }
 
             if (len == 0) {
-                Serial.println(P("req len==0"));
+                Serial.println("rq2");
 
                 gs_mode_ = GSMODE_COMMAND;
                 if ( serverRequest.state == GSREQUESTSTATE_ERROR ) {
@@ -351,7 +356,10 @@ void GSwifi::parseByte(uint8_t dat) {
             switch (clientRequest.state) {
             case GSRESPONSESTATE_HEAD1:
                 if (dat != '\n') {
-                    ring_put( _buf_cmd, dat );
+                    if ( ! ring_isfull(_buf_cmd) ) {
+                        // ignore if overflowed
+                        ring_put( _buf_cmd, dat );
+                    }
                 }
                 else {
                     uint8_t i=0;
@@ -377,7 +385,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     clientRequest.status_code = atoi(status_code);
                     clientRequest.state       = GSRESPONSESTATE_HEAD2;
                     continous_newlines        = 0;
-                    Serial.println(P("res1"));
+                    Serial.print("S:"); Serial.println(status_code);
                 }
                 break;
             case GSRESPONSESTATE_HEAD2:
@@ -391,7 +399,10 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 else {
                     continous_newlines = 0;
-                    ring_put( _buf_cmd, dat );
+                    if ( ! ring_isfull(_buf_cmd) ) {
+                        // ignore if overflowed
+                        ring_put( _buf_cmd, dat );
+                    }
                 }
                 if (continous_newlines == 1) {
                     // check "Content-Length: x" header
@@ -412,7 +423,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     // if detected double (\r)\n, switch to body mode
                     clientRequest.state = GSRESPONSESTATE_BODY;
                     ring_clear(_buf_cmd);
-                    Serial.println(P("res2"));
+                    Serial.println("rs2");
                 }
                 break;
             case GSRESPONSESTATE_BODY:
@@ -429,7 +440,7 @@ void GSwifi::parseByte(uint8_t dat) {
             }
 
             if (len == 0) {
-                Serial.println(P("res len==0"));
+                Serial.println("rs3");
 
                 uint8_t cid = clientRequest.cid;
                 gs_mode_    = GSMODE_COMMAND;
@@ -485,7 +496,7 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     for (i = 0; i < route_count_; i ++) {
         if ((method == routes_[i].method) &&
             (strncmp(path, routes_[i].path, GS_MAX_PATH_LENGTH) == 0)) {
-            Serial.print(P("route: ")); Serial.println(i);
+            Serial.print("R:"); Serial.println(i);
             return i;
         }
     }
@@ -608,7 +619,6 @@ void GSwifi::parseLine () {
 
             uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
             SET_CID_IS_REQUEST(cid);
-            Serial.print(P("connect ")); Serial.println(cid);
 
             // don't close other connections,
             // other connections close theirselves on their turn
@@ -650,7 +660,7 @@ void GSwifi::parseLine () {
 }
 
 void GSwifi::parseCmdResponse (char *buf) {
-    Serial.print(P("parseCmd: ")); Serial.println(buf);
+    Serial.print(P("c< ")); Serial.println(buf);
 
     if (strncmp(buf, P("OK"), 3) == 0) {
         gs_ok_ = true;
