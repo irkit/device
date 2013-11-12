@@ -46,9 +46,14 @@
 
 #define ESCAPE           0x1B
 
-#define SET_CID_IS_REQUEST(a)  (cid_bitmap_ |=  (1<<a)) // 1
-#define SET_CID_IS_RESPONSE(a) (cid_bitmap_ &= ~(1<<a)) // 0
-#define CID_IS_REQUEST(a)      (cid_bitmap_ & (1<<a))
+#define SET_CID_FLAG_TRUE(a,b)   (a |=  (1<<b))
+#define SET_CID_FLAG_FALSE(a,b)  (a &= ~(1<<b))
+#define GET_CID_FLAG(a,b)        (a &   (1<<b))
+#define CID_FLAG_CLEAR(a)        (a =   0)
+
+#define SET_CID_IS_REQUEST(a)  SET_CID_FLAG_TRUE(cid_bitmap_,a)
+#define SET_CID_IS_RESPONSE(a) SET_CID_FLAG_FALSE(cid_bitmap_,a)
+#define CID_IS_REQUEST(a)      GET_CID_FLAG(cid_bitmap_,a)
 
 GSwifi::GSwifi( HardwareSerial *serial ) :
     serial_(serial)
@@ -229,7 +234,15 @@ void GSwifi::parseByte(uint8_t dat) {
             }
             else {
                 clientRequest.cid   = current_cid;
-                clientRequest.state = GSRESPONSESTATE_HEAD1;
+                if (GET_CID_FLAG(next_body_bitmap_, current_cid)) {
+                    // this is our 2nd bulk message from GS for this response
+                    // we already swallowed HTTP response headers,
+                    // following should be body
+                    clientRequest.state = GSRESPONSESTATE_BODY;
+                }
+                else {
+                    clientRequest.state = GSRESPONSESTATE_HEAD1;
+                }
             }
             ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
 
@@ -318,7 +331,6 @@ void GSwifi::parseByte(uint8_t dat) {
             if (len == 0) {
                 Serial.println(P("req len==0"));
 
-                escape   = false;
                 gs_mode_ = GSMODE_COMMAND;
                 if ( serverRequest.state == GSREQUESTSTATE_ERROR ) {
                     writeHead( error_code );
@@ -332,6 +344,8 @@ void GSwifi::parseByte(uint8_t dat) {
             }
         } // is request
         else {
+            static bool next_body = false;
+
             switch (clientRequest.state) {
             case GSRESPONSESTATE_HEAD1:
                 if (dat != '\n') {
@@ -375,6 +389,23 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 else {
                     continous_newlines = 0;
+                    ring_put( _buf_cmd, dat );
+                }
+                if (continous_newlines == 1) {
+                    // check "Content-Length: x" header
+                    // if it exists and not 0, wait for more body data
+                    // otherwise disconnect after handling response
+                    // GS often splits response into 2 bulk messages,
+                    // 1st ends just after headers, and 2nd contains only response body
+                    char content_length[17]; // not NULL terminated
+                    uint8_t copied = ring_get( _buf_cmd, &content_length[0], 17 );
+                    if ((copied == 17) &&
+                        (strncmp(content_length, "Content-Length: ", 16) == 0) &&
+                        (content_length[16] != '0')) {
+                        Serial.println(P("!!!has content length!!!"));
+                        next_body = true;
+                    }
+                    ring_clear(_buf_cmd);
                 }
                 if (continous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
@@ -388,6 +419,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     dispatchResponseHandler(clientRequest.cid);
                 }
                 ring_put(_buf_cmd, dat);
+                next_body = false;
                 break;
             case GSRESPONSESTATE_ERROR:
             case GSRESPONSESTATE_RECEIVED:
@@ -398,17 +430,25 @@ void GSwifi::parseByte(uint8_t dat) {
             if (len == 0) {
                 Serial.println(P("res len==0"));
 
-                escape             = false;
-                gs_mode_            = GSMODE_COMMAND;
-                clientRequest.state = GSRESPONSESTATE_RECEIVED;
-                dispatchResponseHandler(clientRequest.cid);
+                uint8_t cid = clientRequest.cid;
+                gs_mode_    = GSMODE_COMMAND;
+
+                if (next_body) {
+                    Serial.println(P("A"));
+                    // response body comes on next bulk message
+                    dispatchResponseHandler(cid);
+                    SET_CID_FLAG_TRUE(next_body_bitmap_, cid);
+                }
+                else {
+                    Serial.println(P("B"));
+                    // all response body received
+                    clientRequest.state = GSRESPONSESTATE_RECEIVED;
+                    dispatchResponseHandler(cid);
+                }
                 ring_clear( _buf_cmd );
 
-                uint8_t cid = clientRequest.cid;
-                // invalidate before close, because close waits for UART communication from GS,
-                // and cid should be undefined then
-                clientRequest.cid = CID_UNDEFINED;
-                if (cid != CID_UNDEFINED) {
+                if (! next_body) {
+                    clientRequest.cid = CID_UNDEFINED;
                     close( cid );
                 }
             }
@@ -634,6 +674,7 @@ void GSwifi::parseCmdResponse (char *buf) {
             else {
                 int8_t cid = x2i(buf[8]);
                 SET_CID_IS_RESPONSE(cid);
+                SET_CID_FLAG_FALSE(next_body_bitmap_,cid);
 
                 // don't close other connections,
                 // other connections close theirselves on their turn
@@ -702,6 +743,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
+    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
     Serial.print(P("c> "));
 
     resetResponse(res);

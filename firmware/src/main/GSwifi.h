@@ -246,8 +246,9 @@ private:
     GSEventHandler     on_disconnect_;
     GSEventHandler     on_reset_;
     struct RingBuffer  ring_buffer_;
-    uint8_t            cid_bitmap_; // cid:0/1
 
+    uint8_t            cid_bitmap_; // cid:0/1
+    uint8_t            next_body_bitmap_;
     GSEventHandler     handlers_[16]; // handler for each cid
 
     uint8_t            checkActivity();

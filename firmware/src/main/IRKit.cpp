@@ -562,7 +562,7 @@ void IRKit_loop() {
             Serial.println();
 
             Serial.println(P("---wifi---"));
-            gs.dump();
+            // gs.dump();
             Serial.println();
 
             Serial.println(P("---ir---"));
