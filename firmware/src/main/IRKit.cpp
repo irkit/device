@@ -88,6 +88,7 @@ void timerLoop() {
         int8_t result = getMessages();
         if ( result != 0 ) {
             // reset if any error happens
+            Serial.println(P("!!!E3"));
             reset3V3();
         }
     }

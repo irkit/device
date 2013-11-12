@@ -1006,12 +1006,10 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
-    if (did_timeout_) {
-        return -1;
-    }
-    if (gs_failure_) {
-        return -1;
-    }
+
+    // don't fail fatally on dnslookup failure,
+    // we cache our server's ipaddress anyway
+    // it happens randomly
 
     sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
     // clientRequest.cid is filled
