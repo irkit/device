@@ -27,6 +27,7 @@ volatile static uint8_t message_timer   = TIMER_OFF;
 volatile static uint8_t reconnect_timer = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
+static uint8_t  post_keys_cid;
 
 //--- declaration
 
@@ -231,10 +232,11 @@ int8_t onPostMessagesRequest() {
 
 int8_t onPostKeysRequest() {
     if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-        // close other client requests
-        if (gs.clientRequest.cid != CID_UNDEFINED) {
-            gs.close( gs.clientRequest.cid );
-        }
+        // don't close other client requests,
+        // "close" and it's response mixing up makes things difficult
+
+        // respond to this cid, when we get a new key
+        post_keys_cid = gs.serverRequest.cid;
 
         // POST /keys to server
         postKeys();
@@ -339,8 +341,8 @@ int8_t onPostKeysResponse() {
         return 0;
     }
 
-    if (gs.serverRequest.cid == CID_UNDEFINED) {
-        TIMER_START(message_timer, 0);
+    if ( (gs.serverRequest.cid == CID_UNDEFINED) ||
+         (gs.serverRequest.cid != post_keys_cid) ) {
         return 0;
     }
 
@@ -354,12 +356,9 @@ int8_t onPostKeysResponse() {
             gs.write( letter );
         }
         gs.end();
-        TIMER_START(message_timer, 0);
         break;
     default:
-        ring_clear(gs._buf_cmd);
         gs.end();
-        TIMER_START(message_timer, 5);
         break;
     }
 
