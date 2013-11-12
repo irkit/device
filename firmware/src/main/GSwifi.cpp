@@ -64,22 +64,19 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     clientRequest.cid = CID_UNDEFINED;
 }
 
+// factory should issue following commands:
+// % AT
+// % ATE0
+// % ATB=57600
+// % AT&W0
+// % AT&Y0
 int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     on_disconnect_ = on_disconnect;
     on_reset_      = on_reset;
 
     reset();
 
-    serial_->begin(9600);
-
-    command(PB("AT",1), GSCOMMANDMODE_NORMAL);
-
-    // disable echo
-    command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
-
-    // faster baud rate
-    // TODO enable when ready
-    // setBaud(115200);
+    serial_->begin(57600);
 
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
@@ -128,7 +125,6 @@ void GSwifi::reset () {
     listening_      = false;
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
-    dhcp_           = false;
     ring_clear(_buf_cmd);
     serverRequest.cid = CID_UNDEFINED;
     clientRequest.cid = CID_UNDEFINED;
@@ -143,7 +139,7 @@ void GSwifi::loop() {
          TIMER_FIRED(clientRequest.timer) ) {
         TIMER_STOP(clientRequest.timer);
 
-        Serial.println(P("!!! request timeout"));
+        Serial.println(P("!!!E4"));
 
         uint8_t cid = clientRequest.cid;
         close( clientRequest.cid );
@@ -155,12 +151,9 @@ void GSwifi::loop() {
 
 // received a character from UART
 void GSwifi::parseByte(uint8_t dat) {
-    Serial.print(dat, HEX);
-    if (dat > 0x0D) {
-        Serial.print(P(" "));
+    if (dat != 0x1b) {
         Serial.write(dat);
     }
-    Serial.println();
 
     static uint8_t  next_token; // split each byte into tokens (cid,ip,port,length,data)
     static bool     escape = false;
@@ -208,8 +201,6 @@ void GSwifi::parseByte(uint8_t dat) {
         return;
     }
 
-    // (gs_mode_ == GSMODE_DATA_RX_BULK)
-
     static uint16_t len;
     static char     len_chars[5];
     static uint8_t  current_cid;
@@ -246,7 +237,7 @@ void GSwifi::parseByte(uint8_t dat) {
             }
             ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
 
-            Serial.print(P("bulk length:")); Serial.println(len_chars);
+            Serial.print("len:"); Serial.println(len_chars);
         }
     }
     else if (next_token == NEXT_TOKEN_DATA) {
@@ -293,7 +284,6 @@ void GSwifi::parseByte(uint8_t dat) {
                     serverRequest.routeid = routeid;
                     serverRequest.state   = GSREQUESTSTATE_HEAD2;
                     continous_newlines    = 0;
-                    Serial.println(P("req next: head2"));
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
@@ -310,12 +300,11 @@ void GSwifi::parseByte(uint8_t dat) {
                     // if detected double (\r)\n, switch to body mode
                     serverRequest.state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
-                    Serial.println(P("req next: body"));
+                    Serial.println(P("req2"));
                 }
                 break;
             case GSREQUESTSTATE_BODY:
                 if (ring_isfull(_buf_cmd)) {
-                    Serial.println(P("req full"));
                     dispatchRequestHandler(); // POST, user callback should write()
                 }
                 ring_put(_buf_cmd, dat);
@@ -375,7 +364,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     clientRequest.status_code = atoi(status_code);
                     clientRequest.state       = GSRESPONSESTATE_HEAD2;
                     continous_newlines        = 0;
-                    Serial.println(P("res next: head2"));
+                    Serial.println(P("res1"));
                 }
                 break;
             case GSRESPONSESTATE_HEAD2:
@@ -402,7 +391,6 @@ void GSwifi::parseByte(uint8_t dat) {
                     if ((copied == 17) &&
                         (strncmp(content_length, "Content-Length: ", 16) == 0) &&
                         (content_length[16] != '0')) {
-                        Serial.println(P("!!!has content length!!!"));
                         next_body = true;
                     }
                     ring_clear(_buf_cmd);
@@ -411,7 +399,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     // if detected double (\r)\n, switch to body mode
                     clientRequest.state = GSRESPONSESTATE_BODY;
                     ring_clear(_buf_cmd);
-                    Serial.println(P("res next: body"));
+                    Serial.println(P("res2"));
                 }
                 break;
             case GSRESPONSESTATE_BODY:
@@ -434,23 +422,24 @@ void GSwifi::parseByte(uint8_t dat) {
                 gs_mode_    = GSMODE_COMMAND;
 
                 if (next_body) {
-                    Serial.println(P("A"));
                     // response body comes on next bulk message
                     dispatchResponseHandler(cid);
                     SET_CID_FLAG_TRUE(next_body_bitmap_, cid);
                 }
                 else {
-                    Serial.println(P("B"));
                     // all response body received
+                    clientRequest.cid   = CID_UNDEFINED;
                     clientRequest.state = GSRESPONSESTATE_RECEIVED;
+
+                    // we need to close our clientRequest before handling it.
+                    // GS often locks when closing 2 connections in a row
+                    // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
+                    //     response from server arrives -> close(1) -> close(2) -> lock!!
+                    // the other way around: close(2) -> close(1) doesn't lock :(
+                    close( cid );
                     dispatchResponseHandler(cid);
                 }
                 ring_clear( _buf_cmd );
-
-                if (! next_body) {
-                    clientRequest.cid = CID_UNDEFINED;
-                    close( cid );
-                }
             }
         } // is response
     } // (next_token == NEXT_TOKEN_DATA)
@@ -559,9 +548,9 @@ void GSwifi::write (const uint16_t data) {
 int8_t GSwifi::end () {
     escape( "E" );
 
-    int8_t ret = close( serverRequest.cid );
+    uint8_t cid = serverRequest.cid;
     serverRequest.cid = CID_UNDEFINED;
-    return ret;
+    return close( cid );
 }
 
 GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
@@ -777,10 +766,6 @@ void GSwifi::resetResponse (GSCOMMANDMODE res) {
 bool GSwifi::setBusy(bool busy) {
     if (busy) {
         did_timeout_  = false;
-        // if (onBusy) onBusy();
-    } else {
-        // lastError = false;
-        // if (onIdle) onIdle();
     }
     return busy_ = busy;
 }
@@ -827,27 +812,12 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
     }
 
     command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
 
     disconnect();
 
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
-
-    // dhcp
-    if (dhcp) {
-        command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_NORMAL);
-    } else {
-        command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
-    }
-    if (did_timeout_) {
-        return -1;
-    }
+    command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
     case GSSECURITY_NONE:
@@ -881,7 +851,6 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
         command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
         break;
     default:
-        Serial.println(P("Can't use security"));
         return -1;
     }
 
@@ -892,14 +861,7 @@ int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, 
         return -1;
     }
 
-    // if (!dhcp) {
-    //     sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-    //         _gateway[0], _gateway[1], _gateway[2], _gateway[3]);
-    //     command(cmd, GSCOMMANDMODE_NORMAL);
-    // }
-
     joined_ = true;
-    dhcp_   = dhcp;
     return 0;
 }
 
@@ -932,42 +894,6 @@ int GSwifi::disconnect () {
     command(PB("AT+NDHCP=0",1),   GSCOMMANDMODE_NORMAL);
     return 0;
 }
-
-// int GSwifi::setAddress (char *name) {
-//     command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
-//     if (did_timeout_) {
-//         return -1;
-//     }
-//     if (ipaddr_.isNull()) return -1;
-//     return 0;
-// }
-
-// int GSwifi::setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver) {
-//     int r;
-//     char cmd[GS_CMD_SIZE];
-
-//     command(PB("AT+NDHCP=0",1), GSCOMMANDMODE_NORMAL);
-//     // wait_ms(100);
-
-//     sprintf(cmd, P("AT+NSET=%d.%d.%d.%d,%d.%d.%d.%d,%d.%d.%d.%d"),
-//         ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3],
-//         netmask[0], netmask[1], netmask[2], netmask[3],
-//         gateway[0], gateway[1], gateway[2], gateway[3]);
-//     command(cmd, GSCOMMANDMODE_NORMAL);
-//     if (did_timeout_) {
-//         return -1;
-//     }
-//     ipaddr_ = ipaddr;
-//     _netmask = netmask;
-//     _gateway = gateway;
-
-//     if (ipaddr != nameserver) {
-//         sprintf(cmd, P("AT+DNSSET=%d.%d.%d.%d"),
-//             nameserver[0], nameserver[1], nameserver[2], nameserver[3]);
-//         command(cmd, GSCOMMANDMODE_NORMAL);
-//     }
-//     return did_timeout_;
-// }
 
 bool GSwifi::isJoined () {
     return joined_;
@@ -1105,10 +1031,10 @@ void GSwifi::onTimer() {
 }
 
 // for test
-void GSwifi::dump () {
-    Serial.print(P("joined_:"));            Serial.println(joined_);
-    Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
-    Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
-    Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
-    Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
-}
+// void GSwifi::dump () {
+//     Serial.print(P("joined_:"));            Serial.println(joined_);
+//     Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
+//     Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
+//     Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
+//     Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
+// }

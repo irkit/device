@@ -229,7 +229,7 @@ protected:
 
 private:
     HardwareSerial*    serial_;
-    bool               joined_, listening_, dhcp_;
+    bool               joined_, listening_;
     bool               gs_ok_, gs_failure_;
     int                gs_response_lines_;
     GSMODE             gs_mode_;

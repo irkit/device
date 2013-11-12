@@ -68,7 +68,7 @@ void   IRKit_loop();
 void reset3V3 () {
     Serial.println(P("hardware reset"));
     digitalWrite( LDO33_ENABLE, LOW );
-    delay( 1000 );
+    delay( 3000 );
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // wait til gs wakes up
@@ -127,8 +127,11 @@ void onTimer() {
 
 int8_t onReset() {
     Serial.println(P("!!! onReset"));
+    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
     gs.setup( &onDisconnect, &onReset );
+
+    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
     connect();
     return 0;
@@ -143,7 +146,7 @@ int8_t onDisconnect() {
 
 int8_t onGetMessagesRequest() {
     if (gs.serverRequest.state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        Serial.println(P("!!! GET with body??"));
+        Serial.println(P("!!!E6"));
         return -1;
     }
     gs.writeHead(200);
@@ -184,7 +187,7 @@ void jsonDetectedStart() {
 }
 
 void jsonDetectedData( uint8_t key, uint32_t value ) {
-    Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
+    // Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
 
     if ( (IrCtrl.state != IR_WRITING) ||
          (global.buffer_mode != GBufferModeIR) ) {
@@ -211,7 +214,7 @@ void jsonDetectedEnd() {
 
     if ( (IrCtrl.state != IR_WRITING) ||
          (global.buffer_mode != GBufferModeIR) ) {
-        Serial.print("buffer_mode:"); Serial.println(global.buffer_mode);
+        Serial.println("!!!E5");
         IR_dump();
         return;
     }
@@ -261,8 +264,6 @@ int8_t onPostKeysRequest() {
 }
 
 int8_t onRequest() {
-    Serial.println(P("onRequest"));
-
     switch (gs.serverRequest.routeid) {
     case 0: // GET /messages
         return onGetMessagesRequest();

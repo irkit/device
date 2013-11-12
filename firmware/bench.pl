@@ -10,7 +10,7 @@ my $number_of_requests = 10;
 
 my $agent = Furl->new(
     agent   => 'Bench/1.0',
-    timeout => 10,
+    timeout => 20,
 );
 
 my $get_message = sub {
@@ -44,6 +44,7 @@ for my $i (1..$number_of_requests) {
     print "[$i] ";
     my $time = [gettimeofday];
     $requests[ int(rand scalar @requests) ]();
+    # $requests[ 2 ]();
     my $elapsed = tv_interval( $time, [gettimeofday] );
     printf( " %.2f[s]\n", $elapsed );
 }
