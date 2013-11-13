@@ -13,7 +13,7 @@ void setup() {
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // gainspan
-    Serial1.begin(9600);
+    Serial1.begin(38400);
 }
 
 void loop() {

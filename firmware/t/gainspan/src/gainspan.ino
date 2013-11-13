@@ -3,9 +3,23 @@
 #include "pgmStrToRAM.h"
 #include "MemoryFree.h"
 #include "GSwifi.h"
-#include "WifiCredentials.h"
+#include "Keys.h"
 
 GSwifi gs(&Serial1);
+Keys keys;
+
+int8_t onReset() {
+    Serial.println(P("!!! onReset"));
+    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
+
+    return 0;
+}
+
+int8_t onDisconnect() {
+    Serial.println(P("!!! onDisconnect"));
+
+    return 0;
+}
 
 void setup() {
     // enable 3.3V LDO
@@ -23,34 +37,34 @@ void setup() {
     // wait til gs wakes up
     delay( 100 );
 
-    gs.setup();
+    gs.setup( &onDisconnect, &onReset );
 
     // load wifi credentials from EEPROM
     {
-        WifiCredentials credentials;
-
-        if (credentials.isValid()) {
-            gs.join(credentials.getSecurity(),
-                    credentials.getSSID(),
-                    credentials.getPassword());
+        if (keys.isWifiCredentialsSet()) {
+            gs.join(keys.getSecurity(),
+                    keys.getSSID(),
+                    keys.getPassword());
         }
         if (gs.isJoined()) {
-            // gs.startup();
+            Serial.println(P("joined!"));
         }
     }
 
     printGuide();
+
+    gs.startLimitedAP();
 }
 
 void printGuide() {
     Serial.println(P("Menu:"));
+    Serial.println(P("a) start adhoc"));
     Serial.println(P("b) change baud rate to 9600"));
     Serial.println(P("B) change baud rate to 115200"));
     Serial.println(P("c) connect to wifi"));
     Serial.println(P("d) dump"));
     Serial.println(P("h) help (this)"));
     Serial.println(P("R) hardware reset"));
-    Serial.println(P("s) setup"));
     Serial.println(P("y) set EEPROM with dev data"));
     Serial.println(P("z) clear EEPROM(ssid,password)"));
     Serial.println(P("Esc) command mode"));
@@ -85,9 +99,13 @@ void loop() {
             Serial.println(P(">> entered command mode !!!!"));
         }
         else if (last_character == 'c') {
-            gs.join( GSwifi::GSSECURITY_WPA2_PSK,
+            gs.join( GSSECURITY_WPA2_PSK,
                      PB("Rhodos",2),
                      PB("aaaaaaaaaaaaa",3) );
+        }
+        else if (last_character == 'a') {
+            Serial.println(P("start limited AP"));
+            gs.startLimitedAP();
         }
         else if (last_character == 'b') {
             gs.setBaud(9600);
@@ -96,9 +114,8 @@ void loop() {
             gs.setBaud(115200);
         }
         else if (last_character == 'd') {
-            WifiCredentials credentials;
-            Serial.println(P("---credentials---"));
-            credentials.dump();
+            Serial.println(P("---keys---"));
+            keys.dump();
 
             Serial.println(P("---wifi---"));
             gs.dump();
@@ -109,20 +126,14 @@ void loop() {
         else if (last_character == 'R') {
             reset3V3();
         }
-        else if (last_character == 's') {
-            gs.setup();
-        }
         else if (last_character == 'y') {
-            WifiCredentials credentials;
-            uint8_t security = WIFICREDENTIALS_SECURITY_WPA2PSK;
-            credentials.set(GSwifi::GSSECURITY_WPA2_PSK,
-                            PB("Rhodos",2),
-                            PB("aaaaaaaaaaaaa",3));
-            credentials.save();
+            keys.set(GSSECURITY_WPA2_PSK,
+                     PB("Rhodos",2),
+                     PB("aaaaaaaaaaaaa",3));
+            keys.save();
         }
         else if (last_character == 'z') {
-            WifiCredentials credentials;
-            credentials.clear();
+            keys.clear();
             Serial.println(P("cleared EEPROM"));
         }
     }

@@ -75,6 +75,9 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     // need this to ignore initial response
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);
 
+    // enable bulk data mode
+    command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
+
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
 
@@ -827,14 +830,12 @@ void GSwifi::waitResponse (uint8_t timeout_second) {
     }
 }
 
-int GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name) {
+int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name) {
     char cmd[GS_CMD_SIZE];
 
     if (joined_) {
         return -1;
     }
-
-    command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
 
     disconnect();
 
