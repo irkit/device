@@ -197,15 +197,6 @@ public:
     void dump ();
 #endif
 
-protected:
-    void clear ();
-
-    int8_t   parseRequestLine (char *token, uint8_t token_size);
-    void     parseLine ();
-    void     parseCmdResponse (char *buf);
-    int8_t   router (GSMETHOD method, const char *path);
-    GSMETHOD x2method(const char *method);
-
 private:
     HardwareSerial*    serial_;
     bool               joined_, listening_;
@@ -226,20 +217,29 @@ private:
     GSEventHandler     on_reset_;
     struct RingBuffer  ring_buffer_;
 
-    // TODO uint16_t ??
-    uint8_t            cid_bitmap_; // cid:0/1
-    uint8_t            next_body_bitmap_;
+    uint16_t           cid_bitmap_; // cid:0/1
+    uint16_t           has_remaining_body_bitmap_;
     GSRequestHandler   request_handler_;
     GSResponseHandler  handlers_[16]; // handler for each cid
     volatile uint8_t   timers_[16]; // timer for each cid
     uint8_t            connected_cid_; // this cid has just connected
-    uint8_t            post_keys_request_cid_; // respond to this cid when received new key from server
 
+    void               clear();
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
+    int8_t             parseRequestLine (char *token, uint8_t token_size);
+    void               parseLine ();
+    void               parseCmdResponse (char *buf);
+    int8_t             router (GSMETHOD method, const char *path);
+    GSMETHOD           x2method(const char *method);
+
     int8_t             dispatchRequestHandler(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
     int8_t             dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
+    inline void        setCidIsRequest(uint8_t cid, bool is_request);
+    inline bool        cidIsRequest(uint8_t cid);
+    inline void        setCidHasRemainingBody(uint8_t cid, bool has);
+    inline bool        cidHasRemainingBody(uint8_t cid);
 };
 
 #endif // __GSWIFI_H__

@@ -40,20 +40,7 @@
 #define NEXT_TOKEN_LENGTH 3
 #define NEXT_TOKEN_DATA   4
 
-#define BULK_DATA_SOURCE_UNKNOWN  0
-#define BULK_DATA_SOURCE_RESPONSE 1
-#define BULK_DATA_SOURCE_REQUEST  2
-
-#define ESCAPE           0x1B
-
-#define SET_CID_FLAG_TRUE(a,b)   (a |=  (1<<b))
-#define SET_CID_FLAG_FALSE(a,b)  (a &= ~(1<<b))
-#define GET_CID_FLAG(a,b)        (a &   (1<<b))
-#define CID_FLAG_CLEAR(a)        (a =   0)
-
-#define SET_CID_IS_REQUEST(a)  SET_CID_FLAG_TRUE(cid_bitmap_,a)
-#define SET_CID_IS_RESPONSE(a) SET_CID_FLAG_FALSE(cid_bitmap_,a)
-#define CID_IS_REQUEST(a)      GET_CID_FLAG(cid_bitmap_,a)
+#define ESCAPE            0x1B
 
 static char buf[GS_CMD_SIZE + 1];
 
@@ -150,7 +137,7 @@ void GSwifi::loop() {
     checkActivity();
 
     for (uint8_t i=0; i<16; i++) {
-        if (! CID_IS_REQUEST(i) &&
+        if (! cidIsRequest(i) &&
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
@@ -220,9 +207,9 @@ void GSwifi::parseByte(uint8_t dat) {
         return;
     }
 
-    static uint16_t len;
-    static char     len_chars[5];
-    static uint8_t  current_cid;
+    static uint16_t       len;
+    static char           len_chars[5];
+    static uint8_t        current_cid;
     static GSREQUESTSTATE request_state;
 
     if (next_token == NEXT_TOKEN_CID) {
@@ -239,11 +226,11 @@ void GSwifi::parseByte(uint8_t dat) {
             len        = atoi(len_chars); // length of data
             next_token = NEXT_TOKEN_DATA;
 
-            if (CID_IS_REQUEST(current_cid)) {
+            if (cidIsRequest(current_cid)) {
                 request_state = GSREQUESTSTATE_HEAD1;
             }
             else {
-                if (GET_CID_FLAG(next_body_bitmap_, current_cid)) {
+                if (cidHasRemainingBody(current_cid)) {
                     // this is our 2nd bulk message from GS for this response
                     // we already swallowed HTTP response headers,
                     // following should be body
@@ -259,10 +246,11 @@ void GSwifi::parseByte(uint8_t dat) {
     else if (next_token == NEXT_TOKEN_DATA) {
         len --;
         static uint8_t continous_newlines = 0;
-        static int8_t routeid;
 
-        if (CID_IS_REQUEST(current_cid)) {
+        if (cidIsRequest(current_cid)) {
             static uint16_t error_code;
+            static int8_t   routeid;
+
             switch (request_state) {
             case GSREQUESTSTATE_HEAD1:
                 if (dat != '\n') {
@@ -353,7 +341,7 @@ void GSwifi::parseByte(uint8_t dat) {
             }
         } // is request
         else {
-            static bool     next_body = false;
+            static bool     has_remaining_body = false;
             static uint16_t status_code;
 
             switch (request_state) {
@@ -418,7 +406,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     if ((copied == 17) &&
                         (strncmp(content_length, "Content-Length: ", 16) == 0) &&
                         (content_length[16] != '0')) {
-                        next_body = true;
+                        has_remaining_body = true;
                     }
                     ring_clear(_buf_cmd);
                 }
@@ -434,7 +422,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_BODY);
                 }
                 ring_put(_buf_cmd, dat);
-                next_body = false;
+                has_remaining_body = false;
                 break;
             case GSREQUESTSTATE_ERROR:
             case GSREQUESTSTATE_RECEIVED:
@@ -447,10 +435,10 @@ void GSwifi::parseByte(uint8_t dat) {
 
                 gs_mode_    = GSMODE_COMMAND;
 
-                if (next_body) {
+                if (has_remaining_body) {
                     // response body comes on next bulk message
+                    setCidHasRemainingBody(current_cid, true);
                     dispatchResponseHandler(current_cid, status_code, request_state);
-                    SET_CID_FLAG_TRUE(next_body_bitmap_, current_cid);
                 }
                 else {
                     // all response body received.
@@ -520,6 +508,32 @@ int8_t GSwifi::dispatchRequestHandler (uint8_t cid, int8_t routeid, GSREQUESTSTA
 
 int8_t GSwifi::dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
     return handlers_[ cid ](cid, status_code, state);
+}
+
+inline void GSwifi::setCidIsRequest(uint8_t cid, bool is_request) {
+    if (is_request) {
+        cid_bitmap_ |= _BV(cid);
+    }
+    else {
+        cid_bitmap_ &= ~_BV(cid);
+    }
+}
+
+inline bool GSwifi::cidIsRequest(uint8_t cid) {
+    return cid_bitmap_ & _BV(cid);
+}
+
+inline void GSwifi::setCidHasRemainingBody(uint8_t cid, bool has) {
+    if (has) {
+        has_remaining_body_bitmap_ |= _BV(cid);
+    }
+    else {
+        has_remaining_body_bitmap_ &= ~_BV(cid);
+    }
+}
+
+inline bool GSwifi::cidHasRemainingBody(uint8_t cid) {
+    return has_remaining_body_bitmap_ & _BV(cid);
 }
 
 int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
@@ -612,7 +626,7 @@ void GSwifi::parseLine () {
             // next line will be "[ESC]Z10140GET / ..."
 
             uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
-            SET_CID_IS_REQUEST(cid);
+            setCidIsRequest(cid, true);
 
             // don't close other connections,
             // other connections close theirselves on their turn
@@ -669,8 +683,8 @@ void GSwifi::parseCmdResponse (char *buf) {
             }
             else {
                 int8_t cid = x2i(buf[8]);
-                SET_CID_IS_RESPONSE(cid);
-                SET_CID_FLAG_FALSE(next_body_bitmap_,cid);
+                setCidIsRequest(cid, false);
+                setCidHasRemainingBody(cid, false);
 
                 // don't close other connections,
                 // other connections close theirselves on their turn
@@ -1034,7 +1048,7 @@ int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSRespo
 // careful, called from ISR
 void GSwifi::onTimer() {
     for (int i=0; i<16; i++) {
-        if ( ! CID_IS_REQUEST(i) &&
+        if ( ! cidIsRequest(i) &&
              TIMER_RUNNING(timers_[i]) ) {
             TIMER_COUNTDOWN(timers_[i]);
         }
