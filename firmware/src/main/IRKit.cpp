@@ -289,101 +289,101 @@ int8_t onRequest() {
 
 int8_t onPostDoorResponse() {
     Serial.println(P("onPostDoorResponse"));
-    uint16_t status = gs.clientRequest.status_code;
+    // uint16_t status = gs.clientRequest.status_code;
 
-    switch (status) {
-    case 200:
-        keys.setKeyValid(true);
-        // save only independent area, since global.buffer might be populated by IR or so.
-        keys.save2();
-        startNormalOperation();
-        break;
-    case 401:
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        // keys have expired, we have to start from morse sequence again
-        keys.clear();
-        break;
-    case 408:
-    case 503: // heroku responds with 503 if longer than 30sec
-    default:
-        // try again
-        postDoor();
-        break;
-    }
+    // switch (status) {
+    // case 200:
+    //     keys.setKeyValid(true);
+    //     // save only independent area, since global.buffer might be populated by IR or so.
+    //     keys.save2();
+    //     startNormalOperation();
+    //     break;
+    // case 401:
+    // case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+    //     // keys have expired, we have to start from morse sequence again
+    //     keys.clear();
+    //     break;
+    // case 408:
+    // case 503: // heroku responds with 503 if longer than 30sec
+    // default:
+    //     // try again
+    //     postDoor();
+    //     break;
+    // }
 
     return 0;
 }
 
 int8_t onGetMessagesResponse() {
-    uint16_t status = gs.clientRequest.status_code;
+    // uint16_t status = gs.clientRequest.status_code;
 
-    Serial.print(P("onGetMessagesResponse ")); Serial.println(status);
+    // Serial.print(P("onGetMessagesResponse ")); Serial.println(status);
 
-    switch (status) {
-    case 200:
-        while (!ring_isempty(gs._buf_cmd)) {
-            char letter;
-            ring_get(gs._buf_cmd, &letter, 1);
+    // switch (status) {
+    // case 200:
+    //     while (!ring_isempty(gs._buf_cmd)) {
+    //         char letter;
+    //         ring_get(gs._buf_cmd, &letter, 1);
 
-            irjson_parse( letter,
-                          &jsonDetectedStart,
-                          &jsonDetectedData,
-                          &jsonDetectedEnd );
-        }
+    //         irjson_parse( letter,
+    //                       &jsonDetectedStart,
+    //                       &jsonDetectedData,
+    //                       &jsonDetectedEnd );
+    //     }
 
-        if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-            // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
-            if (IrCtrl.state == IR_WRITING) {
-                // prevent from locking in WRITING state forever
-                IR_state( IR_IDLE );
-            }
+    //     // if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
+    //     //     // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
+    //     //     if (IrCtrl.state == IR_WRITING) {
+    //     //         // prevent from locking in WRITING state forever
+    //     //         IR_state( IR_IDLE );
+    //     //     }
 
-            TIMER_START(message_timer, 0);
-        }
-        break;
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        TIMER_START(message_timer, 5);
-        break;
-    case 503: // heroku responds with 503 if longer than 30sec
-    default:
-        if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-            TIMER_START(message_timer, 5);
-        }
-        break;
-    }
+    //     //     TIMER_START(message_timer, 0);
+    //     // }
+    //     break;
+    // case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+    //     TIMER_START(message_timer, 5);
+    //     break;
+    // case 503: // heroku responds with 503 if longer than 30sec
+    // default:
+    //     if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
+    //         TIMER_START(message_timer, 5);
+    //     }
+    //     break;
+    // }
 
     return 0;
 }
 
 int8_t onPostKeysResponse() {
-    uint16_t status = gs.clientRequest.status_code;
+    // uint16_t status = gs.clientRequest.status_code;
 
-    Serial.print(P("onPostKeysResponse ")); Serial.println(status);
+    // Serial.print(P("onPostKeysResponse ")); Serial.println(status);
 
-    if (gs.clientRequest.state != GSwifi::GSRESPONSESTATE_RECEIVED) {
-        return 0;
-    }
+    // if (gs.clientRequest.state != GSwifi::GSRESPONSESTATE_RECEIVED) {
+    //     return 0;
+    // }
 
-    if ( (gs.serverRequest.cid == CID_UNDEFINED) ||
-         (gs.serverRequest.cid != post_keys_cid) ) {
-        return 0;
-    }
+    // if ( (gs.serverRequest.cid == CID_UNDEFINED) ||
+    //      (gs.serverRequest.cid != post_keys_cid) ) {
+    //     return 0;
+    // }
 
-    gs.writeHead( status );
+    // gs.writeHead( status );
 
-    switch (status) {
-    case 200:
-        while (!ring_isempty(gs._buf_cmd)) {
-            char letter;
-            ring_get(gs._buf_cmd, &letter, 1);
-            gs.write( letter );
-        }
-        gs.end();
-        break;
-    default:
-        gs.end();
-        break;
-    }
+    // switch (status) {
+    // case 200:
+    //     while (!ring_isempty(gs._buf_cmd)) {
+    //         char letter;
+    //         ring_get(gs._buf_cmd, &letter, 1);
+    //         gs.write( letter );
+    //     }
+    //     gs.end();
+    //     break;
+    // default:
+    //     gs.end();
+    //     break;
+    // }
 
     return 0;
 }

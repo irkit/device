@@ -61,7 +61,7 @@ GSwifi::GSwifi( HardwareSerial *serial ) :
     _buf_cmd          = &ring_buffer_;
     ring_init( _buf_cmd );
     route_count_      = 0;
-    clientRequest.cid = CID_UNDEFINED;
+    // clientRequest.cid = CID_UNDEFINED;
 }
 
 // factory should issue following commands:
@@ -136,7 +136,7 @@ void GSwifi::clear () {
     gs_mode_        = GSMODE_COMMAND;
     ring_clear(_buf_cmd);
     serverRequest.cid = CID_UNDEFINED;
-    clientRequest.cid = CID_UNDEFINED;
+    // clientRequest.cid = CID_UNDEFINED;
 }
 
 void GSwifi::loop() {
@@ -144,17 +144,16 @@ void GSwifi::loop() {
 
     checkActivity();
 
-    if ( (clientRequest.cid != CID_UNDEFINED) &&
-         TIMER_FIRED(clientRequest.timer) ) {
-        TIMER_STOP(clientRequest.timer);
+    for (uint8_t i=0; i<16; i++) {
+        if (! CID_IS_REQUEST(i) &&
+            TIMER_FIRED(timers_[i])) {
+            TIMER_STOP(timers_[i]);
 
-        Serial.println(P("!!!E4"));
+            Serial.println(P("!!!E4"));
 
-        uint8_t cid = clientRequest.cid;
-        close( clientRequest.cid );
-        clientRequest.cid         = CID_UNDEFINED;
-        clientRequest.status_code = HTTP_STATUSCODE_CLIENT_TIMEOUT;
-        dispatchResponseHandler(cid);
+            close( i );
+            dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
+        }
     }
 }
 
@@ -220,6 +219,7 @@ void GSwifi::parseByte(uint8_t dat) {
     static uint16_t len;
     static char     len_chars[5];
     static uint8_t  current_cid;
+    static GSREQUESTSTATE request_state;
 
     if (next_token == NEXT_TOKEN_CID) {
         // dat is cid
@@ -240,15 +240,15 @@ void GSwifi::parseByte(uint8_t dat) {
                 serverRequest.state = GSREQUESTSTATE_HEAD1;
             }
             else {
-                clientRequest.cid   = current_cid;
+                // clientRequest.cid   = current_cid;
                 if (GET_CID_FLAG(next_body_bitmap_, current_cid)) {
                     // this is our 2nd bulk message from GS for this response
                     // we already swallowed HTTP response headers,
                     // following should be body
-                    clientRequest.state = GSRESPONSESTATE_BODY;
+                    request_state = GSREQUESTSTATE_BODY;
                 }
                 else {
-                    clientRequest.state = GSRESPONSESTATE_HEAD1;
+                    request_state = GSREQUESTSTATE_HEAD1;
                 }
             }
             ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
@@ -351,10 +351,11 @@ void GSwifi::parseByte(uint8_t dat) {
             }
         } // is request
         else {
-            static bool next_body = false;
+            static bool     next_body = false;
+            static uint16_t status_code;
 
-            switch (clientRequest.state) {
-            case GSRESPONSESTATE_HEAD1:
+            switch (request_state) {
+            case GSREQUESTSTATE_HEAD1:
                 if (dat != '\n') {
                     if ( ! ring_isfull(_buf_cmd) ) {
                         // ignore if overflowed
@@ -370,25 +371,25 @@ void GSwifi::parseByte(uint8_t dat) {
                         ring_get( _buf_cmd, &trash, 1 );
                     }
 
-                    char status_code[4];
-                    status_code[ 3 ] = 0;
-                    int8_t count = ring_get( _buf_cmd, status_code, 3 );
+                    char status_code_chars[4];
+                    status_code_chars[ 3 ] = 0;
+                    int8_t count = ring_get( _buf_cmd, status_code_chars, 3 );
                     if (count != 3) {
                         // protocol error
                         // we should receive something like: "200 OK", "401 Unauthorized"
                         // TODO handle this
-                        clientRequest.status_code = 999;
-                        clientRequest.state       = GSRESPONSESTATE_ERROR;
+                        status_code   = 999;
+                        request_state = GSREQUESTSTATE_ERROR;
                         break;
                     }
                     ring_clear(_buf_cmd);
-                    clientRequest.status_code = atoi(status_code);
-                    clientRequest.state       = GSRESPONSESTATE_HEAD2;
-                    continous_newlines        = 0;
+                    status_code        = atoi(status_code_chars);
+                    request_state      = GSREQUESTSTATE_HEAD2;
+                    continous_newlines = 0;
                     Serial.print("S:"); Serial.println(status_code);
                 }
                 break;
-            case GSRESPONSESTATE_HEAD2:
+            case GSREQUESTSTATE_HEAD2:
                 // we don't read *any* headers except 1st request line.
                 // "Expect: 100-continue" doesn't work
                 if (dat == '\n') {
@@ -421,20 +422,20 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 if (continous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
-                    clientRequest.state = GSRESPONSESTATE_BODY;
+                    request_state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
                     Serial.println("rs2");
                 }
                 break;
-            case GSRESPONSESTATE_BODY:
+            case GSREQUESTSTATE_BODY:
                 if (ring_isfull(_buf_cmd)) {
-                    dispatchResponseHandler(clientRequest.cid);
+                    dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_BODY);
                 }
                 ring_put(_buf_cmd, dat);
                 next_body = false;
                 break;
-            case GSRESPONSESTATE_ERROR:
-            case GSRESPONSESTATE_RECEIVED:
+            case GSREQUESTSTATE_ERROR:
+            case GSREQUESTSTATE_RECEIVED:
             default:
                 break;
             }
@@ -442,26 +443,25 @@ void GSwifi::parseByte(uint8_t dat) {
             if (len == 0) {
                 Serial.println("rs3");
 
-                uint8_t cid = clientRequest.cid;
                 gs_mode_    = GSMODE_COMMAND;
 
                 if (next_body) {
                     // response body comes on next bulk message
-                    dispatchResponseHandler(cid);
-                    SET_CID_FLAG_TRUE(next_body_bitmap_, cid);
+                    dispatchResponseHandler(current_cid, status_code, request_state);
+                    SET_CID_FLAG_TRUE(next_body_bitmap_, current_cid);
                 }
                 else {
                     // all response body received
-                    clientRequest.cid   = CID_UNDEFINED;
-                    clientRequest.state = GSRESPONSESTATE_RECEIVED;
+                    // clientRequest.cid   = CID_UNDEFINED;
+                    // clientRequest.state = GSRESPONSESTATE_RECEIVED;
 
                     // we need to close our clientRequest before handling it.
                     // GS often locks when closing 2 connections in a row
                     // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
                     //     response from server arrives -> close(1) -> close(2) -> lock!!
                     // the other way around: close(2) -> close(1) doesn't lock :(
-                    close( cid );
-                    dispatchResponseHandler(cid);
+                    close( current_cid );
+                    dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_RECEIVED);
                 }
                 ring_clear( _buf_cmd );
             }
@@ -520,8 +520,8 @@ int8_t GSwifi::dispatchRequestHandler () {
     return handlers_[ 0 ]();
 }
 
-int8_t GSwifi::dispatchResponseHandler (uint8_t cid) {
-    return handlers_[ cid ]();
+int8_t GSwifi::dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
+    return handlers_[ cid ](uint16_t status_code, GSREQUESTSTATE state);
 }
 
 int8_t GSwifi::writeHead (uint16_t status_code) {
@@ -631,12 +631,12 @@ void GSwifi::parseLine () {
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             uint8_t cid = x2i(buf[11]);
             Serial.print(P("disconnect ")); Serial.println(cid);
-            if (cid == clientRequest.cid) {
-                clientRequest.cid = CID_UNDEFINED;
-            }
-            else if (cid == serverRequest.cid) {
-                serverRequest.cid = CID_UNDEFINED;
-            }
+            // if (cid == clientRequest.cid) {
+            //     clientRequest.cid = CID_UNDEFINED;
+            // }
+            // else if (cid == serverRequest.cid) {
+            //     serverRequest.cid = CID_UNDEFINED;
+            // }
         }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
@@ -691,9 +691,11 @@ void GSwifi::parseCmdResponse (char *buf) {
                 // don't close other connections,
                 // other connections close theirselves on their turn
 
-                clientRequest.cid   = cid;
-                clientRequest.state = GSRESPONSESTATE_HEAD1;
-                TIMER_STOP(clientRequest.timer);
+                // clientRequest.cid   = cid;
+                // clientRequest.state = GSRESPONSESTATE_HEAD1;
+                // TIMER_STOP(clientRequest.timer);
+                TIMER_STOP(timers_[cid]);
+                connected_cid_ = cid;
             }
         }
         break;
@@ -965,41 +967,44 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
     // clientRequest.cid is filled
+    connected_cid_ = -1;
     command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
         return -1;
     }
-    if (clientRequest.cid == CID_UNDEFINED) {
+    if (connected_cid_ == -1) {
         return -1;
     }
 
-    handlers_[ clientRequest.cid ] = handler;
+    uint8_t cid = connected_cid_; // this might change inside command()
+
+    handlers_[ cid ] = handler;
 
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,10,10,4"), clientRequest.cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,10,10,4"), cid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // Enable TCP_KEEPALIVE on this socket
     // AT+SETSOCKOPT=0,65535,8,1,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,65535,8,1,4"), clientRequest.cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,65535,8,1,4"), cid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_PROBES = 2
     // AT+SETSOCKOPT=0,6,4005,2,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4005,2,4"), clientRequest.cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4005,2,4"), cid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_INTVL = 150
     // AT+SETSOCKOPT=0,6,4001,150,4
     // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4001,150,4"), clientRequest.cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4001,150,4"), cid);
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
 
-    sprintf(cmd, "S%d", clientRequest.cid);
+    sprintf(cmd, "S%d", cid);
     escape( cmd );
 
     if (method == GSMETHOD_POST) {
@@ -1033,7 +1038,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // ignore timeout, we always timeout here
     escape( "E" );
 
-    TIMER_START(clientRequest.timer, timeout);
+    TIMER_START(timers_[cid], timeout);
 
     return 0;
 }
@@ -1048,9 +1053,10 @@ int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEvent
 
 // careful, called from ISR
 void GSwifi::onTimer() {
-    if ( (clientRequest.cid != CID_UNDEFINED) &&
-         TIMER_RUNNING(clientRequest.timer) ) {
-        TIMER_COUNTDOWN(clientRequest.timer);
+    for (int i=0; i<16; i++) {
+        if (!CID_IS_REQUEST(i) && TIMER_RUNNING(timers_[i])) {
+            TIMER_COUNTDOWN(timers_[i]);
+        }
     }
 
     TIMER_TICK( timeout_timer_ );

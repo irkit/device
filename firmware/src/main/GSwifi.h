@@ -73,20 +73,17 @@ public:
     typedef void (*onGsReceiveFunc)(uint8_t cid, int len);
 
     enum GSREQUESTSTATE {
-        GSREQUESTSTATE_PREPARE, // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
-        GSREQUESTSTATE_HEAD1, // 1st line ex: "GET / HTTP/1.1"
-        GSREQUESTSTATE_HEAD2, // 2nd line and after
-        GSREQUESTSTATE_BODY,
-        GSREQUESTSTATE_RECEIVED, // received whole HTTP request successfully
-        GSREQUESTSTATE_ERROR,
-    };
-
-    enum GSRESPONSESTATE {
-        GSRESPONSESTATE_HEAD1, // 1st line ex: "200 OK", "401 UNAUTHORIZED", ..
-        GSRESPONSESTATE_HEAD2, // 2nd line and after
-        GSRESPONSESTATE_BODY,
-        GSRESPONSESTATE_RECEIVED, // received whole HTTP request successfully
-        GSRESPONSESTATE_ERROR,
+        // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
+        GSREQUESTSTATE_PREPARE  = 0,
+        // if request:
+        // 1st line ex: "GET / HTTP/1.1"
+        // if respones:
+        // ex: "200 OK", "401 UNAUTHORIZED", ..
+        GSREQUESTSTATE_HEAD1    = 1, //
+        GSREQUESTSTATE_HEAD2    = 2, // 2nd line and after
+        GSREQUESTSTATE_BODY     = 3,
+        GSREQUESTSTATE_RECEIVED = 4, // received whole HTTP request successfully
+        GSREQUESTSTATE_ERROR    = 5,
     };
 
     struct GSServerRequest {
@@ -95,12 +92,12 @@ public:
         GSREQUESTSTATE state;
     };
 
-    struct GSClientRequest {
-        uint8_t         cid;    // can be 1 <= cid, because cid == 0 is our http server
-        GSRESPONSESTATE state;
-        uint16_t        status_code; // status code when error occured
-        uint8_t         timer;  // see timer.h
-    };
+    // struct GSClientRequest {
+    //     uint8_t        cid;     // can be 1 <= cid, because cid == 0 is our http server
+    //     GSREQUESTSTATE state;
+    //     uint16_t       status_code; // status code when error occured
+    //     uint8_t        timer;   // see timer.h
+    // };
 
     struct GSRoute {
         GSMETHOD method;
@@ -210,7 +207,7 @@ public:
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
     struct GSServerRequest serverRequest;
-    volatile struct GSClientRequest clientRequest;
+    // volatile struct GSClientRequest clientRequest;
 
     // on timer ISR
     void onTimer();
@@ -248,15 +245,17 @@ private:
     GSEventHandler     on_reset_;
     struct RingBuffer  ring_buffer_;
 
+    // TODO uint16_t ??
     uint8_t            cid_bitmap_; // cid:0/1
     uint8_t            next_body_bitmap_;
     GSEventHandler     handlers_[16]; // handler for each cid
+    uint8_t            timers_[16]; // timer for each cid
+    uint8_t            connected_cid_; // this cid has just connected
 
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
     int8_t             dispatchRequestHandler();
-    int8_t             dispatchResponseHandler(uint8_t);
-};
+    int8_t             dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
 
 #endif // __GSWIFI_H__
