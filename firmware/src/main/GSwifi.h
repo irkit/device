@@ -66,30 +66,21 @@ public:
         GSCOMMANDMODE_MAC,
     };
 
-    // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
-    // if request:
-    // 1st line ex: "GET / HTTP/1.1"
-    // if respones:
-    // ex: "200 OK", "401 UNAUTHORIZED", ..
     enum GSREQUESTSTATE {
-        // GSREQUESTSTATE_PREPARE  = 0,
-        GSREQUESTSTATE_HEAD1    = 1,
-        GSREQUESTSTATE_HEAD2    = 2, // 2nd line and after
-        GSREQUESTSTATE_BODY     = 3,
-        GSREQUESTSTATE_RECEIVED = 4, // received whole HTTP request successfully
-        GSREQUESTSTATE_ERROR    = 5,
+        // if request:
+        // 1st line ex: "GET / HTTP/1.1"
+        // if respones:
+        // ex: "200 OK", "401 UNAUTHORIZED", ..
+        GSREQUESTSTATE_HEAD1    = 0,
+        GSREQUESTSTATE_HEAD2    = 1, // 2nd line and after
+        GSREQUESTSTATE_BODY     = 2,
+        GSREQUESTSTATE_RECEIVED = 3, // received whole HTTP request successfully
+        GSREQUESTSTATE_ERROR    = 4,
     };
 
     typedef int8_t (*GSEventHandler)();
     typedef int8_t (*GSRequestHandler)(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
     typedef int8_t (*GSResponseHandler)(uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
-
-    // struct GSClientRequest {
-    //     uint8_t        cid;     // can be 1 <= cid, because cid == 0 is our http server
-    //     GSREQUESTSTATE state;
-    //     uint16_t       status_code; // status code when error occured
-    //     uint8_t        timer;   // see timer.h
-    // };
 
     struct GSRoute {
         GSMETHOD method;
@@ -198,8 +189,6 @@ public:
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
-    // struct GSServerRequest serverRequest;
-    // volatile struct GSClientRequest clientRequest;
 
     // on timer ISR
     void onTimer();

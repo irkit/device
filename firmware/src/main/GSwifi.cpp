@@ -55,13 +55,14 @@
 #define SET_CID_IS_RESPONSE(a) SET_CID_FLAG_FALSE(cid_bitmap_,a)
 #define CID_IS_REQUEST(a)      GET_CID_FLAG(cid_bitmap_,a)
 
+static char buf[GS_CMD_SIZE + 1];
+
 GSwifi::GSwifi( HardwareSerial *serial ) :
     serial_(serial)
 {
     _buf_cmd          = &ring_buffer_;
-    ring_init( _buf_cmd );
+    ring_init( _buf_cmd, buf, GS_CMD_SIZE + 1 );
     route_count_      = 0;
-    // clientRequest.cid = CID_UNDEFINED;
 }
 
 // factory should issue following commands:
@@ -122,6 +123,8 @@ int8_t GSwifi::close (uint8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
     cmd[ 10 ]  = cid + '0';
 
+    TIMER_STOP( timers_[cid] );
+
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
@@ -135,8 +138,6 @@ void GSwifi::clear () {
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
     ring_clear(_buf_cmd);
-    // serverRequest.cid = CID_UNDEFINED;
-    // clientRequest.cid = CID_UNDEFINED;
 
     for (uint8_t i=0; i<16; i++) {
         TIMER_STOP( timers_[i] );
@@ -239,12 +240,9 @@ void GSwifi::parseByte(uint8_t dat) {
             next_token = NEXT_TOKEN_DATA;
 
             if (CID_IS_REQUEST(current_cid)) {
-                // serverRequest.cid   = current_cid;
-                // serverRequest.state = GSREQUESTSTATE_HEAD1;
                 request_state = GSREQUESTSTATE_HEAD1;
             }
             else {
-                // clientRequest.cid   = current_cid;
                 if (GET_CID_FLAG(next_body_bitmap_, current_cid)) {
                     // this is our 2nd bulk message from GS for this response
                     // we already swallowed HTTP response headers,
@@ -455,22 +453,13 @@ void GSwifi::parseByte(uint8_t dat) {
                     SET_CID_FLAG_TRUE(next_body_bitmap_, current_cid);
                 }
                 else {
-                    // all response body received
-                    // clientRequest.cid   = CID_UNDEFINED;
-                    // clientRequest.state = GSRESPONSESTATE_RECEIVED;
-
+                    // all response body received.
                     // we need to close our clientRequest before handling it.
                     // GS often locks when closing 2 connections in a row
                     // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
                     //     response from server arrives -> close(1) -> close(2) -> lock!!
                     // the other way around: close(2) -> close(1) doesn't lock :(
                     dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_RECEIVED);
-
-                    // close( current_cid );
-
-                    // uint8_t cid = serverRequest.cid;
-                    // serverRequest.cid = CID_UNDEFINED;
-                    // close( cid );
                 }
                 ring_clear( _buf_cmd );
             }
@@ -627,21 +616,11 @@ void GSwifi::parseLine () {
 
             // don't close other connections,
             // other connections close theirselves on their turn
-
-            // serverRequest.cid    = cid;
-            // serverRequest.state  = GSREQUESTSTATE_PREPARE;
-
             // ignore client's IP and port
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             uint8_t cid = x2i(buf[11]);
             Serial.print(P("disconnect ")); Serial.println(cid);
-            // if (cid == clientRequest.cid) {
-            //     clientRequest.cid = CID_UNDEFINED;
-            // }
-            // else if (cid == serverRequest.cid) {
-            //     serverRequest.cid = CID_UNDEFINED;
-            // }
         }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
@@ -696,9 +675,6 @@ void GSwifi::parseCmdResponse (char *buf) {
                 // don't close other connections,
                 // other connections close theirselves on their turn
 
-                // clientRequest.cid   = cid;
-                // clientRequest.state = GSRESPONSESTATE_HEAD1;
-                // TIMER_STOP(clientRequest.timer);
                 TIMER_STOP(timers_[cid]);
                 connected_cid_ = cid;
 
@@ -716,8 +692,6 @@ void GSwifi::parseCmdResponse (char *buf) {
         break;
     case GSCOMMANDMODE_DNSLOOKUP:
         if (strncmp(buf, P("IP:"), 3) == 0) {
-            // safely terminates ipaddr_, because ipaddr_'s size should be larger than &buf[3]
-            // strncpy(ipaddr_, &buf[3], sizeof(ipaddr_));
             sprintf( ipaddr_, "%s", &buf[3] );
             gs_response_lines_ = RESPONSE_LINES_ENDED;
         }
@@ -914,7 +888,6 @@ int GSwifi::listen(uint16_t port) {
     }
 
     listening_   = true;
-    // serverRequest.cid = CID_UNDEFINED;
 
     // assume CID is 0 for server (only listen on 1 port)
 
@@ -973,13 +946,13 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // it happens randomly
 
     sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
-    // clientRequest.cid is filled
-    connected_cid_ = -1;
+
+    connected_cid_ = 0xFF;
     command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
         return -1;
     }
-    if (connected_cid_ == -1) {
+    if (connected_cid_ == 0xFF) {
         return -1;
     }
 

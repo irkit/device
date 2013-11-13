@@ -29,11 +29,13 @@ static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
 static uint8_t  post_keys_cid;
 
-#define NEXT_TICK_NOP       0
-#define NEXT_TICK_POST_KEYS 1
-#define NEXT_TICK_SETUP     2
+#define COMMAND_POST_KEYS  1
+#define COMMAND_SETUP      2
+#define COMMAND_CLOSE      3
 
-static uint8_t on_next_tick = NEXT_TICK_NOP;
+#define COMMAND_QUEUE_SIZE 6
+static struct RingBuffer command_queue;
+static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
 //--- declaration
 
@@ -56,7 +58,7 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
 int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state);
 void   postDoor();
 int8_t getMessages();
-void   postKeys();
+int8_t postKeys();
 void   connect();
 void   startNormalOperation();
 void   letterCallback( char letter );
@@ -91,9 +93,11 @@ void timerLoop() {
         TIMER_STOP(message_timer);
         int8_t result = getMessages();
         if ( result != 0 ) {
+            // Serial.println(P("!!!E3"));
+            // maybe time cures GS?
+            TIMER_START(message_timer, 5);
             // reset if any error happens
-            Serial.println(P("!!!E3"));
-            reset3V3();
+            // reset3V3();
         }
     }
 
@@ -103,19 +107,33 @@ void timerLoop() {
         connect();
     }
 
-    switch (on_next_tick) {
-    case NEXT_TICK_POST_KEYS:
-        postKeys();
-        break;
-    case NEXT_TICK_SETUP:
-        gs.setup( &onDisconnect, &onReset );
-        connect();
-        break;
-    case NEXT_TICK_NOP:
-    default:
-        break;
+    while (ring_used(&command_queue)) {
+        char command;
+        ring_get(&command_queue, &command, 1);
+
+        switch (command) {
+        case COMMAND_POST_KEYS:
+            {
+                int8_t result = postKeys();
+                if ( result < 0 ) {
+                    gs.writeHead( post_keys_cid, 500 );
+                    gs.writeEnd();
+                    gs.close( post_keys_cid );
+                }
+            }
+            break;
+        case COMMAND_SETUP:
+            gs.setup( &onDisconnect, &onReset );
+            connect();
+            break;
+        case COMMAND_CLOSE:
+            ring_get(&command_queue, &command, 1);
+            gs.close(command);
+            break;
+        default:
+            break;
+        }
     }
-    on_next_tick = NEXT_TICK_NOP;
 }
 
 // inside ISR, be careful
@@ -137,7 +155,7 @@ int8_t onReset() {
     Serial.println(P("!!! onReset"));
     Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
 
-    on_next_tick = NEXT_TICK_SETUP;
+    ring_put(&command_queue, COMMAND_SETUP);
     return 0;
 }
 
@@ -193,8 +211,6 @@ void jsonDetectedStart() {
 }
 
 void jsonDetectedData( uint8_t key, uint32_t value ) {
-    // Serial.print(P("json data: ")); Serial.print(key); Serial.print(","); Serial.println(value);
-
     if ( (IrCtrl.state != IR_WRITING) ||
          (global.buffer_mode != GBufferModeIR) ) {
         return;
@@ -268,7 +284,7 @@ int8_t onPostKeysRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
 
         // delay execution to next tick (we get clean stack)
         // POST /keys to server
-        on_next_tick = NEXT_TICK_POST_KEYS;
+        ring_put(&command_queue, COMMAND_POST_KEYS);
     }
 }
 
@@ -373,11 +389,6 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
         return 0;
     }
 
-    // if ( (gs.serverRequest.cid == CID_UNDEFINED) ||
-    //      (gs.serverRequest.cid != post_keys_cid) ) {
-    //     return 0;
-    // }
-
     gs.writeHead( post_keys_cid, status_code );
 
     switch (status_code) {
@@ -394,8 +405,13 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
         break;
     }
 
-    gs.close(cid);
-    gs.close(post_keys_cid);
+    ring_put( &command_queue, COMMAND_CLOSE );
+    ring_put( &command_queue, cid );
+    ring_put( &command_queue, COMMAND_CLOSE );
+    int8_t result = ring_put( &command_queue, post_keys_cid );
+    if ( result < 0 ) {
+        Serial.println(P("!!!E8"));
+    }
 
     return 0;
 }
@@ -413,10 +429,10 @@ int8_t getMessages() {
     return gs.get(path, &onGetMessagesResponse, 50);
 }
 
-void postKeys() {
+int8_t postKeys() {
     char body[41]; // 4 + 36 + 1
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 10 );
+    return gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 10 );
 }
 
 void connect() {
@@ -529,6 +545,8 @@ void wordCallback() {
 }
 
 void IRKit_setup() {
+    ring_init( &command_queue, command_queue_data, COMMAND_QUEUE_SIZE + 1 );
+
     //--- initialize LED
 
     FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
