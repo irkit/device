@@ -15,23 +15,20 @@ my $agent = Furl->new(
 
 my $get_message = sub {
     print "GET /messages\n";
-    my $res = $agent->get( "$base/messages" );
-    die $res->status_line unless $res->is_success;
+    return $agent->get( "$base/messages" );
 };
 
 my $post_message = sub {
     # エアコンオン
     print "POST /messages\n";
-    my $res = $agent->post( "$base/messages", [],
+    return $agent->post( "$base/messages", [],
                             'message={"freq":38,"format":"raw","data":[6573,3257,867,824,866,825,865,2463,866,826,864,2462,867,825,864,827,863,828,863,2464,866,2462,867,826,864,826,865,826,864,2463,866,2461,868,825,865,826,864,827,864,826,865,826,864,826,865,826,864,826,865,825,866,826,864,826,865,826,864,827,864,2462,867,826,864,826,865,826,864,827,864,827,864,826,864,826,865,2461,868,825,865,826,865,826,864,827,864,2462,867,2461,867,2461,868,2461,867,2461,868,2461,867,2461,868,2461,867,826,864,826,865,2461,866,826,864,827,864,828,863,827,864,826,865,826,865,825,865,826,865,2462,867,2462,866,825,865,826,865,2462,867,825,865,826,865,825,865,826,865,2461,868,825,865,2462,867,2462,867,825,865,826,864,827,864,825,865,826,865,826,865,825,865,826,865,826,864,827,864,826,865,826,864,826,865,2462,867,825,865,827,864,825,864,827,863,827,863,829,863,827,864,827,864,826,865,826,864,826,865,826,865,825,865,827,864,827,864,826,864,827,864,826,864,826,865,826,865,826,864,826,865,826,864,827,864,827,864,826,864,827,864,826,865,2462,867,825,865,2462,867,825,865,826,864,826,865,2463,866,2461,867,826,865,825,865,827,864,2462,867,2461,867]}',
                         );
-    die $res->status_line unless $res->is_success;
 };
 
 my $post_keys = sub {
     print "POST /keys\n";
-    my $res = $agent->post( "$base/keys", [], [] );
-    die $res->status_line unless $res->is_success;
+    return $agent->post( "$base/keys", [], [] );
 };
 
 my @requests = (
@@ -43,7 +40,10 @@ my @requests = (
 for my $i (1..$number_of_requests) {
     print "[$i] ";
     my $time = [gettimeofday];
-    $requests[ int(rand scalar @requests) ]();
+    my $res  = $requests[ int(rand scalar @requests) ]();
+    die $res->status_line unless $res->is_success;
+    printf( " %d %s\n", $res->code, $res->body );
+
     # $requests[ 2 ]();
     my $elapsed = tv_interval( $time, [gettimeofday] );
     printf( " %.2f[s]\n", $elapsed );
