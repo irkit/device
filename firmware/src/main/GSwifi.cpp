@@ -841,7 +841,10 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
-    command(PB("AT+NDHCP=1",1), GSCOMMANDMODE_NORMAL);
+
+    // set DHCP name with mac address
+    sprintf(cmd, P("AT+NDHCP=1,IRKit%c%c"), mac_[15], mac_[16]);
+    command(cmd, GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
     case GSSECURITY_NONE:
