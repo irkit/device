@@ -43,17 +43,17 @@ void   timerLoop();
 void   onTimer();
 int8_t onReset();
 int8_t onDisconnect();
-int8_t onGetMessagesRequest();
+int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state);
 void   jsonDetectedStart();
 void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
 void   onIRXmitComplete();
-int8_t onPostMessagesRequest();
-int8_t onPostKeysRequest();
-int8_t onRequest();
-int8_t onPostDoorResponse();
-int8_t onGetMessagesResponse();
-int8_t onPostKeysResponse();
+int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state);
+int8_t onPostKeysRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state);
+int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state);
+int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state);
+int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state);
+int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state);
 void   postDoor();
 int8_t getMessages();
 void   postKeys();
@@ -148,18 +148,19 @@ int8_t onDisconnect() {
     return 0;
 }
 
-int8_t onGetMessagesRequest() {
-    if (gs.serverRequest.state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         Serial.println(P("!!!E6"));
         return -1;
     }
-    gs.writeHead(200);
+    gs.writeHead(cid, 200);
 
     if ( (global.buffer_mode == GBufferModeWifiCredentials) ||
          (IrCtrl.len <= 0) ||
          (IrCtrl.state != IR_RECVED) ) {
         // if no data
-        gs.end();
+        gs.writeEnd();
+        gs.close(cid);
         return 0;
     }
 
@@ -175,7 +176,8 @@ int8_t onGetMessagesRequest() {
         }
     }
     gs.write(P("]}"));
-    gs.end();
+    gs.writeEnd();
+    gs.close(cid);
 
     IR_state( IR_IDLE );
 
@@ -227,7 +229,7 @@ void jsonDetectedEnd() {
     IR_xmit();
 }
 
-int8_t onPostMessagesRequest() {
+int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
     while (!ring_isempty(gs._buf_cmd)) {
         char letter;
         ring_get(gs._buf_cmd, &letter, 1);
@@ -238,29 +240,31 @@ int8_t onPostMessagesRequest() {
                       &jsonDetectedEnd );
     }
 
-    if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
         // should be xmitting or idle (xmit finished)
         if (IrCtrl.state == IR_WRITING) {
             Serial.println(P("!!!E7"));
             // invalid json
-            gs.writeHead(400);
-            gs.end();
-            return 0;
+            gs.writeHead(cid, 400);
+            gs.writeEnd();
         }
-        gs.writeHead(200);
-        gs.end();
+        else {
+            gs.writeHead(cid, 200);
+            gs.writeEnd();
+        }
+        gs.close(cid);
     }
 
     return 0;
 }
 
-int8_t onPostKeysRequest() {
-    if (gs.serverRequest.state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+int8_t onPostKeysRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
         // don't close other client requests, we can handle multiple concurrent client requests
         // and "close" and it's response mixing up makes things difficult
 
         // respond to this cid, when we get a new key
-        post_keys_cid = gs.serverRequest.cid;
+        post_keys_cid = cid;
 
         // delay execution to next tick (we get clean stack)
         // POST /keys to server
@@ -268,18 +272,18 @@ int8_t onPostKeysRequest() {
     }
 }
 
-int8_t onRequest() {
-    switch (gs.serverRequest.routeid) {
+int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
+    switch (routeid) {
     case 0: // GET /messages
-        return onGetMessagesRequest();
+        return onGetMessagesRequest(cid, state);
 
     case 1: // POST /messages
-        return onPostMessagesRequest();
+        return onPostMessagesRequest(cid, state);
 
     case 2: // POST /keys
         // when client requests for a new key,
         // we request server for one, and respond to client with the result from server
-        return onPostKeysRequest();
+        return onPostKeysRequest(cid, state);
 
     default:
         break;
@@ -287,103 +291,111 @@ int8_t onRequest() {
     return -1;
 }
 
-int8_t onPostDoorResponse() {
+int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
     Serial.println(P("onPostDoorResponse"));
-    // uint16_t status = gs.clientRequest.status_code;
 
-    // switch (status) {
-    // case 200:
-    //     keys.setKeyValid(true);
-    //     // save only independent area, since global.buffer might be populated by IR or so.
-    //     keys.save2();
-    //     startNormalOperation();
-    //     break;
-    // case 401:
-    // case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-    //     // keys have expired, we have to start from morse sequence again
-    //     keys.clear();
-    //     break;
-    // case 408:
-    // case 503: // heroku responds with 503 if longer than 30sec
-    // default:
-    //     // try again
-    //     postDoor();
-    //     break;
-    // }
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+        return 0;
+    }
 
-    return 0;
-}
-
-int8_t onGetMessagesResponse() {
-    // uint16_t status = gs.clientRequest.status_code;
-
-    // Serial.print(P("onGetMessagesResponse ")); Serial.println(status);
-
-    // switch (status) {
-    // case 200:
-    //     while (!ring_isempty(gs._buf_cmd)) {
-    //         char letter;
-    //         ring_get(gs._buf_cmd, &letter, 1);
-
-    //         irjson_parse( letter,
-    //                       &jsonDetectedStart,
-    //                       &jsonDetectedData,
-    //                       &jsonDetectedEnd );
-    //     }
-
-    //     // if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-    //     //     // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
-    //     //     if (IrCtrl.state == IR_WRITING) {
-    //     //         // prevent from locking in WRITING state forever
-    //     //         IR_state( IR_IDLE );
-    //     //     }
-
-    //     //     TIMER_START(message_timer, 0);
-    //     // }
-    //     break;
-    // case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-    //     TIMER_START(message_timer, 5);
-    //     break;
-    // case 503: // heroku responds with 503 if longer than 30sec
-    // default:
-    //     if (gs.clientRequest.state == GSwifi::GSRESPONSESTATE_RECEIVED) {
-    //         TIMER_START(message_timer, 5);
-    //     }
-    //     break;
-    // }
+    switch (status_code) {
+    case 200:
+        gs.close(cid);
+        keys.setKeyValid(true);
+        // save only independent area, since global.buffer might be populated by IR or so.
+        keys.save2();
+        startNormalOperation();
+        break;
+    case 401:
+    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+        // keys have expired, we have to start from morse sequence again
+        gs.close(cid);
+        keys.clear();
+        break;
+    case 408:
+    case 503: // heroku responds with 503 if longer than 30sec
+    default:
+        // try again
+        gs.close(cid);
+        postDoor();
+        break;
+    }
 
     return 0;
 }
 
-int8_t onPostKeysResponse() {
-    // uint16_t status = gs.clientRequest.status_code;
+int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
+    Serial.print(P("onGetMessagesResponse ")); Serial.println(status_code);
 
-    // Serial.print(P("onPostKeysResponse ")); Serial.println(status);
+    switch (status_code) {
+    case 200:
+        while (!ring_isempty(gs._buf_cmd)) {
+            char letter;
+            ring_get(gs._buf_cmd, &letter, 1);
 
-    // if (gs.clientRequest.state != GSwifi::GSRESPONSESTATE_RECEIVED) {
-    //     return 0;
-    // }
+            irjson_parse( letter,
+                          &jsonDetectedStart,
+                          &jsonDetectedData,
+                          &jsonDetectedEnd );
+        }
+
+        if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+            // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
+            if (IrCtrl.state == IR_WRITING) {
+                // prevent from locking in WRITING state forever
+                IR_state( IR_IDLE );
+            }
+
+            gs.close(cid);
+            TIMER_START(message_timer, 0);
+        }
+        break;
+    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
+        gs.close(cid);
+        TIMER_START(message_timer, 5);
+        break;
+    case 503: // heroku responds with 503 if longer than 30sec
+    default:
+        if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+            gs.close(cid);
+            TIMER_START(message_timer, 5);
+        }
+        break;
+    }
+
+    return 0;
+}
+
+int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
+    Serial.print(P("onPostKeysResponse ")); Serial.println(status_code);
+
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+        return 0;
+    }
 
     // if ( (gs.serverRequest.cid == CID_UNDEFINED) ||
     //      (gs.serverRequest.cid != post_keys_cid) ) {
     //     return 0;
     // }
 
-    // gs.writeHead( status );
+    gs.writeHead( post_keys_cid, status_code );
 
-    // switch (status) {
-    // case 200:
-    //     while (!ring_isempty(gs._buf_cmd)) {
-    //         char letter;
-    //         ring_get(gs._buf_cmd, &letter, 1);
-    //         gs.write( letter );
-    //     }
-    //     gs.end();
-    //     break;
-    // default:
-    //     gs.end();
-    //     break;
-    // }
+    switch (status_code) {
+    case 200:
+        while (!ring_isempty(gs._buf_cmd)) {
+            char letter;
+            ring_get(gs._buf_cmd, &letter, 1);
+            gs.write( letter );
+        }
+        gs.writeEnd();
+        break;
+    default:
+        gs.writeEnd();
+        break;
+    }
+
+    gs.close(cid);
+    gs.close(post_keys_cid);
 
     return 0;
 }

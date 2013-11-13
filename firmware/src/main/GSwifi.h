@@ -66,31 +66,23 @@ public:
         GSCOMMANDMODE_MAC,
     };
 
-    typedef int8_t (*GSEventHandler)();
-    /**
-     * data receive callback function
-     */
-    typedef void (*onGsReceiveFunc)(uint8_t cid, int len);
-
+    // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
+    // if request:
+    // 1st line ex: "GET / HTTP/1.1"
+    // if respones:
+    // ex: "200 OK", "401 UNAUTHORIZED", ..
     enum GSREQUESTSTATE {
-        // line before http request ex: "CONNECT 0 1 192.168.2.1 63632"
-        GSREQUESTSTATE_PREPARE  = 0,
-        // if request:
-        // 1st line ex: "GET / HTTP/1.1"
-        // if respones:
-        // ex: "200 OK", "401 UNAUTHORIZED", ..
-        GSREQUESTSTATE_HEAD1    = 1, //
+        // GSREQUESTSTATE_PREPARE  = 0,
+        GSREQUESTSTATE_HEAD1    = 1,
         GSREQUESTSTATE_HEAD2    = 2, // 2nd line and after
         GSREQUESTSTATE_BODY     = 3,
         GSREQUESTSTATE_RECEIVED = 4, // received whole HTTP request successfully
         GSREQUESTSTATE_ERROR    = 5,
     };
 
-    struct GSServerRequest {
-        uint8_t        cid;     // can be 1 <= cid, because cid == 0 is our http server
-        int8_t         routeid;
-        GSREQUESTSTATE state;
-    };
+    typedef int8_t (*GSEventHandler)();
+    typedef int8_t (*GSRequestHandler)(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
+    typedef int8_t (*GSResponseHandler)(uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
 
     // struct GSClientRequest {
     //     uint8_t        cid;     // can be 1 <= cid, because cid == 0 is our http server
@@ -187,26 +179,26 @@ public:
      * attach uri, http method pair to function
      */
     int8_t registerRoute (GSMETHOD method, const char *path);
-    void setRequestHandler (GSEventHandler handler);
-    int8_t writeHead (uint16_t status_code);
+    void setRequestHandler (GSRequestHandler handler);
+    int8_t writeHead (uint8_t cid, uint16_t status_code);
     void write (const char *data);
     void write (const char data);
     void write (const uint8_t data);
     void write (const uint16_t data);
-    int8_t end ();
+    int8_t writeEnd ();
 
     /**
      * HTTP request
      * @param timeout_second closes connection and dispatches callback with status_code 498 after this number of times caller calls onTimer()
      */
-    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSEventHandler handler, uint8_t timeout_second);
-    int8_t get (const char *path, GSEventHandler handler, uint8_t timeout_second);
-    int8_t post (const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout_second);
+    int8_t request(GSMETHOD method, const char *path, const char *body, uint8_t length, GSResponseHandler handler, uint8_t timeout_second);
+    int8_t get (const char *path, GSResponseHandler handler, uint8_t timeout_second);
+    int8_t post (const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second);
     int8_t close(uint8_t cid);
 
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
-    struct GSServerRequest serverRequest;
+    // struct GSServerRequest serverRequest;
     // volatile struct GSClientRequest clientRequest;
 
     // on timer ISR
@@ -248,14 +240,17 @@ private:
     // TODO uint16_t ??
     uint8_t            cid_bitmap_; // cid:0/1
     uint8_t            next_body_bitmap_;
-    GSEventHandler     handlers_[16]; // handler for each cid
-    uint8_t            timers_[16]; // timer for each cid
+    GSRequestHandler   request_handler_;
+    GSResponseHandler  handlers_[16]; // handler for each cid
+    volatile uint8_t   timers_[16]; // timer for each cid
     uint8_t            connected_cid_; // this cid has just connected
+    uint8_t            post_keys_request_cid_; // respond to this cid when received new key from server
 
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
-    int8_t             dispatchRequestHandler();
+    int8_t             dispatchRequestHandler(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
     int8_t             dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
+};
 
 #endif // __GSWIFI_H__

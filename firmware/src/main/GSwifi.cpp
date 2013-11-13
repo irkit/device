@@ -135,8 +135,12 @@ void GSwifi::clear () {
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
     ring_clear(_buf_cmd);
-    serverRequest.cid = CID_UNDEFINED;
+    // serverRequest.cid = CID_UNDEFINED;
     // clientRequest.cid = CID_UNDEFINED;
+
+    for (uint8_t i=0; i<16; i++) {
+        TIMER_STOP( timers_[i] );
+    }
 }
 
 void GSwifi::loop() {
@@ -149,9 +153,8 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            Serial.println(P("!!!E4"));
+            Serial.print(P("!!!E4 ")); Serial.println(i);
 
-            close( i );
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
     }
@@ -236,8 +239,9 @@ void GSwifi::parseByte(uint8_t dat) {
             next_token = NEXT_TOKEN_DATA;
 
             if (CID_IS_REQUEST(current_cid)) {
-                serverRequest.cid   = current_cid;
-                serverRequest.state = GSREQUESTSTATE_HEAD1;
+                // serverRequest.cid   = current_cid;
+                // serverRequest.state = GSREQUESTSTATE_HEAD1;
+                request_state = GSREQUESTSTATE_HEAD1;
             }
             else {
                 // clientRequest.cid   = current_cid;
@@ -257,10 +261,11 @@ void GSwifi::parseByte(uint8_t dat) {
     else if (next_token == NEXT_TOKEN_DATA) {
         len --;
         static uint8_t continous_newlines = 0;
+        static int8_t routeid;
 
         if (CID_IS_REQUEST(current_cid)) {
             static uint16_t error_code;
-            switch (serverRequest.state) {
+            switch (request_state) {
             case GSREQUESTSTATE_HEAD1:
                 if (dat != '\n') {
                     // TODO: document max request line length
@@ -282,8 +287,8 @@ void GSwifi::parseByte(uint8_t dat) {
                     }
                     if ( result != 0 ) {
                         // couldn't detect method or path
-                        serverRequest.state = GSREQUESTSTATE_ERROR;
-                        error_code          = 400;
+                        request_state = GSREQUESTSTATE_ERROR;
+                        error_code    = 400;
                         ring_clear(_buf_cmd);
                         Serial.println(P("E400"));
                         break;
@@ -291,17 +296,16 @@ void GSwifi::parseByte(uint8_t dat) {
                     Serial.print("P:"); Serial.println(path);
                     GSMETHOD gsmethod = x2method(method);
 
-                    int8_t routeid = router(gsmethod, path);
+                    routeid = router(gsmethod, path);
                     if ( routeid < 0 ) {
-                        serverRequest.state = GSREQUESTSTATE_ERROR;
-                        error_code          = 404;
+                        request_state = GSREQUESTSTATE_ERROR;
+                        error_code    = 404;
                         ring_clear(_buf_cmd);
                         Serial.println(P("E404"));
                         break;
                     }
-                    serverRequest.routeid = routeid;
-                    serverRequest.state   = GSREQUESTSTATE_HEAD2;
-                    continous_newlines    = 0;
+                    request_state      = GSREQUESTSTATE_HEAD2;
+                    continous_newlines = 0;
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
@@ -316,14 +320,14 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 if (continous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
-                    serverRequest.state = GSREQUESTSTATE_BODY;
+                    request_state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
                     Serial.println("rq1");
                 }
                 break;
             case GSREQUESTSTATE_BODY:
                 if (ring_isfull(_buf_cmd)) {
-                    dispatchRequestHandler(); // POST, user callback should write()
+                    dispatchRequestHandler(current_cid, routeid, request_state); // POST, user callback should write()
                 }
                 ring_put(_buf_cmd, dat);
                 break;
@@ -339,13 +343,13 @@ void GSwifi::parseByte(uint8_t dat) {
                 Serial.println("rq2");
 
                 gs_mode_ = GSMODE_COMMAND;
-                if ( serverRequest.state == GSREQUESTSTATE_ERROR ) {
-                    writeHead( error_code );
-                    end();
+                if ( request_state == GSREQUESTSTATE_ERROR ) {
+                    writeHead( current_cid, error_code );
+                    writeEnd();
+                    close( current_cid );
                 }
                 else {
-                    serverRequest.state = GSREQUESTSTATE_RECEIVED;
-                    dispatchRequestHandler(); // user callback should write() and end()
+                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_RECEIVED); // user callback should write(), end() and close()
                 }
                 ring_clear(_buf_cmd);
             }
@@ -460,8 +464,13 @@ void GSwifi::parseByte(uint8_t dat) {
                     // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
                     //     response from server arrives -> close(1) -> close(2) -> lock!!
                     // the other way around: close(2) -> close(1) doesn't lock :(
-                    close( current_cid );
                     dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_RECEIVED);
+
+                    // close( current_cid );
+
+                    // uint8_t cid = serverRequest.cid;
+                    // serverRequest.cid = CID_UNDEFINED;
+                    // close( cid );
                 }
                 ring_clear( _buf_cmd );
             }
@@ -512,21 +521,21 @@ int8_t GSwifi::registerRoute (GSwifi::GSMETHOD method, const char *path) {
     route_count_ ++;
 }
 
-void GSwifi::setRequestHandler (GSEventHandler handler) {
-    handlers_[ 0 ] = handler;
+void GSwifi::setRequestHandler (GSRequestHandler handler) {
+    request_handler_ = handler;
 }
 
-int8_t GSwifi::dispatchRequestHandler () {
-    return handlers_[ 0 ]();
+int8_t GSwifi::dispatchRequestHandler (uint8_t cid, int8_t routeid, GSREQUESTSTATE state) {
+    return request_handler_(cid, routeid, state);
 }
 
 int8_t GSwifi::dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
-    return handlers_[ cid ](uint16_t status_code, GSREQUESTSTATE state);
+    return handlers_[ cid ](cid, status_code, state);
 }
 
-int8_t GSwifi::writeHead (uint16_t status_code) {
+int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
     char *cmd = PB("S0",1);
-    cmd[ 1 ]  = serverRequest.cid + '0';
+    cmd[ 1 ]  = cid + '0';
 
     escape( cmd );
 
@@ -569,12 +578,8 @@ void GSwifi::write (const uint16_t data) {
     serial_->print(data);
 }
 
-int8_t GSwifi::end () {
+int8_t GSwifi::writeEnd () {
     escape( "E" );
-
-    uint8_t cid = serverRequest.cid;
-    serverRequest.cid = CID_UNDEFINED;
-    return close( cid );
 }
 
 GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
@@ -623,8 +628,8 @@ void GSwifi::parseLine () {
             // don't close other connections,
             // other connections close theirselves on their turn
 
-            serverRequest.cid    = cid;
-            serverRequest.state  = GSREQUESTSTATE_PREPARE;
+            // serverRequest.cid    = cid;
+            // serverRequest.state  = GSREQUESTSTATE_PREPARE;
 
             // ignore client's IP and port
         }
@@ -696,6 +701,8 @@ void GSwifi::parseCmdResponse (char *buf) {
                 // TIMER_STOP(clientRequest.timer);
                 TIMER_STOP(timers_[cid]);
                 connected_cid_ = cid;
+
+                Serial.print("cid:"); Serial.println(cid);
             }
         }
         break;
@@ -907,7 +914,7 @@ int GSwifi::listen(uint16_t port) {
     }
 
     listening_   = true;
-    serverRequest.cid = CID_UNDEFINED;
+    // serverRequest.cid = CID_UNDEFINED;
 
     // assume CID is 0 for server (only listen on 1 port)
 
@@ -955,7 +962,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSEventHandler handler, uint8_t timeout) {
+int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSResponseHandler handler, uint8_t timeout) {
     char cmd[ GS_CMD_SIZE ];
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
@@ -1043,18 +1050,19 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     return 0;
 }
 
-int8_t GSwifi::get(const char *path, GSEventHandler handler, uint8_t timeout_second) {
+int8_t GSwifi::get(const char *path, GSResponseHandler handler, uint8_t timeout_second) {
     return request( GSMETHOD_GET, path, NULL, 0, handler, timeout_second );
 }
 
-int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSEventHandler handler, uint8_t timeout_second) {
+int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second) {
     return request( GSMETHOD_POST, path, body, length, handler, timeout_second );
 }
 
 // careful, called from ISR
 void GSwifi::onTimer() {
     for (int i=0; i<16; i++) {
-        if (!CID_IS_REQUEST(i) && TIMER_RUNNING(timers_[i])) {
+        if ( ! CID_IS_REQUEST(i) &&
+             TIMER_RUNNING(timers_[i]) ) {
             TIMER_COUNTDOWN(timers_[i]);
         }
     }
