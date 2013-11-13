@@ -7,7 +7,8 @@ int main() {
     {
         struct RingBuffer buf_;
         struct RingBuffer *buf = &buf_;
-        ring_init( buf );
+        char data[65];
+        ring_init( buf, data, 65 );
         ok( ring_used(buf) == 0, "0 used" );
         ok( ring_isempty(buf) == 1, "is empty" );
 
@@ -49,6 +50,8 @@ int main() {
         ok( ring_used(buf) == 64, "64 used after 64 puts" );
         ok( ring_isfull(buf) == 1, "is full" );
         ok( ring_isempty(buf) == 0, "is empty" );
+
+        ok( ring_put(buf, 'x') == -1, "can't put into full" );
 
         uint8_t fetched = ring_get(buf, &buf2[0], 64);
         ok( buf2[0] == '0', "get 1" );
