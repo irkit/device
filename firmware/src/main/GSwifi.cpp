@@ -635,28 +635,27 @@ void GSwifi::parseLine () {
             // other connections close theirselves on their turn
             // ignore client's IP and port
         }
-        else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
-            uint8_t cid = x2i(buf[11]);
-            Serial.print(P("disconnect ")); Serial.println(cid);
-        }
+        // else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
+        // }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociated"), 13) == 0 ||
                  strncmp(buf, P("Disassociation Event"), 20) == 0 ) {
+            Serial.println(P("!!!E12"));
             clear();
             on_disconnect_();
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
                  strncmp(buf, P("APP Reset-APP SW Reset"), 22) == 0 ||
                  strncmp(buf, P("APP Reset-Wlan Except"), 21) == 0 ) {
-            Serial.println(P("disassociate"));
+            Serial.println(P("!!!E13"));
             clear();
             on_reset_();
         }
-        else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
-                 strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
-        }
-        else if (strncmp(buf, P("Out of Deep Sleep"), 17) == 0 ) {
-        }
+        // else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
+        //          strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
+        // }
+        // else if (strncmp(buf, P("Out of Deep Sleep"), 17) == 0 ) {
+        // }
     }
 }
 
@@ -755,7 +754,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
+    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
     Serial.print(P("c> "));
 
     resetResponse(res);

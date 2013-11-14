@@ -42,6 +42,7 @@ static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 void   reset3V3();
 void   longPressed();
 void   timerLoop();
+void   onIRReceive();
 void   onTimer();
 int8_t onReset();
 int8_t onDisconnect();
@@ -136,6 +137,10 @@ void timerLoop() {
     }
 }
 
+void onIRReceive() {
+    IR_dump();
+}
+
 // inside ISR, be careful
 void onTimer() {
     color.toggleBlink(); // 200msec blink
@@ -152,15 +157,15 @@ void onTimer() {
 }
 
 int8_t onReset() {
-    Serial.println(P("!!! onReset"));
-    Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
+    Serial.println(P("!!!E10"));
+    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
     ring_put(&command_queue, COMMAND_SETUP);
     return 0;
 }
 
 int8_t onDisconnect() {
-    Serial.println(P("!!! onDisconnect"));
+    Serial.println(P("!!!E11"));
 
     connect();
     return 0;
@@ -182,7 +187,7 @@ int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
         return 0;
     }
 
-    IR_state( IR_READING );
+    IR_state( IR_DISABLED );
 
     gs.write(P("{\"format\":\"raw\",\"freq\":")); // format fixed to "raw" for now
     gs.write(IrCtrl.freq);
@@ -308,7 +313,7 @@ int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
 }
 
 int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.println(P("onPostDoorResponse"));
+    Serial.println(P("POST /door RES")); Serial.println(status_code);
 
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return 0;
@@ -341,7 +346,7 @@ int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 }
 
 int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("onGetMessagesResponse ")); Serial.println(status_code);
+    Serial.print(P("GET /messages RES ")); Serial.println(status_code);
 
     switch (status_code) {
     case 200:
@@ -383,7 +388,7 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
 }
 
 int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("onPostKeysResponse ")); Serial.println(status_code);
+    Serial.print(P("POST /keys RES ")); Serial.println(status_code);
 
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return 0;
@@ -573,7 +578,7 @@ void IRKit_setup() {
     pinMode(IR_IN,            INPUT);
     digitalWrite(IR_IN,       HIGH);
 
-    IR_initialize();
+    IR_initialize( &onIRReceive );
 
     //--- initialize Wifi
 
@@ -596,6 +601,8 @@ void IRKit_loop() {
     // wifi
     gs.loop();
 
+    IR_loop();
+
     // Wifi UART interface test
     if (Serial.available()) {
         static uint8_t last_character = '0';
@@ -603,44 +610,32 @@ void IRKit_loop() {
 
         Serial.write(last_character);
         Serial.println();
-        Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
+        Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
         if (last_character == 'd') {
             keys.load();
 
-            Serial.print("buffer_mode: "); Serial.println(global.buffer_mode);
+            Serial.print("B: "); Serial.println(global.buffer_mode);
 
-            Serial.println(P("---keys---"));
+            Serial.println(P("---keys"));
             keys.dump();
             Serial.println();
 
-            Serial.println(P("---wifi---"));
+            Serial.println(P("---wifi"));
             // gs.dump();
             Serial.println();
 
-            Serial.println(P("---ir---"));
+            Serial.println(P("---ir"));
             IR_dump();
             Serial.println();
         }
-        else if (last_character == 'r') {
-            Serial.print(P("reset"));
-            reset3V3();
-        }
-        else if (last_character == 'R') {
-            Serial.print(P("software reset"));
-            gs.reset();
-        }
         else if (last_character == 's') {
-            Serial.println(P("setting keys in EEPROM"));
+            Serial.println(P("---set"));
             keys.set(GSSECURITY_WPA2_PSK,
                      PB("Rhodos",1),
                      PB("aaaaaaaaaaaaa",2));
             keys.setKey(P("5bd38a24-77e3-46ea-954f-571071055dac"));
             keys.save();
-        }
-        else if (last_character == 'v') {
-            Serial.print(P("version: "));
-            Serial.println(version);
         }
     }
 }

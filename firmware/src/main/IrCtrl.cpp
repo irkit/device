@@ -400,10 +400,6 @@ void IR_state (uint8_t nextState)
             return;
         }
         break;
-    case IR_READING:
-        IR_CAPTURE_DISABLE();
-        IR_COMPARE_DISABLE();
-        break;
     case IR_WRITING:
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
