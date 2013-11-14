@@ -283,6 +283,7 @@ ISR_COMPARE()
         if (IrCtrl.trailer_count == 0) {
             // Trailer detected
             IR_state( IR_RECVED );
+            IrCtrl.did_receive = true;
         }
         else {
             // wait for next compare interrupt
@@ -347,6 +348,7 @@ void IR_timer (void)
 
             Serial.println(P("!!!\tIR recv timeout"));
             IR_state( IR_RECVED );
+            IrCtrl.did_receive = true;
         }
     }
 
@@ -359,6 +361,14 @@ void IR_timer (void)
             Serial.println(P("!!!\tIR xmit timeout"));
             IR_state( IR_IDLE );
         }
+    }
+}
+
+void IR_loop ()
+{
+    if (IrCtrl.did_receive) {
+        IrCtrl.did_receive = false;
+        IrCtrl.on_receive();
     }
 }
 
@@ -383,8 +393,6 @@ void IR_state (uint8_t nextState)
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
         IR_COMPARE_DISABLE();
-
-        IR_dump();
 
         if (IrCtrl.len < VALID_IR_LEN_MIN) {
             // received, but probably noise
@@ -415,12 +423,14 @@ void IR_state (uint8_t nextState)
     IrCtrl.state = nextState;
 }
 
-void IR_initialize (void)
+void IR_initialize (IRReceiveCallback _on_receive)
 {
     IR_INIT_TIMER();
     IR_INIT_XMIT();
 
-    IrCtrl.buff = (uint16_t*)global.buffer;
+    IrCtrl.buff        = (uint16_t*)global.buffer;
+    IrCtrl.did_receive = false;
+    IrCtrl.on_receive  = _on_receive;
 
     IR_state( IR_DISABLED );
 }

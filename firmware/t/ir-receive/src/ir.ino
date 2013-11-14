@@ -8,6 +8,7 @@
 
 void onReceivedIR() {
     Serial.println(P("received!!"));
+    IR_dump();
 }
 
 void setup() {
@@ -54,6 +55,8 @@ void printGuide() {
 void loop() {
     static uint8_t writeCount = 1;
     static uint8_t lastCharacter = '0';
+
+    IR_loop();
 
     // check for input from the user
     if (Serial.available()) {
