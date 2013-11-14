@@ -738,13 +738,13 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         break;
     case GSCOMMANDMODE_MAC:
-        if (gs_response_lines_ == 0) {
+        if ((gs_response_lines_ == 0) && (buf[2] == ':')) {
             // 1st line is something like:
             // "00:1d:c9:01:99:99"
             sprintf( mac_, "%s", buf );
             gs_response_lines_ ++;
         }
-        else {
+        else if (gs_response_lines_ == 1) {
             // 2nd line is just "OK"
             gs_response_lines_ = RESPONSE_LINES_ENDED;
         }
@@ -755,7 +755,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
+    Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
     Serial.print(P("c> "));
 
     resetResponse(res);
@@ -767,6 +767,7 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second
     if (timeout_second == GS_TIMEOUT_NOWAIT) {
         return;
     }
+
     setBusy(true);
     waitResponse(timeout_second);
 }
@@ -853,29 +854,39 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         sprintf(cmd, P("AT+WAUTH=%d"), sec);
         command(cmd, GSCOMMANDMODE_NORMAL);
         if (sec != GSSECURITY_NONE) {
+            // key are either 10 or 26 hexadecimal digits corresponding to a 40- bit or 104-bit key
             sprintf(cmd, P("AT+WWEP1=%s"), pass);
             command(cmd, GSCOMMANDMODE_NORMAL);
-            // wait_ms(100);
         }
         sprintf(cmd, P("AT+WA=%s"), ssid);
-        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
+        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
+
+        // normal people don't understand difference between wep open/shared.
+        // so we try shared first, and when it failed, try open
+        if (gs_failure_ && (sec == GSSECURITY_WEP)) {
+            return join(GSSECURITY_OPEN, ssid, pass, dhcp, name);
+        }
         break;
     case GSSECURITY_WPA_PSK:
         command(PB("AT+WAUTH=0",1), GSCOMMANDMODE_NORMAL);
 
         sprintf(cmd, P("AT+WWPA=%s"), pass);
-        command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT2);
+        command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
         sprintf(cmd, P("AT+WA=%s"), ssid);
-        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
+        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
         break;
     case GSSECURITY_WPA2_PSK:
         command(PB("AT+WAUTH=0",1), GSCOMMANDMODE_NORMAL);
         sprintf(cmd, P("AT+WPAPSK=%s,%s"), ssid, pass);
-        command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT2);
+        command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
         sprintf(cmd, P("AT+WA=%s"), ssid);
-        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT2);
+        command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
+
+        if (gs_failure_) {
+            return join(GSSECURITY_WPA_PSK, ssid, pass, dhcp, name);
+        }
         break;
     default:
         return -1;

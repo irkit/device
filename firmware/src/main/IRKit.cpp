@@ -153,7 +153,7 @@ void onTimer() {
 
 int8_t onReset() {
     Serial.println(P("!!! onReset"));
-    Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
+    Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
 
     ring_put(&command_queue, COMMAND_SETUP);
     return 0;
@@ -472,7 +472,7 @@ void connect() {
         gs.setupMDNS();
     }
     else {
-        Serial.println(P("!!!join failed"));
+        Serial.println(P("!!!E9"));
         keys.dump();
 
         if (keys.wasWifiValid()) {
@@ -500,7 +500,7 @@ void connect() {
 }
 
 void startNormalOperation() {
-    Serial.println(P("startNormal"));
+    Serial.println(P("start"));
 
     TIMER_START(message_timer, 0);
 
@@ -510,7 +510,7 @@ void startNormalOperation() {
 }
 
 void letterCallback( char letter ) {
-    Serial.print(P("letter: ")); Serial.write(letter); Serial.println();
+    Serial.print(P("L: ")); Serial.write(letter); Serial.println();
 
     if (morse_error) {
         return;
@@ -524,7 +524,7 @@ void letterCallback( char letter ) {
 }
 
 void wordCallback() {
-    Serial.println(P("word"));
+    Serial.println(P("W"));
 
     if (morse_error) {
         morse_error = false;
@@ -603,7 +603,7 @@ void IRKit_loop() {
 
         Serial.write(last_character);
         Serial.println();
-        Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
+        Serial.print(P("free: 0x")); Serial.println( freeMemory(), HEX );
 
         if (last_character == 'd') {
             keys.load();
