@@ -218,10 +218,10 @@ private:
     struct RingBuffer  ring_buffer_;
 
     uint16_t           cid_bitmap_; // cid:0/1
-    uint16_t           has_remaining_body_bitmap_;
     GSRequestHandler   request_handler_;
     GSResponseHandler  handlers_[16]; // handler for each cid
     volatile uint8_t   timers_[16]; // timer for each cid
+    uint16_t           content_lengths_[16]; // remaining content-length for each cid
     uint8_t            connected_cid_; // this cid has just connected
 
     void               clear();
@@ -238,8 +238,6 @@ private:
     int8_t             dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
     inline void        setCidIsRequest(uint8_t cid, bool is_request);
     inline bool        cidIsRequest(uint8_t cid);
-    inline void        setCidHasRemainingBody(uint8_t cid, bool has);
-    inline bool        cidHasRemainingBody(uint8_t cid);
 };
 
 #endif // __GSWIFI_H__

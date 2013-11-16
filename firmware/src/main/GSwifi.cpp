@@ -233,7 +233,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 request_state = GSREQUESTSTATE_HEAD1;
             }
             else {
-                if (cidHasRemainingBody(current_cid)) {
+                if (content_lengths_[ current_cid ] > 0) {
                     // this is our 2nd bulk message from GS for this response
                     // we already swallowed HTTP response headers,
                     // following should be body
@@ -265,13 +265,13 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 else {
                     // end of request line
-                    char    method[8];
+                    char    method_chars[8];
                     uint8_t method_size = 7;
                     char    path[ GS_MAX_PATH_LENGTH + 1 ];
                     uint8_t path_size   = GS_MAX_PATH_LENGTH;
-                    int8_t  result      = parseRequestLine((char*)method, method_size);
+                    int8_t  result      = parseRequestLine((char*)method_chars, method_size);
                     if ( result == 0 ) {
-                        Serial.print("M:"); Serial.println(method);
+                        Serial.print("M:"); Serial.println(method_chars);
                         result = parseRequestLine((char*)path, path_size);
                     }
                     if ( result != 0 ) {
@@ -283,9 +283,9 @@ void GSwifi::parseByte(uint8_t dat) {
                         break;
                     }
                     Serial.print("P:"); Serial.println(path);
-                    GSMETHOD gsmethod = x2method(method);
+                    GSMETHOD method = x2method(method_chars);
 
-                    routeid = router(gsmethod, path);
+                    routeid = router(method, path);
                     if ( routeid < 0 ) {
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
@@ -293,8 +293,9 @@ void GSwifi::parseByte(uint8_t dat) {
                         Serial.println(P("E404"));
                         break;
                     }
-                    request_state      = GSREQUESTSTATE_HEAD2;
-                    continous_newlines = 0;
+                    request_state                   = GSREQUESTSTATE_HEAD2;
+                    continous_newlines              = 0;
+                    content_lengths_[ current_cid ] = 0;
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
@@ -307,6 +308,23 @@ void GSwifi::parseByte(uint8_t dat) {
                 else {
                     continous_newlines = 0;
                 }
+                if (continous_newlines == 1) {
+                    // check "Content-Length: x" header
+                    // if it's non 0, wait for more body data
+                    // otherwise disconnect after handling response
+                    // GS splits HTTP requests/responses into multiple bulk messages,
+                    // 1st ends just after headers, and 2nd contains only response body
+                    // "Content-Length: "    .length = 16
+                    // "Content-Length: 9999".length = 20
+                    char content_length_chars[21];
+                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
+                    if ((copied >= 16) &&
+                        (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
+                        content_length_chars[20] = 0;
+                        content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
+                    }
+                    ring_clear(_buf_cmd);
+                }
                 if (continous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
                     request_state = GSREQUESTSTATE_BODY;
@@ -315,6 +333,9 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 break;
             case GSREQUESTSTATE_BODY:
+                if (content_lengths_[ current_cid ] > 0) {
+                    content_lengths_[ current_cid ] --;
+                }
                 if (ring_isfull(_buf_cmd)) {
                     dispatchRequestHandler(current_cid, routeid, request_state); // POST, user callback should write()
                 }
@@ -328,23 +349,30 @@ void GSwifi::parseByte(uint8_t dat) {
                 break;
             }
 
+            // end of bulk transfered data
             if (len == 0) {
                 Serial.println("rq2");
 
                 gs_mode_ = GSMODE_COMMAND;
+
                 if ( request_state == GSREQUESTSTATE_ERROR ) {
                     writeHead( current_cid, error_code );
                     writeEnd();
                     close( current_cid );
                 }
                 else {
-                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_RECEIVED); // user callback should write(), end() and close()
+                    if (content_lengths_[ current_cid ] == 0) {
+                        // if Content-Length header was longer than <ESC>Z length,
+                        // we wait til next bulk transfer
+                        request_state = GSREQUESTSTATE_RECEIVED;
+                    }
+                    // user callback should write(), end() and close()
+                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_RECEIVED);
                 }
                 ring_clear(_buf_cmd);
             }
         } // is request
         else {
-            static bool     has_remaining_body = false;
             static uint16_t status_code;
 
             switch (request_state) {
@@ -376,9 +404,10 @@ void GSwifi::parseByte(uint8_t dat) {
                         break;
                     }
                     ring_clear(_buf_cmd);
-                    status_code        = atoi(status_code_chars);
-                    request_state      = GSREQUESTSTATE_HEAD2;
-                    continous_newlines = 0;
+                    status_code                     = atoi(status_code_chars);
+                    request_state                   = GSREQUESTSTATE_HEAD2;
+                    continous_newlines              = 0;
+                    content_lengths_[ current_cid ] = 0;
                     Serial.print("S:"); Serial.println(status_code);
                 }
                 break;
@@ -400,16 +429,18 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 if (continous_newlines == 1) {
                     // check "Content-Length: x" header
-                    // if it exists and not 0, wait for more body data
+                    // if it's non 0, wait for more body data
                     // otherwise disconnect after handling response
-                    // GS often splits response into 2 bulk messages,
+                    // GS splits HTTP requests/responses into multiple bulk messages,
                     // 1st ends just after headers, and 2nd contains only response body
-                    char content_length[17]; // not NULL terminated
-                    uint8_t copied = ring_get( _buf_cmd, &content_length[0], 17 );
-                    if ((copied == 17) &&
-                        (strncmp(content_length, "Content-Length: ", 16) == 0) &&
-                        (content_length[16] != '0')) {
-                        has_remaining_body = true;
+                    // "Content-Length: "    .length = 16
+                    // "Content-Length: 9999".length = 20
+                    char content_length_chars[21];
+                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
+                    if ((copied >= 16) &&
+                        (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
+                        content_length_chars[20] = 0;
+                        content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
                     }
                     ring_clear(_buf_cmd);
                 }
@@ -421,11 +452,13 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 break;
             case GSREQUESTSTATE_BODY:
+                if (content_lengths_[ current_cid ] > 0) {
+                    content_lengths_[ current_cid ] --;
+                }
                 if (ring_isfull(_buf_cmd)) {
                     dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_BODY);
                 }
                 ring_put(_buf_cmd, dat);
-                has_remaining_body = false;
                 break;
             case GSREQUESTSTATE_ERROR:
             case GSREQUESTSTATE_RECEIVED:
@@ -436,21 +469,23 @@ void GSwifi::parseByte(uint8_t dat) {
             if (len == 0) {
                 Serial.println("rs3");
 
-                gs_mode_    = GSMODE_COMMAND;
+                gs_mode_ = GSMODE_COMMAND;
 
-                if (has_remaining_body) {
-                    // response body comes on next bulk message
-                    setCidHasRemainingBody(current_cid, true);
+                if ( request_state == GSREQUESTSTATE_ERROR ) {
                     dispatchResponseHandler(current_cid, status_code, request_state);
                 }
                 else {
-                    // all response body received.
-                    // we need to close our clientRequest before handling it.
-                    // GS often locks when closing 2 connections in a row
-                    // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
-                    //     response from server arrives -> close(1) -> close(2) -> lock!!
-                    // the other way around: close(2) -> close(1) doesn't lock :(
-                    dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_RECEIVED);
+                    if (content_lengths_[ current_cid ] == 0) {
+                        // if Content-Length header was longer than <ESC>Z length,
+                        // we wait til all response body received.
+                        // we need to close our clientRequest before handling it.
+                        // GS often locks when closing 2 connections in a row
+                        // ex: POST /keys from iPhone (cid:1) -> POST /keys to server (cid:2)
+                        //     response from server arrives -> close(1) -> close(2) -> lock!!
+                        // the other way around: close(2) -> close(1) doesn't lock :(
+                        request_state = GSREQUESTSTATE_RECEIVED;
+                    }
+                    dispatchResponseHandler(current_cid, status_code, request_state);
                 }
                 ring_clear( _buf_cmd );
             }
@@ -524,19 +559,6 @@ inline void GSwifi::setCidIsRequest(uint8_t cid, bool is_request) {
 
 inline bool GSwifi::cidIsRequest(uint8_t cid) {
     return cid_bitmap_ & _BV(cid);
-}
-
-inline void GSwifi::setCidHasRemainingBody(uint8_t cid, bool has) {
-    if (has) {
-        has_remaining_body_bitmap_ |= _BV(cid);
-    }
-    else {
-        has_remaining_body_bitmap_ &= ~_BV(cid);
-    }
-}
-
-inline bool GSwifi::cidHasRemainingBody(uint8_t cid) {
-    return has_remaining_body_bitmap_ & _BV(cid);
 }
 
 int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
@@ -630,6 +652,7 @@ void GSwifi::parseLine () {
 
             uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
             setCidIsRequest(cid, true);
+            content_lengths_[ cid ] = 0;
 
             // don't close other connections,
             // other connections close theirselves on their turn
@@ -686,7 +709,7 @@ void GSwifi::parseCmdResponse (char *buf) {
             else {
                 int8_t cid = x2i(buf[8]);
                 setCidIsRequest(cid, false);
-                setCidHasRemainingBody(cid, false);
+                content_lengths_[ cid ] = 0;
 
                 // don't close other connections,
                 // other connections close theirselves on their turn
