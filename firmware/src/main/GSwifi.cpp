@@ -229,26 +229,21 @@ void GSwifi::parseByte(uint8_t dat) {
             len        = atoi(len_chars); // length of data
             next_token = NEXT_TOKEN_DATA;
 
-            if (cidIsRequest(current_cid)) {
-                request_state = GSREQUESTSTATE_HEAD1;
+            if (content_lengths_[ current_cid ] > 0) {
+                // this is our 2nd bulk message from GS for this response
+                // we already swallowed HTTP response headers,
+                // following should be body
+                request_state = GSREQUESTSTATE_BODY;
             }
             else {
-                if (content_lengths_[ current_cid ] > 0) {
-                    // this is our 2nd bulk message from GS for this response
-                    // we already swallowed HTTP response headers,
-                    // following should be body
-                    request_state = GSREQUESTSTATE_BODY;
-                }
-                else {
-                    request_state = GSREQUESTSTATE_HEAD1;
-                }
+                request_state = GSREQUESTSTATE_HEAD1;
             }
             ring_clear( _buf_cmd ); // reuse _buf_cmd to store HTTP request
         }
     }
     else if (next_token == NEXT_TOKEN_DATA) {
         len --;
-        static uint8_t continous_newlines = 0;
+        static uint8_t continuous_newlines = 0;
 
         if (cidIsRequest(current_cid)) {
             static uint16_t error_code;
@@ -294,21 +289,26 @@ void GSwifi::parseByte(uint8_t dat) {
                         break;
                     }
                     request_state                   = GSREQUESTSTATE_HEAD2;
-                    continous_newlines              = 0;
+                    continuous_newlines             = 0;
                     content_lengths_[ current_cid ] = 0;
+                    ring_clear(_buf_cmd);
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
                 if (dat == '\n') {
-                    continous_newlines ++;
+                    continuous_newlines ++;
                 }
                 else if (dat == '\r') {
                     // preserve
                 }
                 else {
-                    continous_newlines = 0;
+                    continuous_newlines = 0;
+                    if ( ! ring_isfull(_buf_cmd) ) {
+                        // ignore if overflowed
+                        ring_put( _buf_cmd, dat );
+                    }
                 }
-                if (continous_newlines == 1) {
+                if (continuous_newlines == 1) {
                     // check "Content-Length: x" header
                     // if it's non 0, wait for more body data
                     // otherwise disconnect after handling response
@@ -317,15 +317,16 @@ void GSwifi::parseByte(uint8_t dat) {
                     // "Content-Length: "    .length = 16
                     // "Content-Length: 9999".length = 20
                     char content_length_chars[21];
-                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
+                    uint8_t copied = ring_get( _buf_cmd, &content_length_chars[0], 20 );
                     if ((copied >= 16) &&
                         (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
                         content_length_chars[20] = 0;
                         content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
+                        Serial.print("C: "); Serial.println(content_lengths_[current_cid]);
                     }
                     ring_clear(_buf_cmd);
                 }
-                if (continous_newlines == 2) {
+                if (continuous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
                     request_state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
@@ -367,7 +368,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         request_state = GSREQUESTSTATE_RECEIVED;
                     }
                     // user callback should write(), end() and close()
-                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_RECEIVED);
+                    dispatchRequestHandler(current_cid, routeid, request_state);
                 }
                 ring_clear(_buf_cmd);
             }
@@ -406,7 +407,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_clear(_buf_cmd);
                     status_code                     = atoi(status_code_chars);
                     request_state                   = GSREQUESTSTATE_HEAD2;
-                    continous_newlines              = 0;
+                    continuous_newlines             = 0;
                     content_lengths_[ current_cid ] = 0;
                     Serial.print("S:"); Serial.println(status_code);
                 }
@@ -415,19 +416,19 @@ void GSwifi::parseByte(uint8_t dat) {
                 // we don't read *any* headers except 1st request line.
                 // "Expect: 100-continue" doesn't work
                 if (dat == '\n') {
-                    continous_newlines ++;
+                    continuous_newlines ++;
                 }
                 else if (dat == '\r') {
                     // preserve
                 }
                 else {
-                    continous_newlines = 0;
+                    continuous_newlines = 0;
                     if ( ! ring_isfull(_buf_cmd) ) {
                         // ignore if overflowed
                         ring_put( _buf_cmd, dat );
                     }
                 }
-                if (continous_newlines == 1) {
+                if (continuous_newlines == 1) {
                     // check "Content-Length: x" header
                     // if it's non 0, wait for more body data
                     // otherwise disconnect after handling response
@@ -441,10 +442,11 @@ void GSwifi::parseByte(uint8_t dat) {
                         (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
                         content_length_chars[20] = 0;
                         content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
+                        Serial.print("C: "); Serial.println(content_lengths_[current_cid]);
                     }
                     ring_clear(_buf_cmd);
                 }
-                if (continous_newlines == 2) {
+                if (continuous_newlines == 2) {
                     // if detected double (\r)\n, switch to body mode
                     request_state = GSREQUESTSTATE_BODY;
                     ring_clear(_buf_cmd);
@@ -467,8 +469,6 @@ void GSwifi::parseByte(uint8_t dat) {
             }
 
             if (len == 0) {
-                Serial.println("rs3");
-
                 gs_mode_ = GSMODE_COMMAND;
 
                 if ( request_state == GSREQUESTSTATE_ERROR ) {

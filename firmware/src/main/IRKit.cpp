@@ -375,7 +375,9 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
         gs.close(cid);
         TIMER_START(message_timer, 5);
         break;
-    case 503: // heroku responds with 503 if longer than 30sec
+    // heroku responds with 503 if longer than 30sec,
+    // or when deploy occurs
+    case 503:
     default:
         if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
             gs.close(cid);
