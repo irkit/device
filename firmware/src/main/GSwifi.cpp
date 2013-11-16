@@ -661,15 +661,17 @@ void GSwifi::parseLine () {
         // else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
         // }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
-                 strncmp(buf, P("Disassociated"), 13) == 0 ||
-                 strncmp(buf, P("Disassociation Event"), 20) == 0 ) {
+                 strncmp(buf, P("Disassociat"), 11) == 0) {
+            // Disassociated
+            // Disassociation Event
             Serial.println(P("!!!E12"));
             clear();
             on_disconnect_();
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
-                 strncmp(buf, P("APP Reset-APP SW Reset"), 22) == 0 ||
-                 strncmp(buf, P("APP Reset-Wlan Except"), 21) == 0 ) {
+                 strncmp(buf, P("APP Reset"), 9) == 0) {
+            // APP Reset-APP SW Reset
+            // APP Reset-Wlan Except
             Serial.println(P("!!!E13"));
             clear();
             on_reset_();
