@@ -140,7 +140,7 @@ void Keys::clearKey(void)
 // we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
-// [01248]/#{SSID}/#{Password}/#{Key}/#{CRC}
+// [0248]/#{SSID}/#{Password}/#{Key}/#{CRC}
 int8_t Keys::put(char code)
 {
     static uint8_t character;
@@ -176,8 +176,9 @@ int8_t Keys::put(char code)
     }
     if (filler.state == KeysFillerStateSecurity) {
         switch (code) {
+        // we try OPEN when WEP failed, to present less options to user
         case '0': // GSwifi::GSSECURITY_NONE:
-        case '1': // GSwifi::GSSECURITY_OPEN:
+        // case '1': // GSwifi::GSSECURITY_OPEN:
         case '2': // GSwifi::GSSECURITY_WEP:
         case '4': // GSwifi::GSSECURITY_WPA_PSK:
         case '8': // GSwifi::GSSECURITY_WPA2_PSK:
