@@ -193,7 +193,7 @@ int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
     gs.write(IrCtrl.freq);
     gs.write(P(",\"data\":["));
     for (uint16_t i=0; i<IrCtrl.len; i++) {
-        gs.write(IrCtrl.buff[i]);
+        gs.write( IR_get(i) );
         if (i != IrCtrl.len - 1) {
             gs.write(",");
         }

@@ -39,7 +39,7 @@ typedef struct _irstruct {
     IRReceiveCallback  on_receive;
     uint16_t           len;           // Size of buff used
     uint16_t           tx_index;      // 0 < tx_index < len
-    uint16_t          *buff;          // pointer to global buffer
+    uint8_t           *buff;          // pointer to global buffer
 } IR_STRUCT;
 
 /* The work area for IR_CTRL is defined in ir_ctrl.c */
@@ -49,6 +49,7 @@ volatile IR_STRUCT IrCtrl;
 /* Prototypes */
 void IR_initialize (IRReceiveCallback on_receive);
 int  IR_xmit (void);
+uint16_t IR_get (uint16_t);
 void IR_put (uint16_t);
 void IR_timer (void);
 void IR_loop (void);
