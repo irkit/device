@@ -86,7 +86,7 @@ uint8_t IrPacker::pack( uint16_t data ) {
     uint8_t max_index = TREE_SIZE - 1;
     uint8_t index;
     while (1) {
-        index = (max_index - min_index) / 2 + min_index;
+        index = ((max_index - min_index) >> 1) + min_index;
         uint16_t val = tree[ index ];
         if (data >= val) {
             min_index = index;
