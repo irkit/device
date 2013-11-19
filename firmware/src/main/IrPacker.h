@@ -12,8 +12,10 @@ public:
     IrPacker();
     uint8_t pack( uint16_t data );
     uint16_t unpack( uint8_t data );
+    void save( void *offset );
+    void load( void *offset );
 
-    static const uint16_t tree[TREE_SIZE];
+    uint16_t tree[TREE_SIZE];
 };
 
 #endif // __IRPACKER_H__

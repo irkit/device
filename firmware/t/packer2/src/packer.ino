@@ -7,6 +7,7 @@ void setup() {
     while ( ! Serial ) ; // wait for leonardo
 
     IrPacker packer;
+    packer.load( (void*) 300 );
     uint8_t packed = packer.pack( 30 );
     uint16_t unpacked = packer.unpack( packed );
     Serial.print("packed: "); Serial.println(packed);
