@@ -93,6 +93,7 @@ uint16_t IrPacker::unpack( uint8_t data ) {
 }
 
 void IrPacker::save( void *offset ) {
+#ifdef ARDUINO
     uint16_t tree[TREE_SIZE] = {
         30, 31, 32, 33, 34, 35, 36, 38,
         39, 40, 42, 43, 45, 46, 48, 50,
@@ -124,8 +125,11 @@ void IrPacker::save( void *offset ) {
         50610, 52381, 54214, 56112, 58076, 60108, 62212, 64390
     };
     eeprom_write_block( tree, offset, sizeof(tree) );
+#endif
 }
 
 void IrPacker::load( void *offset ) {
+#ifdef ARDUINO
     eeprom_read_block( tree, offset, sizeof(tree) );
+#endif
 }
