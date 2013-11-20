@@ -186,6 +186,8 @@
 volatile IR_STRUCT IrCtrl;
 static IrPacker packer;
 
+static void IR_put_ (uint16_t data);
+
 // IR receiving interrupt on either edge of input
 ISR_CAPTURE()
 {
@@ -218,7 +220,7 @@ ISR_CAPTURE()
         _timer_reg_t low_width = counter - last_interrupt;
         last_interrupt         = counter;
 
-        IrCtrl.buff[ IrCtrl.len ++ ] = packer.pack(low_width);
+        IR_put_(low_width);
         IrCtrl.trailer_count = T_TRAIL_COUNT;
 
         IR_CAPTURE_FALL();
@@ -237,13 +239,13 @@ ISR_CAPTURE()
     else { // is IR_RECVING
         uint8_t trailer;
         for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailer_count; trailer--) {
-            IrCtrl.buff[ IrCtrl.len ++ ] = packer.pack(65535); // high
-            IrCtrl.buff[ IrCtrl.len ++ ] = packer.pack(0);     // low
+            IR_put_(65535);
+            IR_put_(0);
             if (IrCtrl.len >= IR_BUFF_SIZE) {
                 return;
             }
         }
-        IrCtrl.buff[ IrCtrl.len ++ ] = packer.pack(high_width);
+        IR_put_(high_width);
     }
 
     IR_CAPTURE_RISE();
@@ -260,7 +262,7 @@ ISR_COMPARE()
             IR_state( IR_IDLE );
             return;
         }
-        uint16_t next = packer.unpack(IrCtrl.buff[ IrCtrl.tx_index ++ ]);
+        uint16_t next = IR_get( IrCtrl.tx_index ++ );
         if (IR_TX_IS_ON()) {
             // toggle
             IR_TX_OFF();
@@ -272,7 +274,7 @@ ISR_COMPARE()
             }
             else {
                 // continue for another uin16_t loop
-                next = packer.unpack(IrCtrl.buff[ IrCtrl.tx_index ++ ]);
+                next = IR_get( IrCtrl.tx_index ++ );
                 IR_TX_OFF();
             }
         }
@@ -315,25 +317,22 @@ int IR_xmit ()
         IR_TX_38K();
     }
     IR_TX_ON();
-    IR_COMPARE_ENABLE( packer.unpack(IrCtrl.buff[ IrCtrl.tx_index ++ ]) );
+    IR_COMPARE_ENABLE( IR_get( IrCtrl.tx_index ++ ) );
 
     return 1;
 }
 
 void IR_clear (void)
 {
-    uint16_t i;
-    IrCtrl.len        = 0;
-    IrCtrl.tx_index    = 0;
-    IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
-    for (i=0; i<IR_BUFF_SIZE; i++) {
-        IrCtrl.buff[i] = 0;
-    }
+    IrCtrl.len      = 0;
+    IrCtrl.tx_index = 0;
+    IrCtrl.freq     = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+    memset( IrCtrl.buff, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
 }
 
 uint16_t IR_get (uint16_t index)
 {
-    return packer.unpack(IrCtrl.buff[index]);
+    return packer.unpack( IrCtrl.buff[index] );
 }
 
 void IR_put (uint16_t data)
@@ -342,6 +341,11 @@ void IR_put (uint16_t data)
         // caller should change state to IR_WRITING before calling
         return;
     }
+    IR_put_(data);
+}
+
+static void IR_put_ (uint16_t data)
+{
     IrCtrl.buff[ IrCtrl.len ++ ] = packer.pack(data);
 }
 

@@ -47,13 +47,13 @@ extern
 volatile IR_STRUCT IrCtrl;
 
 /* Prototypes */
-void IR_initialize (IRReceiveCallback on_receive);
-int  IR_xmit (void);
-uint16_t IR_get (uint16_t);
-void IR_put (uint16_t);
-void IR_timer (void);
-void IR_loop (void);
-void IR_state (uint8_t);
-void IR_dump (void);
+extern void IR_initialize (IRReceiveCallback on_receive);
+extern int  IR_xmit (void);
+extern uint16_t IR_get (uint16_t);
+extern void IR_put (uint16_t);
+extern void IR_timer (void);
+extern void IR_loop (void);
+extern void IR_state (uint8_t);
+extern void IR_dump (void);
 
 #endif // __IRCTRL_H__
