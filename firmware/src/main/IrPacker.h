@@ -9,7 +9,7 @@
 class IrPacker
 {
  public:
-    IrPacker(uint8_t *buff);
+    IrPacker(volatile uint8_t *buff);
     void     pack( uint16_t data );
     void     packEnd();
     uint8_t  packSingle( uint16_t data );
@@ -34,7 +34,7 @@ class IrPacker
 
     // unpacking
     uint16_t unpackBit();
-    uint8_t *buff_;
+    volatile uint8_t *buff_;
     uint8_t  length_;
 
     // bitpack

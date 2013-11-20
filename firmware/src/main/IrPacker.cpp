@@ -53,16 +53,16 @@
 // C     -> [A][B]
 
 #ifndef bitRead
-# define bitRead(value, bit) (((value) >> (bit)) & 0x01)
+# define bitRead(value, bit)  (((value) >> (bit)) & 0x01)
 #endif
 #ifndef bitSet
-# define bitSet(value, bit) ((value) |= (1UL << (bit)))
+# define bitSet(value, bit)   ((value) |=  (1 << (bit)))
 #endif
 #ifndef bitClear
-# define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+# define bitClear(value, bit) ((value) &= ~(1 << (bit)))
 #endif
 
-IrPacker::IrPacker(uint8_t *buff) :
+IrPacker::IrPacker(volatile uint8_t *buff) :
     buff_( buff ) {
     clear();
 }
@@ -100,8 +100,9 @@ void IrPacker::packEnd() {
     bit_index_ = 0;
 }
 
+// returns safe length (we might consume less, but not more)
 uint8_t IrPacker::length() {
-    return length_;
+    return length_ + 5 + (bit_index_ >> 3);
 }
 
 void IrPacker::bitpack( uint8_t data ) {
@@ -144,7 +145,8 @@ void IrPacker::bitpack( uint8_t data ) {
     }
     else {
         packEnd();
-        bitpack( data );
+        val0_          = data;
+        bitpack_start_ = length_;
     }
 }
 
@@ -156,7 +158,7 @@ void IrPacker::addBit(bool value) {
         buff_[ offset ] = 0;
     }
     if (value) {
-        bitSet  ( buff_[ offset ], 7 - odd );
+        bitSet  ( buff_[ offset ], 7 - odd);
     }
     else {
         bitClear( buff_[ offset ], 7 - odd );

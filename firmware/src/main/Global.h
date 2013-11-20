@@ -13,7 +13,7 @@ class Global {
     void loop();
     unsigned long now;
 
-    volatile char buffer[ 512 ];
+    volatile char buffer[ 256 ];
     GBufferMode buffer_mode;
 };
 
