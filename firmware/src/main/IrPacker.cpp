@@ -7,12 +7,13 @@
 #endif
 
 #define IRPACKER_OFFSET 30
+#define BITPACK_MARKER  0x01
 
 // Packing/Unpacking uint16_t data into uint8_t data
 //
-// Raw data is:
-// Sequence of number of Timer/Counter1 ticks between Falling/Rising edge of input (IR data).
-// IR data commonly (but not limited to) have:
+// We have limited knowledge about raw data:
+// Sequence of number of Timer/Counter ticks between Falling/Rising edge of input (IR data).
+// IR data commonly have:
 // * A fixed size header
 // * A fixed size trailer
 // * A mutable size of 1/0
@@ -21,27 +22,149 @@
 //
 // So, we're going to:
 // * Use this reccurence formula: `y(x) = 1.05 * y(x-1)` to map uint16_t values into uint8_t values
-// * If pair of 0/1 values are found, pack it specially
+// * If pair of 0/1 values are found, pack it into bits
 //
-// sample data:
-// 461A 231D 0491 0476 0490 0D24 0493 0D24 0492 0D23 0494 0475 0493 0D22 0495 0D21
-// 0494 0D21 0495 0D20 0496 0D1F 0496 0D20 0496 0472 0495 0472 0493 0473 0494 0473
-// 0493 0D30 0495 0D20 0494 0D21 0496 0472 0492 0D21 0495 0473 0493 0474 0493 0474
-// 0492 0474 0492 0474 0492 0D22 0493 0D22 0494 0474 0492 0D21 0494 0474 0491 0D22
-// 0493 0477 0492 FFFF 0000 229F 4623 1164 0494
-//
-// becomes:
-// 0xd7 0xc3 0x00 0x41 0x00 0x88 0xa7 0x15
-// 0x15 0x54 0x01 0x51 0x00 0x14 0x44 0x00
-// 0xff 0xc3 0xd7 0xaf 0x88
+// see t/packer/test.cpp for detail
 
-IrPacker::IrPacker() {
+// input -> packed
+// A     ->
+// B     ->
+// A     -> [1][A][B][?][0b010]
+// A     -> [1][A][B][?][0b0100]
+// B     -> [1][A][B][?][0b01001]
+// C     -> [1][A][B][5][0b01001]
+// end   -> [1][A][B][5][0b01001][C]
+
+// input -> packed
+// A     ->
+// A     -> [1][A][0][?][0b00]
+// B     -> [1][A][B][?][0b001]
+// B     -> [1][A][B][?][0b0011]
+// end   -> [1][A][B][4][0b0011]
+
+// input -> packed
+// A     ->
+// A     ->
+// end   -> [1][A][0][2][0b00]
+
+// input -> packed
+// A     ->
+// B     ->
+// C     -> [A][B]
+
+#ifndef bitRead
+# define bitRead(value, bit) (((value) >> (bit)) & 0x01)
+#endif
+#ifndef bitSet
+# define bitSet(value, bit) ((value) |= (1UL << (bit)))
+#endif
+#ifndef bitClear
+# define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+#endif
+
+IrPacker::IrPacker(uint8_t *buff) :
+    buff_( buff ) {
+    clear();
 }
 
-// * data : input
-// * packed : packed output
-// * datasize : number of uint16_t entries in data
-uint8_t IrPacker::pack( uint16_t data ) {
+void IrPacker::clear() {
+    length_    = 0;
+    val0_      = 0;
+    val1_      = 0;
+    bit_index_ = 0;
+}
+
+void IrPacker::pack( uint16_t data ) {
+    uint8_t packed = packSingle( data );
+    bitpack( packed );
+}
+
+void IrPacker::packEnd() {
+    if (bit_index_ == 0) {
+        if (val0_) {
+            buff_[ length_ ++ ] = val0_;
+        }
+        if (val1_) {
+            buff_[ length_ ++ ] = val1_;
+        }
+    }
+    else {
+        buff_[ bitpack_start_     ] = BITPACK_MARKER;
+        buff_[ bitpack_start_ + 1 ] = val0_;
+        buff_[ bitpack_start_ + 2 ] = val1_;
+        buff_[ bitpack_start_ + 3 ] = bit_index_;
+        length_ += (5 + (bit_index_ >> 3));
+    }
+    val0_      = 0;
+    val1_      = 0;
+    bit_index_ = 0;
+}
+
+uint8_t IrPacker::length() {
+    return length_;
+}
+
+void IrPacker::bitpack( uint8_t data ) {
+    if ( (data == 0) || (data == 0xFF) ) {
+        packEnd();
+        buff_[ length_ ++ ] = data;
+    }
+    // don't pack 0, val0 is empty if equal to 0
+    else if ( ! val0_ ) {
+        val0_          = data;
+        bitpack_start_ = length_;
+    }
+    // if data is similar to val0, pack it
+    // 2: less than 12% (3.5 * 3.5) error rate
+    else if ( ( (data  <= val0_) && (val0_ - data  <= 2) ) ||
+              ( (val0_ <= data)  && (data  - val0_ <= 2) ) ) {
+        if ( ! bit_index_ ) {
+            addBit(0);
+            if ( val1_ ) {
+                addBit(1);
+            }
+        }
+        addBit(0);
+    }
+    else if ( ! val1_ ) {
+        val1_ = data;
+        if ( bit_index_ ) {
+            addBit(1);
+        }
+    }
+    else if ( ( (data  <= val1_) && (val1_ - data  <= 2) ) ||
+              ( (val1_ <= data)  && (data  - val1_ <= 2) ) ) {
+        if ( ! bit_index_ ) {
+            if ( val0_ ) {
+                addBit(0);
+            }
+            addBit(1);
+        }
+        addBit(1);
+    }
+    else {
+        packEnd();
+        bitpack( data );
+    }
+}
+
+void IrPacker::addBit(bool value) {
+    uint8_t byte_index = bit_index_ >> 3;
+    uint8_t offset     = bitpack_start_ + 4 + byte_index;
+    uint8_t odd        = bit_index_ % 8;
+    if (odd == 0) {
+        buff_[ offset ] = 0;
+    }
+    if (value) {
+        bitSet  ( buff_[ offset ], 7 - odd );
+    }
+    else {
+        bitClear( buff_[ offset ], 7 - odd );
+    }
+    bit_index_ ++;
+}
+
+uint8_t IrPacker::packSingle( uint16_t data ) {
     if (data == 0) {
         return 0;
     }
@@ -73,10 +196,51 @@ uint8_t IrPacker::pack( uint16_t data ) {
     return min_index + IRPACKER_OFFSET;
 }
 
-// * data : input
-// * unpacked : unpacked output
-// * datasize : number of uint8_t entries in data
-uint16_t IrPacker::unpack( uint8_t data ) {
+void IrPacker::unpackStart() {
+    bit_index_      = 0;
+    byte_index_     = 0;
+    bitpack_length_ = 0;
+}
+
+uint16_t IrPacker::unpack() {
+    if (byte_index_ == length_) {
+        return 0;
+    }
+    if (bitpack_length_ > 0) {
+        return unpackBit();
+    }
+    uint8_t data = buff_[ byte_index_ ];
+    if (data == BITPACK_MARKER) {
+        bitpack_start_  = byte_index_;
+        val0_           = buff_[ bitpack_start_ + 1 ];
+        val1_           = buff_[ bitpack_start_ + 2 ];
+        bitpack_length_ = buff_[ bitpack_start_ + 3 ];
+        bit_index_      = 0;
+        return unpackBit();
+    }
+    else {
+        byte_index_ ++;
+        return unpackSingle( data );
+    }
+}
+
+uint16_t IrPacker::unpackBit() {
+    uint8_t  odd             = bit_index_ % 8;
+    uint8_t  bitpacked_bytes = bit_index_ >> 3;
+    uint8_t  packed          = bitRead( buff_[ bitpack_start_ + 4 + bitpacked_bytes ], 7 - odd )
+                                   ? val1_ : val0_;
+    uint16_t unpacked        = unpackSingle( packed );
+
+    bit_index_ ++;
+    if (bit_index_ == bitpack_length_) {
+        bitpack_length_  = 0;
+        byte_index_     += (5 + bitpacked_bytes);
+    }
+
+    return unpacked;
+}
+
+uint16_t IrPacker::unpackSingle( uint8_t data ) {
     if (data == 0) {
         return 0;
     }

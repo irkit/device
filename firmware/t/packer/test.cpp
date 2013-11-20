@@ -38,70 +38,297 @@ void fillTree(IrPacker *packer) {
     memcpy( packer->tree, tree, sizeof(tree) );
 }
 
+void dump( uint8_t *buff, uint8_t length ) {
+    printf("dump:\n");
+    for (uint8_t i=0; i<length; i++) {
+        printf("%d 0x%x\n", i, buff[i]);
+    }
+}
+
+void dump16( uint16_t *buff, uint16_t length ) {
+    printf("dump16:\n");
+    for (uint16_t i=0; i<length; i++) {
+        printf("%d 0x%x\n", i, buff[i]);
+    }
+}
+
+void pack( IrPacker *packer, uint16_t *input, uint16_t length ) {
+    for (uint16_t i=0; i<length; i++) {
+        uint16_t val = input[ i ];
+        packer->pack( val );
+    }
+    packer->packEnd();
+}
+
+void unpack( IrPacker *packer, uint16_t *output, uint16_t length ) {
+    packer->unpackStart();
+    for (uint16_t i=0; i<length; i++) {
+        output[ i ] = packer->unpack();
+    }
+}
+
 int main() {
     ok( 1, "ok" );
+    uint8_t buff[ 100 ];
 
     {
-        IrPacker packer;
+        IrPacker packer( buff );
         fillTree( &packer );
         uint16_t input = 17946; // 0x461A
 
-        uint8_t packed = packer.pack( input );
-        printf( "input: %d 0x%x\n", input, input );
-        printf( "packd: %d 0x%x\n", packed, packed );
+        packer.pack( input );
+        packer.packEnd();
 
-        ok( packed == 215 );
+        ok( buff[ 0 ] == 215 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 17421 );
     }
 
     {
-        IrPacker packer;
+        IrPacker packer( buff );
         fillTree( &packer );
         uint16_t input = 30;
 
-        uint8_t packed = packer.pack( input );
-        printf( "input: %d 0x%x\n", input, input );
-        printf( "packd: %d 0x%x\n", packed, packed );
+        packer.pack( input );
+        packer.packEnd();
 
-        ok( packed == 30 );
+        ok( buff[ 0 ] == 30 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 30 );
     }
 
     {
-        IrPacker packer;
+        IrPacker packer( buff );
         fillTree( &packer );
         uint16_t input = 65000;
 
-        uint8_t packed = packer.pack( input );
-        printf( "input: %d 0x%x\n", input, input );
-        printf( "packd: %d 0x%x\n", packed, packed );
+        packer.pack( input );
+        packer.packEnd();
 
-        ok( packed == 253 );
+        ok( buff[ 0 ] == 253 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 64390 );
     }
 
     {
-        IrPacker packer;
+        IrPacker packer( buff );
         fillTree( &packer );
         uint16_t input = 60108;
 
-        uint8_t packed = packer.pack( input );
-        printf( "input: %d 0x%x\n", input, input );
-        printf( "packd: %d 0x%x\n", packed, packed );
+        packer.pack( input );
+        packer.packEnd();
 
-        ok( packed == 251 );
+        ok( buff[ 0 ] == 251 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 60108 );
     }
 
     {
-        IrPacker packer;
+        IrPacker packer( buff );
+        fillTree( &packer );
+        uint16_t input = 65535;
+
+        packer.pack( input );
+        packer.packEnd();
+
+        ok( buff[ 0 ] == 255 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 65535 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+        uint16_t input = 0;
+
+        packer.pack( input );
+        packer.packEnd();
+
+        ok( buff[ 0 ] == 0 );
+        ok( packer.length() == 1 );
+
+        packer.unpackStart();
+        uint16_t unpacked = packer.unpack();
+
+        ok( unpacked == 0 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 100 ];
+        setBuffer16( input, 2,
+                     0x440d, 0x2233 );
+        pack( &packer, input, 2 );
+
+        uint8_t expected[ 100 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 2,
+                    215, 195 );
+        ok( (memcmp(buff, expected, 2) == 0), "packed ok" );
+        ok( packer.length() == 2 );
+
+        uint16_t unpacked[ 100 ];
+        unpack( &packer, unpacked, 2 );
+
+        ok( (memcmp(unpacked, input, 2) == 0), "unpacked ok" );
+        // dump16( unpacked, 2 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 100 ];
+        setBuffer16( input, 2,
+                     0x440d, 0x440d );
+        pack( &packer, input, 2 );
+
+        uint8_t expected[ 100 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 5,
+                    1, 215, 0, 2, 0 );
+        ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
+        ok( packer.length() == 5 );
+
+        uint16_t unpacked[ 100 ];
+        unpack( &packer, unpacked, 2 );
+
+        ok( (memcmp(unpacked, input, 2) == 0), "unpacked ok" );
+        // dump16( unpacked, 2 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 100 ];
+        setBuffer16( input, 3,
+                     0x440d, 0x440d, 0x2233 );
+        pack( &packer, input, 3 );
+
+        uint8_t expected[ 100 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 5,
+                    1, 215, 195, 3, 0b00100000 );
+
+        ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
+        ok( packer.length() == 5 );
+        // printf("length: %d\n", packer.length());
+        // dump8( buff, 5 );
+
+        uint16_t unpacked[ 100 ];
+        unpack( &packer, unpacked, 3 );
+
+        ok( (memcmp(unpacked, input, 3) == 0), "unpacked ok" );
+        // dump16( unpacked, 3 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 100 ];
+        setBuffer16( input, 3,
+                     0x440d, 0x2233, 0x440d );
+        pack( &packer, input, 3 );
+
+        uint8_t expected[ 100 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 5,
+                    1, 215, 195, 3, 0b01000000 );
+
+        ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
+        ok( packer.length() == 5 );
+        // printf("length: %d\n", packer.length());
+        // dump8( buff, 5 );
+
+        uint16_t unpacked[ 100 ];
+        unpack( &packer, unpacked, 3 );
+
+        ok( (memcmp(unpacked, input, 3) == 0), "unpacked ok" );
+        // dump16( unpacked, 3 );
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 100 ];
+        setBuffer16( input, 73,
+                     0x440d, 0x2233, 0x047e, 0x047e, 0x047e, 0x0d0d, 0x047e, 0x0d0d,
+                     0x047e, 0x0d0d, 0x047e, 0x047e, 0x047e, 0x0d0d, 0x047e, 0x0d0d,
+                     0x047e, 0x0d0d, 0x047e, 0x0d0d, 0x047e, 0x0d0d, 0x047e, 0x0d0d,
+                     0x047e, 0x047e, 0x047e, 0x047e, 0x047e, 0x047e, 0x047e, 0x047e,
+                     0x047e, 0x0d0d, 0x047e, 0x0d0d, 0x047e, 0x0d0d, 0x047e, 0x047e,
+                     0x047e, 0x0d0d, 0x047e, 0x047e, 0x047e, 0x047e, 0x047e, 0x047e,
+                     0x047e, 0x047e, 0x047e, 0x047e, 0x047e, 0x0d0d, 0x047e, 0x0d0d,
+                     0x047e, 0x047e, 0x047e, 0x0d0d, 0x047e, 0x047e, 0x047e, 0x0d0d,
+                     0x047e, 0x047e, 0x047e, 0xFFFF, 0x0000, 0x2233, 0x440d, 0x1130,
+                     0x047e );
+
+        pack( &packer, input, 73 );
+
+        uint8_t expected[ 100 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 21,
+                    0xd7 /* 0x461a */, 0xc3 /* 0x231d */,
+                    0x01 /* marker */, 0x88 /* val0 */, 0xa7 /*val1*/, 0x41 /* length */,
+                    0x15, 0x15, 0x54, 0x01, 0x51, 0x00, 0x14, 0x44, 0x00, /* bits */
+                    0xff, 0x00,
+                    0xc3, 0xd7, 0xaf, 0x88
+                    );
+
+        ok( (memcmp(buff, expected, 21) == 0), "compared ok" );
+        ok( packer.length() == 21 );
+        // printf("length: %d\n", packer.length());
+        // dump8( buff, 21 );
+
+        uint16_t unpacked[ 100 ];
+        unpack( &packer, unpacked, 73 );
+
+        ok( (memcmp(unpacked, input, 73) == 0), "unpacked ok" );
+        // dump16( unpacked, 73 );
+    }
+
+    {
+        IrPacker packer( buff );
         fillTree( &packer );
         uint16_t input;
         char buf[100];
 
         for (uint8_t i=0; i<224; i++) {
             input = packer.tree[ i ];
-            uint8_t packed = packer.pack( input );
+            packer.clear();
+            packer.pack( input );
+            packer.packEnd();
+            uint8_t packed = buff[ 0 ];
             sprintf( buf, "%d (0x%x) --pack-> %d (0x%x)", input, input, packed, packed );
             ok( packed == i + 30, buf );
 
-            uint16_t unpacked = packer.unpack( packed );
+            packer.unpackStart();
+            uint16_t unpacked = packer.unpack();
             sprintf( buf, "%d (0x%x) --unpack-> %d (0x%x)", packed, packed, unpacked, unpacked );
             ok( unpacked == input, buf );
         }
