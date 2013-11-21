@@ -18,7 +18,7 @@ GSwifi gs(&Serial1);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
-MorseListener listener(MICROPHONE,13);
+MorseListener listener(MICROPHONE,100);
 
 LongPressButton clear_button(RESET_SWITCH, 5);
 
