@@ -80,7 +80,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 215 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -97,7 +97,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 30 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -114,7 +114,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 253 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -131,7 +131,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 251 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -148,7 +148,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 255 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -165,7 +165,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 0 );
-        ok( packer.length() == 1 );
+        ok( packer.length() == 6 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -187,7 +187,7 @@ int main() {
         setBuffer8( expected, 2,
                     215, 195 );
         ok( (memcmp(buff, expected, 2) == 0), "packed ok" );
-        ok( packer.length() == 2 );
+        ok( packer.length() == 7 );
 
         uint16_t unpacked[ 100 ];
         unpack( &packer, unpacked, 2 );
@@ -210,7 +210,7 @@ int main() {
         setBuffer8( expected, 5,
                     1, 215, 0, 2, 0 );
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 5 );
+        ok( packer.length() == 10 );
 
         uint16_t unpacked[ 100 ];
         unpack( &packer, unpacked, 2 );
@@ -234,7 +234,7 @@ int main() {
                     1, 215, 195, 3, 0b00100000 );
 
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 5 );
+        ok( packer.length() == 10 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 5 );
 
@@ -260,7 +260,7 @@ int main() {
                     1, 215, 195, 3, 0b01000000 );
 
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 5 );
+        ok( packer.length() == 10 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 5 );
 
@@ -301,7 +301,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 21) == 0), "compared ok" );
-        ok( packer.length() == 21 );
+        ok( packer.length() == 26 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 21 );
 
@@ -332,6 +332,56 @@ int main() {
             sprintf( buf, "%d (0x%x) --unpack-> %d (0x%x)", packed, packed, unpacked, unpacked );
             ok( unpacked == input, buf );
         }
+    }
+
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 115 ];
+        // エアコンオフ
+        setBuffer16( input, 115,
+                     6424,3228,
+                     815,815,815,815,815,2451,815,815,
+                     815,2451,815,815,815,815,815,815,
+                     815,2451,815,2451,815,815,815,815,
+                     815,815,815,2451,815,2451,815,815,
+                     815,815,815,815,815,815,815,815,
+                     815,815,815,815,815,815,815,815,
+                     815,815,815,815,815,815,815,815,
+                     815,2451,815,815,815,815,815,815,
+                     815,815,815,815,815,815,815,815,
+                     815,2451,815,815,815,815,815,815,
+                     815,815,815,2451,815,815,815,815,
+                     815,815,815,815,815,815,815,815,
+                     815,2451,815,815,815,2451,815,2451,
+                     815,2451,815,2451,815,2451,815,2451,
+                     815 );
+
+        pack( &packer, input, 115 );
+
+        uint8_t expected[ 115 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 21,
+                    0xba, 0xa6,
+                    0x01 /* marker */,
+                    0x7e /* val0:815 */,
+                    0x9e /* val1:2451 */,
+                    0x71 /* length: 113bits = 15byte */,
+                    0x04, 0x40, 0x50, 0x14, 0x00, 0x00, 0x00, 0x40,
+                    0x00, 0x40, 0x10, 0x00, 0x45, 0x55, 0x00
+                    );
+
+        ok( (memcmp(buff, expected, 21) == 0), "compared ok" );
+        ok( packer.length() == 26 ); // safe length
+        // printf("length: %d\n", packer.length());
+        // dump8( buff, 21 );
+
+        uint16_t unpacked[ 115 ];
+        unpack( &packer, unpacked, 115 );
+
+        ok( (memcmp(unpacked, input, 115) == 0), "unpacked ok" );
+        // dump16( unpacked, 115 );
     }
 
     done_testing();
