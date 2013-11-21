@@ -265,26 +265,31 @@ ISR_COMPARE()
             IR_state( IR_IDLE );
             return;
         }
-        uint16_t next = IR_get();
-        IrCtrl.tx_index ++;
+        uint16_t interval = IrCtrl.next_interval;
         if (IR_TX_IS_ON()) {
             // toggle
             IR_TX_OFF();
         }
         else {
-            if ( next != 0 ) {
+            if ( IrCtrl.next_interval != 0 ) {
                 // toggle
                 IR_TX_ON();
             }
             else {
                 // continue for another uin16_t loop
-                next = IR_get();
-                IrCtrl.tx_index ++;
-                IR_TX_OFF();
+                interval = 65535;
             }
         }
 
-        IR_COMPARE_NEXT( next );
+        IR_COMPARE_NEXT( interval );
+
+        // run heavy packer.unpack after setting timer
+        if (IrCtrl.next_interval == 0 ) {
+            IR_get(); // we're already counting 65535
+            IrCtrl.tx_index ++;
+        }
+        IrCtrl.next_interval = IR_get();
+        IrCtrl.tx_index ++;
         return;
     }
     else if (IrCtrl.state == IR_RECVING) {
@@ -325,9 +330,14 @@ int IR_xmit ()
         IR_TX_38K();
     }
     IR_TX_ON();
+
     packer.unpackStart();
+
     IR_COMPARE_ENABLE( IR_get() );
     IrCtrl.tx_index ++;
+
+    // unpacking takes time, so we want to run unpack while timer is running
+    IrCtrl.next_interval = IR_get();
 
     return 1;
 }
@@ -476,7 +486,6 @@ void IR_dump (void)
     for (uint16_t i=0; i<packer.length(); i++) {
         Serial.print((uint8_t)global.buffer[i], HEX);
         Serial.print(" ");
-        if (i % 16 == 15) { Serial.println(); }
     }
     Serial.println();
 }

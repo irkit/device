@@ -41,6 +41,7 @@ typedef struct _irstruct {
     IRReceiveCallback on_receive;
     uint16_t          len;      // Size of buff used
     uint16_t          tx_index; // 0 < tx_index < len
+    uint16_t          next_interval;
 } IR_STRUCT;
 
 /* The work area for IR_CTRL is defined in ir_ctrl.c */

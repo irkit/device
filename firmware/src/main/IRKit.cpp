@@ -83,7 +83,7 @@ void reset3V3 () {
 }
 
 void longPressed() {
-    Serial.println(P("long pressed"));
+    Serial.println("long");
     keys.clear();
     reset3V3();
 }
@@ -616,8 +616,6 @@ void IRKit_loop() {
 
         if (last_character == 'd') {
             keys.load();
-
-            Serial.print("B: "); Serial.println(global.buffer_mode);
 
             Serial.println();
             keys.dump();
