@@ -40,17 +40,11 @@ void wordCallback() {
     }
 }
 
-void errorCallback() {
-    Serial.println(P("error"));
-    keys.clear();
-}
-
 void setup() {
     pinMode(MICROPHONE,  INPUT);
 
     listener.letterCallback = &letterCallback;
     listener.wordCallback   = &wordCallback;
-    listener.errorCallback  = &errorCallback;
 
     // USB serial
     Serial.begin(115200);
