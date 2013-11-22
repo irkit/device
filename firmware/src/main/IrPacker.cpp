@@ -164,6 +164,10 @@ void IrPacker::addBit(bool value) {
         bitClear( buff_[ offset ], 7 - odd );
     }
     bit_index_ ++;
+
+    if (bit_index_ == 255) {
+        packEnd();
+    }
 }
 
 uint8_t IrPacker::packSingle( uint16_t data ) {
