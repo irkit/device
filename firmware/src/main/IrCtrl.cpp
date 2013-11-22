@@ -222,11 +222,12 @@ ISR_CAPTURE()
         _timer_reg_t low_width = counter - last_interrupt;
         last_interrupt         = counter;
 
-        IR_put_(low_width);
         IrCtrl.trailer_count = T_TRAIL_COUNT;
 
         IR_CAPTURE_FALL();
         IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
+
+        IR_put_(low_width); // use cycles after enabling timer
         return;
     }
 
