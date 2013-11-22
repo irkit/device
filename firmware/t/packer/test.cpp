@@ -454,5 +454,37 @@ int main() {
         // dump16( unpacked, 115 );
     }
 
+    {
+        IrPacker packer( buff );
+        fillTree( &packer );
+
+        uint16_t input[ 17 ];
+        // エアコンオフ
+        setBuffer16( input, 17,
+                     873, 2368, 873, 2368, 873, 2368, 873, 2368,
+                     873, 2368, 873, 2368, 873, 2368, 873, 2368,
+                     6424
+                     );
+        pack( &packer, input, 17 );
+
+        uint8_t expected[ 7 ];
+        memset( expected, 0, sizeof(expected) );
+        setBuffer8( expected, 7,
+                    0x01, 0x80, 0x9d, 0x10, 0x55, 0x55,
+                    0xba
+                    );
+
+        ok( (memcmp(buff, expected, 7) == 0), "compared ok" );
+        ok( packer.length() == 12 ); // safe length
+        // printf("length: %d\n", packer.length());
+        // dump8( buff, 7 );
+
+        uint16_t unpacked[ 17 ];
+        unpack( &packer, unpacked, 17 );
+
+        ok( (memcmp(unpacked, input, 17) == 0), "unpacked ok" );
+        // dump16( unpacked, 17 );
+    }
+
     done_testing();
 }

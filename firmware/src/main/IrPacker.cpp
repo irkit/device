@@ -93,7 +93,7 @@ void IrPacker::packEnd() {
         buff_[ bitpack_start_ + 1 ] = val0_;
         buff_[ bitpack_start_ + 2 ] = val1_;
         buff_[ bitpack_start_ + 3 ] = bit_index_;
-        length_ += (5 + (bit_index_ >> 3));
+        length_ += (5 + ((bit_index_-1) >> 3));
     }
     val0_      = 0;
     val1_      = 0;
