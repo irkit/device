@@ -145,35 +145,51 @@ void Keys::clearKey(void)
 // [0248]/#{SSID}/#{Password}/#{Key}/#{CRC}
 int8_t Keys::put(char code)
 {
-    static uint8_t character;
-    static bool is_first_byte;
+    static uint8_t  character;
+    static bool     is_first_byte;
+    static char    *container = 0;
+    static uint8_t  max_length;
 
     if (code == MORSE_CREDENTIALS_SEPARATOR) {
         // null terminate
         switch (filler.state) {
         case KeysFillerStateSSID:
-            data->ssid[ filler.index ] = 0;
-            break;
         case KeysFillerStatePassword:
-            data->password[ filler.index ] = 0;
-            break;
         case KeysFillerStateKey:
-            data->temp_key[ filler.index ] = 0;
+            container[ filler.index ] = 0;
             break;
         default:
             break;
         }
         if (filler.state != KeysFillerStateCRC) {
             // wait for putDone() on CRC state
+
             filler.state = (KeysFillerState)( filler.state + 1 );
+
+            switch (filler.state) {
+            case KeysFillerStateSSID:
+                container  = data->ssid;
+                max_length = MAX_WIFI_SSID_LENGTH;
+                break;
+            case KeysFillerStatePassword:
+                container  = data->password;
+                max_length = MAX_WIFI_PASSWORD_LENGTH;
+                break;
+            case KeysFillerStateKey:
+                container  = data->temp_key;
+                max_length = MAX_KEY_LENGTH;
+                break;
+            default:
+                break;
+            }
         }
-        is_first_byte = 1;
+        is_first_byte = true;
         filler.index  = 0;
         return 0;
     }
     if ( ! (('0' <= code) && (code <= '9')) &&
          ! (('A' <= code) && (code <= 'F')) ) {
-        // we only use letters which match: [0-9A-F,]
+        // we only use letters which match: [0-9A-F]
         Serial.print(("!E23:")); Serial.println( code, HEX );
         return -1;
     }
@@ -192,15 +208,27 @@ int8_t Keys::put(char code)
             return -1;
         }
     }
+
     if (filler.state == KeysFillerStateKey) {
-        // key can only be 0-9A-F
-        if (filler.index == MAX_KEY_LENGTH) {
-            Serial.println(("!E20"));
-            return -1;
-        }
-        data->temp_key[ filler.index ++ ] = code;
-        return 0;
+        character = code;
     }
+    else {
+        // ssid, password might be Japanese character,
+        // so we transfer utf8 bytes 0x00-0xFF as pair of [0-F] ASCII letters
+        // so 2 bytes construct 1 character, network *bit* order
+        // also CRC is transfered in HEX (pair of [0-F] ASCII letters)
+        if (is_first_byte) {
+            character       = x2i(code);
+            character     <<= 4;        // F0h
+            is_first_byte   = false;
+            return 0;
+        }
+        else {
+            character     += x2i(code); // 0Fh
+            is_first_byte  = true;
+        }
+    }
+
     if (filler.state == KeysFillerStateCRC) {
         if (filler.index > 0) {
             Serial.println(("!E21"));
@@ -211,38 +239,11 @@ int8_t Keys::put(char code)
         return 0;
     }
 
-    // ssid, password might be Japanese character,
-    // so we transfer utf8 bytes 0x00-0xFF as pair of [0-F] ASCII letters
-    // so 2 bytes construct 1 character, network *bit* order
-    if (is_first_byte) {
-        character       = x2i(code);
-        character     <<= 4;        // F0h
-        is_first_byte   = false;
-        return 0;
+    if ( filler.index == max_length ) {
+        Serial.println(("!E18"));
+        return -1;
     }
-    else {
-        character     += x2i(code); // 0Fh
-        is_first_byte  = true;
-    }
-
-    switch (filler.state) {
-    case KeysFillerStateSSID:
-        if ( filler.index == MAX_WIFI_SSID_LENGTH ) {
-            Serial.println(("!E18"));
-            return -1;
-        }
-        data->ssid[ filler.index ++ ] = character;
-        break;
-    case KeysFillerStatePassword:
-        if ( filler.index == MAX_WIFI_PASSWORD_LENGTH ) {
-            Serial.println(("!E19"));
-            return -1;
-        }
-        data->password[ filler.index ++ ] = character;
-        break;
-    default:
-        break;
-    }
+    container[ filler.index ++ ] = character;
     return 0;
 }
 
