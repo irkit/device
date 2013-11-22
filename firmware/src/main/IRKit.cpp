@@ -315,6 +315,8 @@ int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
 int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
     Serial.println(P("P /d RS ")); Serial.println(status_code);
 
+    ring_clear(gs._buf_cmd);
+
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return 0;
     }
@@ -347,6 +349,10 @@ int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 
 int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
     Serial.print(P("G /m RS ")); Serial.println(status_code);
+
+    if (status_code != 200) {
+        ring_clear(gs._buf_cmd);
+    }
 
     switch (status_code) {
     case 200:
@@ -391,6 +397,10 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
 
 int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
     Serial.print(P("P /k RS ")); Serial.println(status_code);
+
+    if (status_code != 200) {
+        ring_clear(gs._buf_cmd);
+    }
 
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return 0;
