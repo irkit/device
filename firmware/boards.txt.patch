@@ -1,0 +1,35 @@
+--- boards.txt.original	2013-11-06 14:15:43.000000000 +0900
++++ boards.txt	2013-11-06 14:19:01.000000000 +0900
+@@ -167,6 +167,27 @@
+ 
+ ##############################################################
+ 
++irkit.name=IRKit
++irkit.upload.protocol=avr109
++irkit.upload.maximum_size=28672
++irkit.upload.speed=57600
++irkit.upload.disable_flushing=true
++irkit.bootloader.low_fuses=0xff
++irkit.bootloader.high_fuses=0xd8
++irkit.bootloader.extended_fuses=0xcb
++irkit.bootloader.path=caterina
++irkit.bootloader.file=Caterina-Leonardo.hex
++irkit.bootloader.unlock_bits=0x3F
++irkit.bootloader.lock_bits=0x2F
++irkit.build.mcu=atmega32u4
++irkit.build.f_cpu=16000000L
++irkit.build.vid=0x1d50
++irkit.build.pid=0x6085
++irkit.build.core=arduino
++irkit.build.variant=leonardo
++
++##############################################################
++
+ esplora.name=Arduino Esplora
+ esplora.upload.protocol=avr109
+ esplora.upload.maximum_size=28672
+@@ -564,4 +585,3 @@
+ robotMotor.build.pid=0x8039
+ robotMotor.build.core=robot
+ robotMotor.build.variant=robot_motor
+-
