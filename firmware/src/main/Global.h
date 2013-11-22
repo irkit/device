@@ -13,9 +13,8 @@ class Global {
     void loop();
     unsigned long now;
 
-    volatile char buffer[ 1024 ];
+    volatile char buffer[ 256 ];
     GBufferMode buffer_mode;
-
 };
 
 extern Global global;

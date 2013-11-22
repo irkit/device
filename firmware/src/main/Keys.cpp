@@ -32,6 +32,8 @@ void Keys::load()
 {
     eeprom_read_block((void*)data,   (void*)0,                  sizeof(KeysShared));
     eeprom_read_block((void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
+    Serial.println(sizeof(KeysShared));
+    Serial.println(sizeof(KeysIndependent));
     if (! isCRCOK()) {
         clear();
     }
@@ -171,7 +173,7 @@ int8_t Keys::put(char code)
     if ( ! (('0' <= code) && (code <= '9')) &&
          ! (('A' <= code) && (code <= 'F')) ) {
         // we only use letters which match: [0-9A-F,]
-        Serial.print(P("unexpected code: 0x")); Serial.println( code, HEX );
+        Serial.print(("!E23:")); Serial.println( code, HEX );
         return -1;
     }
     if (filler.state == KeysFillerStateSecurity) {
@@ -185,7 +187,7 @@ int8_t Keys::put(char code)
             data->security = (GSSECURITY)x2i(code);
             return 0;
         default:
-            Serial.print(P("unexpected security: 0x")); Serial.println( code, HEX );
+            Serial.print(("!E22:")); Serial.println( code, HEX );
             return -1;
         }
     }
@@ -205,35 +207,34 @@ int8_t Keys::put(char code)
     switch (filler.state) {
     case KeysFillerStateSSID:
         if ( filler.index == MAX_WIFI_SSID_LENGTH ) {
-            Serial.println(P("overflow 1"));
+            Serial.println(("!E18"));
             return -1;
         }
         data->ssid[ filler.index ++ ] = character;
         break;
     case KeysFillerStatePassword:
         if ( filler.index == MAX_WIFI_PASSWORD_LENGTH ) {
-            Serial.println(P("overflow 2"));
+            Serial.println(("!E19"));
             return -1;
         }
         data->password[ filler.index ++ ] = character;
         break;
     case KeysFillerStateKey:
         if (filler.index == MAX_KEY_LENGTH) {
-            Serial.println(P("overflow 3"));
+            Serial.println(("!E20"));
             return -1;
         }
         data->temp_key[ filler.index ++ ] = character;
         break;
     case KeysFillerStateCRC:
         if (filler.index > 0) {
-            Serial.println(P("overflow 4"));
+            Serial.println(("!E21"));
             return -1;
         }
         data->crc8 = character;
         filler.index ++;
         break;
     default:
-        Serial.println(P("??"));
         return -1;
     }
     return 0;
@@ -242,7 +243,7 @@ int8_t Keys::put(char code)
 int8_t Keys::putDone()
 {
     if (filler.state != KeysFillerStateCRC) {
-        Serial.println(P("state error"));
+        Serial.println(("!E17"));
         return -1;
     }
 
@@ -257,58 +258,25 @@ int8_t Keys::putDone()
     }
     else {
         dump();
-        Serial.println(P("crc error"));
+        Serial.println(("!E16"));
         return -1;
     }
 }
 
 void Keys::dump(void)
 {
-    Serial.print(P("wifi is_set: "));
+    Serial.print(("F:"));
     Serial.println(data->wifi_is_set);
-    Serial.print(P("wifi was_valid: "));
     Serial.println(data->wifi_was_valid);
-    Serial.print(P("key is_set: "));
     Serial.println(data2.key_is_set);
-    Serial.print(P("key is_valid: "));
     Serial.println(data2.key_is_valid);
 
-    Serial.print(P("security: "));
-    switch (data->security) {
-    case GSSECURITY_AUTO:
-        Serial.println(P("auto/none"));
-        break;
-    case GSSECURITY_OPEN:
-        Serial.println(P("open"));
-        break;
-    case GSSECURITY_WEP:
-        Serial.println(P("wep"));
-        break;
-    case GSSECURITY_WPA_PSK:
-        Serial.println(P("wpa-psk"));
-        break;
-    case GSSECURITY_WPA2_PSK:
-        Serial.println(P("wpa2-psk"));
-        break;
-    default:
-        break;
-    }
+    Serial.print(("E:"));
+    Serial.println(data->security);
 
-    Serial.print(P("ssid: "));
+    Serial.print(("S:"));
     Serial.println((const char*)data->ssid);
-
-    Serial.print(P("password: "));
     Serial.println((const char*)data->password);
-
-    Serial.print(P("key: "));
     Serial.println((const char*)data2.key);
-
-    Serial.print(P("temp_key: "));
-    Serial.println((const char*)data->temp_key);
-
-    Serial.print(P("crc8: 0x"));
     Serial.println(data->crc8, HEX);
-
-    Serial.print(P("calculated crc: 0x"));
-    Serial.println( crc8( (uint8_t*)data, sizeof(KeysCRCed) ), HEX );
 }

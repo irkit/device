@@ -81,6 +81,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
 
+    // disable association keep alive timer
     command(PB("AT+PSPOLLINTRL=0",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
@@ -144,7 +145,7 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            Serial.print(P("!!!E4 ")); Serial.println(i);
+            Serial.print(("!E4 ")); Serial.println(i);
 
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
@@ -181,7 +182,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                Serial.print(P("!!!E1 ")); Serial.println(dat,HEX);
+                Serial.print(("!E1 ")); Serial.println(dat,HEX);
                 break;
             }
             escape = false;
@@ -200,7 +201,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    Serial.println(P("!!!E2"));
+                    Serial.println(("!E2"));
                 }
             }
         }
@@ -664,7 +665,7 @@ void GSwifi::parseLine () {
                  strncmp(buf, P("Disassociat"), 11) == 0) {
             // Disassociated
             // Disassociation Event
-            Serial.println(P("!!!E12"));
+            Serial.println(("!E12"));
             clear();
             on_disconnect_();
         }
@@ -672,7 +673,7 @@ void GSwifi::parseLine () {
                  strncmp(buf, P("APP Reset"), 9) == 0) {
             // APP Reset-APP SW Reset
             // APP Reset-Wlan Except
-            Serial.println(P("!!!E13"));
+            Serial.println(("!E13"));
             clear();
             on_reset_();
         }
@@ -840,7 +841,7 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        Serial.println(P("!!! did timeout !!!"));
+        Serial.println(("!E24"));
         did_timeout_ = true;
         setBusy(false);
     }

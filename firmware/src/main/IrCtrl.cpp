@@ -23,6 +23,7 @@
 #include "pgmStrToRAM.h"
 #include "Global.h"
 #include "timer.h"
+#include "IrPacker.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -181,8 +182,13 @@
 // down -1- up -2- down -3- up -4- down -5- up
 #define VALID_IR_LEN_MIN   5
 
+#define EEPROM_OFFSET 177 // sizeof(KeysShared) + sizeof(KeysIndependent)
+
 // Working area for IR communication
 volatile IR_STRUCT IrCtrl;
+static IrPacker packer( (volatile uint8_t*)global.buffer );
+
+static void IR_put_ (uint16_t data);
 
 // IR receiving interrupt on either edge of input
 ISR_CAPTURE()
@@ -197,7 +203,7 @@ ISR_CAPTURE()
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
         return;
     }
-    if (IrCtrl.len >= IR_BUFF_SIZE) {
+    if (packer.length() >= IR_BUFF_SIZE) {
         // receive buffer overflow
         // data in buffer might be valid (later data might just be "repeat" data)
         // so wait for recv timeout and successfully transit to RECVED state
@@ -216,11 +222,12 @@ ISR_CAPTURE()
         _timer_reg_t low_width = counter - last_interrupt;
         last_interrupt         = counter;
 
-        IrCtrl.buff[ IrCtrl.len ++ ] = low_width;
         IrCtrl.trailer_count = T_TRAIL_COUNT;
 
         IR_CAPTURE_FALL();
         IR_COMPARE_ENABLE(T_TRAIL); // Enable trailer timer
+
+        IR_put_(low_width); // use cycles after enabling timer
         return;
     }
 
@@ -235,13 +242,13 @@ ISR_CAPTURE()
     else { // is IR_RECVING
         uint8_t trailer;
         for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailer_count; trailer--) {
-            IrCtrl.buff[ IrCtrl.len ++ ] = 65535; // high
-            IrCtrl.buff[ IrCtrl.len ++ ] = 0;     // low
-            if (IrCtrl.len >= IR_BUFF_SIZE) {
+            IR_put_(65535);
+            IR_put_(0);
+            if (packer.length() >= IR_BUFF_SIZE) {
                 return;
             }
         }
-        IrCtrl.buff[ IrCtrl.len ++ ] = high_width;
+        IR_put_(high_width);
     }
 
     IR_CAPTURE_RISE();
@@ -252,30 +259,38 @@ ISR_CAPTURE()
 ISR_COMPARE()
 {
     if (IrCtrl.state == IR_XMITTING) {
-        if ((IrCtrl.tx_index >= IrCtrl.len) ||
-            (IrCtrl.tx_index >= IR_BUFF_SIZE)) {
+        if (IrCtrl.tx_index >= IrCtrl.len) {
             // tx successfully finished
+            IR_TX_OFF();
+            IR_dump();
             IR_state( IR_IDLE );
             return;
         }
-        uint16_t next = IrCtrl.buff[ IrCtrl.tx_index ++ ];
+        uint16_t interval = IrCtrl.next_interval;
         if (IR_TX_IS_ON()) {
             // toggle
             IR_TX_OFF();
         }
         else {
-            if ( next != 0 ) {
+            if ( IrCtrl.next_interval != 0 ) {
                 // toggle
                 IR_TX_ON();
             }
             else {
                 // continue for another uin16_t loop
-                next = IrCtrl.buff[ IrCtrl.tx_index ++ ];
-                IR_TX_OFF();
+                interval = 65535;
             }
         }
 
-        IR_COMPARE_NEXT( next );
+        IR_COMPARE_NEXT( interval );
+
+        // run heavy packer.unpack after setting timer
+        if (IrCtrl.next_interval == 0 ) {
+            IR_get(); // we're already counting 65535
+            IrCtrl.tx_index ++;
+        }
+        IrCtrl.next_interval = IR_get();
+        IrCtrl.tx_index ++;
         return;
     }
     else if (IrCtrl.state == IR_RECVING) {
@@ -297,13 +312,16 @@ ISR_COMPARE()
 int IR_xmit ()
 {
     // TODO errcode
-    if ((IrCtrl.len == 0) ||
-        (IrCtrl.len > IR_BUFF_SIZE)) {
+    if (IrCtrl.len == 0) {
+        Serial.println("!E26");
+        IR_state( IR_IDLE );
         return 0;
     }
     if ( IrCtrl.state != IR_WRITING ) {
         return 0; // Abort when collision detected
     }
+
+    packer.packEnd();
 
     IR_state( IR_XMITTING );
     if (IrCtrl.freq == 40) {
@@ -313,20 +331,30 @@ int IR_xmit ()
         IR_TX_38K();
     }
     IR_TX_ON();
-    IR_COMPARE_ENABLE( IrCtrl.buff[ IrCtrl.tx_index ++ ] );
+
+    packer.unpackStart();
+
+    IR_COMPARE_ENABLE( IR_get() );
+    IrCtrl.tx_index ++;
+
+    // unpacking takes time, so we want to run unpack while timer is running
+    IrCtrl.next_interval = IR_get();
 
     return 1;
 }
 
 void IR_clear (void)
 {
-    uint16_t i;
-    IrCtrl.len        = 0;
-    IrCtrl.tx_index    = 0;
-    IrCtrl.freq       = IR_DEFAULT_CARRIER; // reset to 38kHz every time
-    for (i=0; i<IR_BUFF_SIZE; i++) {
-        IrCtrl.buff[i] = 0;
-    }
+    IrCtrl.len      = 0;
+    IrCtrl.tx_index = 0;
+    IrCtrl.freq     = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+    memset( (void*)global.buffer, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
+    packer.clear();
+}
+
+uint16_t IR_get ()
+{
+    return packer.unpack();
 }
 
 void IR_put (uint16_t data)
@@ -335,7 +363,16 @@ void IR_put (uint16_t data)
         // caller should change state to IR_WRITING before calling
         return;
     }
-    IrCtrl.buff[ IrCtrl.len ++ ] = data;
+    IR_put_(data);
+}
+
+static void IR_put_ (uint16_t data)
+{
+    if (packer.length() >= IR_BUFF_SIZE) {
+        return;
+    }
+    packer.pack(data);
+    IrCtrl.len ++;
 }
 
 void IR_timer (void)
@@ -346,7 +383,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
 
-            Serial.println(P("!!!\tIR recv timeout"));
+            Serial.println(("!E14"));
             IR_state( IR_RECVED );
             IrCtrl.did_receive = true;
         }
@@ -358,7 +395,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
             TIMER_STOP( IrCtrl.xmit_timer );
 
-            Serial.println(P("!!!\tIR xmit timeout"));
+            Serial.println(("!E15"));
             IR_state( IR_IDLE );
         }
     }
@@ -390,6 +427,7 @@ void IR_state (uint8_t nextState)
         TIMER_START( IrCtrl.recv_timer, RECV_TIMEOUT );
         break;
     case IR_RECVED:
+        packer.packEnd();
         IR_CAPTURE_FALL();
         IR_CAPTURE_ENABLE();
         IR_COMPARE_DISABLE();
@@ -399,6 +437,11 @@ void IR_state (uint8_t nextState)
             IR_state( IR_IDLE );
             return;
         }
+        break;
+    case IR_READING:
+        packer.unpackStart();
+        IR_CAPTURE_DISABLE();
+        IR_COMPARE_DISABLE();
         break;
     case IR_WRITING:
         IR_CAPTURE_DISABLE();
@@ -424,28 +467,26 @@ void IR_initialize (IRReceiveCallback _on_receive)
     IR_INIT_TIMER();
     IR_INIT_XMIT();
 
-    IrCtrl.buff        = (uint16_t*)global.buffer;
     IrCtrl.did_receive = false;
     IrCtrl.on_receive  = _on_receive;
 
     IR_state( IR_DISABLED );
+
+    packer.load( (void*)EEPROM_OFFSET );
 }
 
 void IR_dump (void)
 {
-    Serial.print(P("IR .state: "));        Serial.println(IrCtrl.state);
-    Serial.print(P(" .len: "));            Serial.println(IrCtrl.len,HEX);
-    Serial.print(P(" .trailer_count: "));  Serial.println(IrCtrl.trailer_count,HEX);
-    Serial.print(P(" .tx_index: "));       Serial.println(IrCtrl.tx_index,HEX);
-    Serial.print(P(" .recv_timer: "));     Serial.println(IrCtrl.recv_timer);
-    Serial.print(P(" .xmit_timer: "));     Serial.println(IrCtrl.xmit_timer);
-    for (uint16_t i=0; i<IrCtrl.len; i++) {
-        if (IrCtrl.buff[i] < 0x1000) { Serial.write('0'); }
-        if (IrCtrl.buff[i] < 0x0100) { Serial.write('0'); }
-        if (IrCtrl.buff[i] < 0x0010) { Serial.write('0'); }
-        Serial.print(IrCtrl.buff[i], HEX);
-        Serial.print(P(" "));
-        if (i % 16 == 15) { Serial.println(); }
+    Serial.print(P("IR.s:")); Serial.println(IrCtrl.state);
+    Serial.print(P(".l:"));   Serial.println(IrCtrl.len,HEX);
+    Serial.print(P(".t:"));   Serial.println(IrCtrl.trailer_count,HEX);
+    Serial.print(P(".x:"));   Serial.println(IrCtrl.tx_index,HEX);
+    Serial.print(P(".r:"));   Serial.println(IrCtrl.recv_timer);
+    Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
+    Serial.print(P("p.l:"));  Serial.println(packer.length());
+    for (uint16_t i=0; i<packer.length(); i++) {
+        Serial.print((uint8_t)global.buffer[i], HEX);
+        Serial.print(" ");
     }
     Serial.println();
 }

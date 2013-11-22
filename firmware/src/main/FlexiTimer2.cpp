@@ -8,7 +8,7 @@
   History:
     25/Oct/2013 - Optimize for 32U4 to reduce program memory (mash)
     16/Dec/2011 - Added Teensy/Teensy++ support (bperrybap)
-		   note: teensy uses timer4 instead of timer2
+           note: teensy uses timer4 instead of timer2
     25/April/10 - Based on MsTimer2 V0.5 (from 29/May/09)
 
   This library is free software; you can redistribute it and/or
@@ -32,48 +32,48 @@ uint16_t FlexiTimer2::time_units;
 void (*FlexiTimer2::func)();
 
 void FlexiTimer2::set(uint16_t ms, void (*f)()) {
-	// fix to ms timer
+    // fix to ms timer
 
-	time_units = ms;
+    time_units = ms;
 
-	func = f;
+    func = f;
 
-	TCCR4B = 0;
-	TCCR4A = 0;
-	TCCR4C = 0;
-	TCCR4D = 0;
-	TCCR4E = 0;
-	TCCR4B = (1<<CS43) | (1<<PSR4);
+    TCCR4B = 0;
+    TCCR4A = 0;
+    TCCR4C = 0;
+    TCCR4D = 0;
+    TCCR4E = 0;
+    TCCR4B = (1<<CS43) | (1<<PSR4);
 
-	// (16000_000 * 0.001 / 128) - 1 = 124
-	OCR4C  = 124;
+    // (16000_000 * 0.001 / 128) - 1 = 124
+    OCR4C  = 124;
 }
 
 void FlexiTimer2::start() {
-	TIFR4       = (1<<TOV4);
-	TCNT4       = 0;
-	TIMSK4      = (1<<TOIE4);
+    TIFR4       = (1<<TOV4);
+    TCNT4       = 0;
+    TIMSK4      = (1<<TOIE4);
 }
 
 void FlexiTimer2::stop() {
-	TIMSK4 = 0;
+    TIMSK4 = 0;
 }
 
 void FlexiTimer2::_overflow() {
-	static uint8_t overflowing = 0;
-	static uint16_t count = 0;
+    static uint8_t overflowing = 0;
+    static uint16_t count = 0;
 
-	count += 1;
+    count += 1;
 
-	if (count >= time_units && !overflowing) {
-		overflowing = 1;
-		count = count - time_units; // subtract time_uints to catch missed overflows
-					// set to 0 if you don't want this.
-		(*func)();
-		overflowing = 0;
-	}
+    if (count >= time_units && !overflowing) {
+        overflowing = 1;
+        count = count - time_units; // subtract time_uints to catch missed overflows
+                    // set to 0 if you don't want this.
+        (*func)();
+        overflowing = 0;
+    }
 }
 
 ISR(TIMER4_OVF_vect) {
-	FlexiTimer2::_overflow();
+    FlexiTimer2::_overflow();
 }
