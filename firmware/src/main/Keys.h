@@ -12,8 +12,8 @@
 // see H.4.1 of IEEE 802.11
 #define MAX_WIFI_PASSWORD_LENGTH 63
 
-// it's an UUID
-#define MAX_KEY_LENGTH           36
+// it's an UUID (without '-')
+#define MAX_KEY_LENGTH           32
 
 enum KeysFillerState {
     KeysFillerStateSecurity = 0,

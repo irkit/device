@@ -149,7 +149,7 @@ int8_t Keys::put(char code)
     static bool is_first_byte;
 
     if (code == MORSE_CREDENTIALS_SEPARATOR) {
-        // wait for putDone() on CRC state
+        // null terminate
         switch (filler.state) {
         case KeysFillerStateSSID:
             data->ssid[ filler.index ] = 0;
@@ -164,6 +164,7 @@ int8_t Keys::put(char code)
             break;
         }
         if (filler.state != KeysFillerStateCRC) {
+            // wait for putDone() on CRC state
             filler.state = (KeysFillerState)( filler.state + 1 );
         }
         is_first_byte = 1;
@@ -191,16 +192,36 @@ int8_t Keys::put(char code)
             return -1;
         }
     }
-    // we transfer [0..9A..F] as ASCII
+    if (filler.state == KeysFillerStateKey) {
+        // key can only be 0-9A-F
+        if (filler.index == MAX_KEY_LENGTH) {
+            Serial.println(("!E20"));
+            return -1;
+        }
+        data->temp_key[ filler.index ++ ] = code;
+        return 0;
+    }
+    if (filler.state == KeysFillerStateCRC) {
+        if (filler.index > 0) {
+            Serial.println(("!E21"));
+            return -1;
+        }
+        data->crc8 = character;
+        filler.index ++;
+        return 0;
+    }
+
+    // ssid, password might be Japanese character,
+    // so we transfer utf8 bytes 0x00-0xFF as pair of [0-F] ASCII letters
     // so 2 bytes construct 1 character, network *bit* order
     if (is_first_byte) {
-        character          = x2i(code);
-        character        <<= 4;         // F0h
+        character       = x2i(code);
+        character     <<= 4;        // F0h
         is_first_byte   = false;
         return 0;
     }
     else {
-        character        += x2i(code); // 0Fh
+        character     += x2i(code); // 0Fh
         is_first_byte  = true;
     }
 
@@ -219,23 +240,8 @@ int8_t Keys::put(char code)
         }
         data->password[ filler.index ++ ] = character;
         break;
-    case KeysFillerStateKey:
-        if (filler.index == MAX_KEY_LENGTH) {
-            Serial.println(("!E20"));
-            return -1;
-        }
-        data->temp_key[ filler.index ++ ] = character;
-        break;
-    case KeysFillerStateCRC:
-        if (filler.index > 0) {
-            Serial.println(("!E21"));
-            return -1;
-        }
-        data->crc8 = character;
-        filler.index ++;
-        break;
     default:
-        return -1;
+        break;
     }
     return 0;
 }

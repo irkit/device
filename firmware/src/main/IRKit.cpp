@@ -424,7 +424,7 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 }
 
 void postDoor() {
-    char body[41]; // 4 + 36 + 1
+    char body[37]; // 4 + 32 + 1
     sprintf(body, "key=%s", keys.getKey());
     gs.post( "/door", body, 40, &onPostDoorResponse, 50 );
 }
@@ -437,7 +437,7 @@ int8_t getMessages() {
 }
 
 int8_t postKeys() {
-    char body[41]; // 4 + 36 + 1
+    char body[37]; // 4 + 32 + 1
     sprintf(body, "key=%s", keys.getKey());
     return gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 10 );
 }
