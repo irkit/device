@@ -37,6 +37,8 @@ static uint8_t  post_keys_cid;
 static struct RingBuffer command_queue;
 static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
+#define KEY_BODY_LENGTH 36
+
 //--- declaration
 
 void   reset3V3();
@@ -434,9 +436,9 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 }
 
 void postDoor() {
-    char body[37]; // 4 + 32 + 1
+    char body[KEY_BODY_LENGTH+1];
     sprintf(body, "key=%s", keys.getKey());
-    gs.post( "/door", body, 40, &onPostDoorResponse, 50 );
+    gs.post( "/door", body, KEY_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
 int8_t getMessages() {
@@ -447,9 +449,9 @@ int8_t getMessages() {
 }
 
 int8_t postKeys() {
-    char body[37]; // 4 + 32 + 1
+    char body[KEY_BODY_LENGTH+1];
     sprintf(body, "key=%s", keys.getKey());
-    return gs.post( PB("/keys",1), body, 40, &onPostKeysResponse, 10 );
+    return gs.post( "/keys", body, KEY_BODY_LENGTH, &onPostKeysResponse, 10 );
 }
 
 void connect() {
@@ -638,7 +640,7 @@ void IRKit_loop() {
             keys.set(GSSECURITY_WPA2_PSK,
                      PB("Rhodos",1),
                      PB("aaaaaaaaaaaaa",2));
-            keys.setKey(P("5bd38a24-77e3-46ea-954f-571071055dac"));
+            keys.setKey(P("C7363FDA0F06406AB11C29BA41272AE3"));
             keys.save();
         }
     }

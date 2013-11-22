@@ -94,10 +94,12 @@ void Keys::set(GSSECURITY security, const char *ssid, const char *pass)
     data->wifi_is_set = true;
 }
 
+// TODO remove this, for debug only
 void Keys::setKey(const char *key)
 {
     strcpy(data2.key, key);
-    data2.key_is_set = true;
+    data2.key_is_set   = true;
+    data2.key_is_valid = false;
 }
 
 void Keys::setWifiWasValid(bool valid)
