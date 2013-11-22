@@ -442,7 +442,7 @@ void postDoor() {
 }
 
 int8_t getMessages() {
-    // /messages?key=5bd38a24-77e3-46ea-954f-571071055dac&newer_than=%s
+    // /messages?key=C7363FDA0F06406AB11C29BA41272AE3&newer_than=%s
     char path[80];
     sprintf(path, P("/messages?key=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
     return gs.get(path, &onGetMessagesResponse, 50);
@@ -631,7 +631,6 @@ void IRKit_loop() {
 
             Serial.println();
             keys.dump();
-            Serial.println();
             Serial.println();
             IR_dump();
             Serial.println();

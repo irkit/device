@@ -94,13 +94,16 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 int8_t GSwifi::setupMDNS() {
     char cmd[GS_CMD_SIZE];
 
+    // no impact on discoverability
+    // command(PB("AT+DHCPSRV",1), GSCOMMANDMODE_NORMAL);
+
     command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
 
     // ex: "00:1d:c9:01:99:99"
     sprintf(cmd, P("AT+MDNSHNREG=IRKit%c%c,local"), mac_[15], mac_[16]);
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    sprintf(cmd, P("AT+MDNSSRVREG=IRKit%c%c,,_irproxy,_tcp,local,80"), mac_[15], mac_[16]);
+    sprintf(cmd, P("AT+MDNSSRVREG=IRKit%c%c,,_irkit,_tcp,local,80"), mac_[15], mac_[16]);
     command(cmd, GSCOMMANDMODE_MDNS);
 
     command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
@@ -275,7 +278,6 @@ void GSwifi::parseByte(uint8_t dat) {
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 400;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("E400"));
                         break;
                     }
                     Serial.print("P:"); Serial.println(path);
@@ -286,7 +288,6 @@ void GSwifi::parseByte(uint8_t dat) {
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
                         ring_clear(_buf_cmd);
-                        Serial.println(P("E404"));
                         break;
                     }
                     request_state                   = GSREQUESTSTATE_HEAD2;
@@ -719,8 +720,6 @@ void GSwifi::parseCmdResponse (char *buf) {
 
                 TIMER_STOP(timers_[cid]);
                 connected_cid_ = cid;
-
-                Serial.print("cid:"); Serial.println(cid);
             }
         }
         break;
