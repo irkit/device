@@ -30,7 +30,7 @@
 #include "version.h"
 #include "timer.h"
 
-#define DOMAIN "wifi-morse-setup.herokuapp.com"
+#define DOMAIN "api.getirkit.com"
 
 #define RESPONSE_LINES_ENDED -1
 
