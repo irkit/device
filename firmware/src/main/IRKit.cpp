@@ -14,7 +14,7 @@
 #include "LongPressButton.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-GSwifi gs(&Serial1);
+GSwifi gs(&Serial1X);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
@@ -110,7 +110,7 @@ void timerLoop() {
         connect();
     }
 
-    while (ring_used(&command_queue)) {
+    while (! ring_isempty(&command_queue)) {
         char command;
         ring_get(&command_queue, &command, 1);
 
@@ -427,10 +427,11 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
     ring_put( &command_queue, COMMAND_CLOSE );
     ring_put( &command_queue, cid );
     ring_put( &command_queue, COMMAND_CLOSE );
-    int8_t result = ring_put( &command_queue, post_keys_cid );
-    if ( result < 0 ) {
+    if (ring_isfull( &command_queue )) {
         Serial.println(("!E8"));
+        return -1;
     }
+    ring_put( &command_queue, post_keys_cid );
 
     return 0;
 }
@@ -635,12 +636,12 @@ void IRKit_loop() {
             IR_dump();
             Serial.println();
         }
-        else if (last_character == 's') {
-            keys.set(GSSECURITY_WPA2_PSK,
-                     PB("Rhodos",1),
-                     PB("aaaaaaaaaaaaa",2));
-            keys.setKey(P("C7363FDA0F06406AB11C29BA41272AE3"));
-            keys.save();
-        }
+        // else if (last_character == 's') {
+        //     keys.set(GSSECURITY_WPA2_PSK,
+        //              PB("Rhodos",1),
+        //              PB("aaaaaaaaaaaaa",2));
+        //     keys.setKey(P("C7363FDA0F06406AB11C29BA41272AE3"));
+        //     keys.save();
+        // }
     }
 }

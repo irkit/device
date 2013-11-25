@@ -28,6 +28,7 @@
 #include "Arduino.h"
 #include "GSwifi_const.h"
 #include "ringbuffer.h"
+#include "HardwareSerialX.h"
 
 #define CID_UNDEFINED     0xFF
 
@@ -92,7 +93,7 @@ public:
      * default constructor
      * @param serial
      */
-    GSwifi (HardwareSerial *serial);
+    GSwifi (HardwareSerialX *serial);
 
     /**
      * setup call once after initialization
@@ -198,7 +199,7 @@ public:
 #endif
 
 private:
-    HardwareSerial*    serial_;
+    HardwareSerialX*   serial_;
     bool               joined_, listening_;
     bool               gs_ok_, gs_failure_;
     int                gs_response_lines_;
