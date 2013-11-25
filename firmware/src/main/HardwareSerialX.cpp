@@ -45,13 +45,19 @@
 #endif
 #endif
 
-#define RX_BUFFER_SIZE 64
-#define TX_BUFFER_SIZE 64
-volatile struct RingBuffer rx_buffer1;
-volatile char rx_buffer1_data[RX_BUFFER_SIZE + 1];
+#define RX_BUFFER_SIZE     64
+#define TX_BUFFER_SIZE     64
+#define XONOFF_HYSTERESIS   4
+volatile static struct RingBuffer rx_buffer1;
+volatile static char rx_buffer1_data[RX_BUFFER_SIZE + 1];
+volatile static struct RingBuffer tx_buffer1;
+volatile static char tx_buffer1_data[TX_BUFFER_SIZE + 1];
 
-volatile struct RingBuffer tx_buffer1;
-volatile char tx_buffer1_data[TX_BUFFER_SIZE + 1];
+#define XON  0x11
+#define XOFF 0x13
+volatile static bool is_limiting = false;
+volatile static bool send_xon    = false;
+volatile static bool send_xoff   = false;
 
 ISR(USART1_RX_vect)
 {
@@ -60,6 +66,22 @@ ISR(USART1_RX_vect)
     if ( !ring_isfull( &rx_buffer1 ) ) {
       ring_put( &rx_buffer1, c );
     }
+
+    if (! is_limiting &&
+        ring_used( &rx_buffer1 ) > (RX_BUFFER_SIZE - XONOFF_HYSTERESIS)) {
+      // limit if we're going to reach full soon
+      is_limiting = true;
+      if (bit_is_set(UCSR1A, UDRE1)) {
+        // if USART Data Register Empty is 1, send immediately
+        UDR1 = XOFF;
+      }
+      else {
+        // if not empty, send on next interrupt
+        send_xoff = true;
+        sbi(UCSR1B, UDRIE1);
+      }
+    }
+
   } else {
     unsigned char c = UDR1;
   }
@@ -67,6 +89,17 @@ ISR(USART1_RX_vect)
 
 ISR(USART1_UDRE_vect)
 {
+  // actually send xon/xoff
+  if (send_xoff) {
+    send_xoff = false;
+    UDR1      = XOFF;
+    return;
+  }
+  if (send_xon) {
+    send_xon = false;
+    UDR1     = XON;
+    return;
+  }
   if (ring_isempty( &tx_buffer1 )) {
     // Buffer empty, so disable interrupts
     cbi(UCSR1B, UDRIE1);
@@ -225,9 +258,18 @@ int HardwareSerialX::read(void)
   // if the head isn't ahead of the tail, we don't have any characters
   if (ring_isempty( _rx_buffer )) {
     return -1;
-  } else {
+  }
+  else {
     char c;
     ring_get( _rx_buffer, &c, 1 );
+
+    if (is_limiting &&
+        ring_used(_rx_buffer) < XONOFF_HYSTERESIS) {
+        send_xon    = true;
+        is_limiting = false;
+        sbi(UCSR1B, UDRIE1);
+    }
+
     return c;
   }
 }

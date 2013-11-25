@@ -64,11 +64,10 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     clear();
 
-    serial_->begin(38400);
+    serial_->begin(57600);
 
     // how to change baud rate
-    // command(PB("ATB=38400",1), GSCOMMANDMODE_NORMAL);
-    // setBaud(38400);
+    // setBaud(57600);
     // command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
     // command(PB("AT&Y0",1), GSCOMMANDMODE_NORMAL);
 
@@ -205,7 +204,6 @@ void GSwifi::parseByte(uint8_t dat) {
                 parseLine();
             }
             else if (dat != '\r') {
-                // commands are proved to be short enough to fit into buf
                 if ( ! ring_isfull(_buf_cmd) ) {
                     ring_put(_buf_cmd, dat);
                 }

@@ -9,6 +9,9 @@ extern volatile struct RingBuffer rx_buffer1;
 extern volatile char rx_buffer1_data[RX_BUFFER_SIZE + 1];
 extern volatile struct RingBuffer tx_buffer1;
 extern volatile char tx_buffer1_data[TX_BUFFER_SIZE + 1];
+extern volatile bool is_limiting;
+extern volatile bool send_xon;
+extern volatile bool send_xoff;
 
 void setup() {
     // USB serial
@@ -55,6 +58,9 @@ void loop() {
                 Serial.print(tx_buffer1_data[i], HEX); Serial.print(" ");
             }
             Serial.println();
+            Serial.print("is_limiting:"); Serial.println(is_limiting);
+            Serial.print("send_xon:");    Serial.println(send_xon);
+            Serial.print("send_xoff:");   Serial.println(send_xoff);
         }
         else {
             Serial1X.write(last_character);

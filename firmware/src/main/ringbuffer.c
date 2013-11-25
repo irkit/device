@@ -34,6 +34,15 @@ inline uint8_t ring_isempty (volatile struct RingBuffer *ring) {
     return ring->addr_r == ring->addr_w;
 }
 
+inline uint8_t ring_used (volatile struct RingBuffer *ring) {
+    if (ring->addr_r <= ring->addr_w) {
+        return ring->addr_w - ring->addr_r;
+    }
+    else {
+        return ring->size - ring->addr_r + ring->addr_w;
+    }
+}
+
 inline void ring_clear (volatile struct RingBuffer *ring) {
     ring->addr_w = 0;
     ring->addr_r = 0;

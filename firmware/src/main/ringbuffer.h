@@ -20,6 +20,7 @@ extern inline int8_t  ring_put     (volatile struct RingBuffer *ring, char dat);
 extern inline uint8_t ring_get     (volatile struct RingBuffer *ring, char *dat, uint8_t len);
 extern inline uint8_t ring_isfull  (volatile struct RingBuffer *ring);
 extern inline uint8_t ring_isempty (volatile struct RingBuffer *ring);
+extern inline uint8_t ring_used    (volatile struct RingBuffer *ring);
 extern inline void    ring_clear   (volatile struct RingBuffer *ring);
 
 #ifdef __cplusplus

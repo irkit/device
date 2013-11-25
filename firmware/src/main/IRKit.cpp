@@ -636,12 +636,12 @@ void IRKit_loop() {
             IR_dump();
             Serial.println();
         }
-        else if (last_character == 's') {
-            keys.set(GSSECURITY_WPA2_PSK,
-                     PB("Rhodos",1),
-                     PB("aaaaaaaaaaaaa",2));
-            keys.setKey(P("C7363FDA0F06406AB11C29BA41272AE3"));
-            keys.save();
-        }
+        // else if (last_character == 's') {
+        //     keys.set(GSSECURITY_WPA2_PSK,
+        //              PB("Rhodos",1),
+        //              PB("aaaaaaaaaaaaa",2));
+        //     keys.setKey(P("C7363FDA0F06406AB11C29BA41272AE3"));
+        //     keys.save();
+        // }
     }
 }

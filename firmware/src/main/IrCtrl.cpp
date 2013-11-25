@@ -262,7 +262,6 @@ ISR_COMPARE()
         if (IrCtrl.tx_index >= IrCtrl.len) {
             // tx successfully finished
             IR_TX_OFF();
-            IR_dump();
             IR_state( IR_IDLE );
             return;
         }
@@ -483,7 +482,7 @@ void IR_dump (void)
     Serial.print(P(".x:"));   Serial.println(IrCtrl.tx_index,HEX);
     Serial.print(P(".r:"));   Serial.println(IrCtrl.recv_timer);
     Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
-    Serial.print(P("p.l:"));  Serial.println(packer.length());
+    Serial.print(P("p.l:"));  Serial.println(packer.length(),HEX);
     for (uint16_t i=0; i<packer.length(); i++) {
         Serial.print((uint8_t)global.buffer[i], HEX);
         Serial.print(" ");
