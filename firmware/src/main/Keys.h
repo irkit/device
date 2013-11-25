@@ -67,6 +67,7 @@ class Keys {
     // and that's going to happen when other classes (ex: IR) uses global.buffer.
     // CRC is used to detect EEPROM corruption and corruption during Morse communication
 
+    // sizeof -> 134
     struct KeysShared
     {
         uint8_t    security;
@@ -100,6 +101,7 @@ class Keys {
         char       temp_key[MAX_KEY_LENGTH           + 1];
     } __attribute__ ((packed));
 
+    // sizeof -> 35
     struct KeysIndependent
     {
         char       key     [MAX_KEY_LENGTH           + 1];

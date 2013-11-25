@@ -42,13 +42,13 @@
 
 #define ESCAPE            0x1B
 
-static char buf[GS_CMD_SIZE + 1];
+static char __buf_cmd[GS_CMD_SIZE + 1];
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
     serial_(serial)
 {
     _buf_cmd          = &ring_buffer_;
-    ring_init( _buf_cmd, buf, GS_CMD_SIZE + 1 );
+    ring_init( _buf_cmd, __buf_cmd, GS_CMD_SIZE + 1 );
     route_count_      = 0;
 }
 
@@ -94,7 +94,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
 // mDNS setup has to be done while joined to network
 int8_t GSwifi::setupMDNS() {
-    char cmd[GS_CMD_SIZE];
+    char *cmd;
 
     // no impact on discoverability
     // command(PB("AT+DHCPSRV",1), GSCOMMANDMODE_NORMAL);
@@ -102,10 +102,14 @@ int8_t GSwifi::setupMDNS() {
     command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
 
     // ex: "00:1d:c9:01:99:99"
-    sprintf(cmd, P("AT+MDNSHNREG=IRKit%c%c,local"), mac_[15], mac_[16]);
+    cmd = PB("AT+MDNSHNREG=IRKit%%,local",1);
+    cmd[18] = mac_[15];
+    cmd[19] = mac_[16];
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    sprintf(cmd, P("AT+MDNSSRVREG=IRKit%c%c,,_irkit,_tcp,local,80"), mac_[15], mac_[16]);
+    cmd = PB("AT+MDNSSRVREG=IRKit%%,,_irkit,_tcp,local,80",1);
+    cmd[19] = mac_[15];
+    cmd[20] = mac_[16];
     command(cmd, GSCOMMANDMODE_MDNS);
 
     command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
@@ -932,12 +936,13 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 }
 
 int GSwifi::listen(uint16_t port) {
-    char cmd[GS_CMD_SIZE];
+    char cmd[15];
 
     if ( ! joined_ ) {
         return -1;
     }
 
+    // longest: "AT+NSTCP=65535"
     sprintf(cmd, P("AT+NSTCP=%d"), port);
     command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
@@ -973,8 +978,9 @@ bool GSwifi::isListening () {
 // The new UART parameters take effect immediately. However, they are stored in RAM and will be lost when power is lost unless they are saved to a profile using AT&W (section 4.6.1). The profile used in that command must also be set as the power-on profile using AT&Y (section 4.6.3).
 // This command returns the standard command response (section 4) to the serial interface with the new UART configuration.
 int8_t GSwifi::setBaud (uint32_t baud) {
-    char cmd[GS_CMD_SIZE];
+    char cmd[11];
 
+    // longest: "ATB=921600"
     sprintf(cmd, P("ATB=%ld"), baud);
     serial_->println(cmd);
     Serial.print(P("c> ")); Serial.println(cmd);

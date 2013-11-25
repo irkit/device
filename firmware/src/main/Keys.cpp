@@ -32,8 +32,6 @@ void Keys::load()
 {
     eeprom_read_block((void*)data,   (void*)0,                  sizeof(KeysShared));
     eeprom_read_block((void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
-    Serial.println(sizeof(KeysShared));
-    Serial.println(sizeof(KeysIndependent));
     if (! isCRCOK()) {
         clear();
     }
