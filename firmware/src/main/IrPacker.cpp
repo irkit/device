@@ -4,6 +4,7 @@
 # include <avr/eeprom.h>
 #else
 # include <stdio.h>
+# include <stdlib.h>
 #endif
 
 #define IRPACKER_OFFSET 30
@@ -89,11 +90,11 @@ void IrPacker::packEnd() {
         }
     }
     else {
-        buff_[ bitpack_start_     ] = BITPACK_MARKER;
-        buff_[ bitpack_start_ + 1 ] = val0_;
-        buff_[ bitpack_start_ + 2 ] = val1_;
-        buff_[ bitpack_start_ + 3 ] = bit_index_;
-        length_ += (5 + ((bit_index_-1) >> 3));
+        buff_[ length_ ++ ] = BITPACK_MARKER;
+        buff_[ length_ ++ ] = val0_;
+        buff_[ length_ ++ ] = val1_;
+        buff_[ length_ ++ ] = bit_index_;
+        length_ += (1 + ((bit_index_-1) >> 3));
     }
     val0_      = 0;
     val1_      = 0;
@@ -101,7 +102,7 @@ void IrPacker::packEnd() {
 }
 
 // returns safe length (we might consume less, but not more)
-uint8_t IrPacker::length() {
+uint16_t IrPacker::length() {
     return length_ + 5 + (bit_index_ >> 3);
 }
 
@@ -113,7 +114,6 @@ void IrPacker::bitpack( uint8_t data ) {
     // don't pack 0, val0 is empty if equal to 0
     else if ( ! val0_ ) {
         val0_          = data;
-        bitpack_start_ = length_;
     }
     // if data is similar to val0, pack it
     // 2: less than 12% (3.5 * 3.5) error rate
@@ -146,13 +146,12 @@ void IrPacker::bitpack( uint8_t data ) {
     else {
         packEnd();
         val0_          = data;
-        bitpack_start_ = length_;
     }
 }
 
 void IrPacker::addBit(bool value) {
     uint8_t byte_index = bit_index_ >> 3;
-    uint8_t offset     = bitpack_start_ + 4 + byte_index;
+    uint16_t offset    = length_ + 4 + byte_index;
     uint8_t odd        = bit_index_ % 8;
     if (odd == 0) {
         buff_[ offset ] = 0;
@@ -217,10 +216,9 @@ uint16_t IrPacker::unpack() {
     }
     uint8_t data = buff_[ byte_index_ ];
     if (data == BITPACK_MARKER) {
-        bitpack_start_  = byte_index_;
-        val0_           = buff_[ bitpack_start_ + 1 ];
-        val1_           = buff_[ bitpack_start_ + 2 ];
-        bitpack_length_ = buff_[ bitpack_start_ + 3 ];
+        val0_           = buff_[ byte_index_ + 1 ];
+        val1_           = buff_[ byte_index_ + 2 ];
+        bitpack_length_ = buff_[ byte_index_ + 3 ];
         bit_index_      = 0;
         return unpackBit();
     }
@@ -233,7 +231,7 @@ uint16_t IrPacker::unpack() {
 uint16_t IrPacker::unpackBit() {
     uint8_t  odd             = bit_index_ % 8;
     uint8_t  bitpacked_bytes = bit_index_ >> 3;
-    uint8_t  packed          = bitRead( buff_[ bitpack_start_ + 4 + bitpacked_bytes ], 7 - odd )
+    uint8_t  packed          = bitRead( buff_[ byte_index_ + 4 + bitpacked_bytes ], 7 - odd )
                                    ? val1_ : val0_;
     uint16_t unpacked        = unpackSingle( packed );
 

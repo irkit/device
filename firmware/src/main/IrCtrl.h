@@ -12,10 +12,11 @@
 /* Put hardware dependent include files here */
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "Global.h"
 
 // Structure of IR function work area
-// buff size must be at least 259 to store 16byte of ir data
-#define IR_BUFF_SIZE       256
+// Known most longest IR data uses 363bytes (after compressed using IrPacker)
+#define IR_BUFF_SIZE       GLOBAL_BUFFER_SIZE
 
 #define IR_DEFAULT_CARRIER 38
 

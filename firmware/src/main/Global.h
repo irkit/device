@@ -7,13 +7,15 @@ enum GBufferMode {
     GBufferModeUnused          = 10,
 };
 
+#define GLOBAL_BUFFER_SIZE 400
+
 class Global {
  public:
     Global();
     void loop();
     unsigned long now;
 
-    volatile char buffer[ 256 ];
+    volatile char buffer[ GLOBAL_BUFFER_SIZE ];
     GBufferMode buffer_mode;
 };
 

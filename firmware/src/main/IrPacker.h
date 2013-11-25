@@ -18,7 +18,7 @@ class IrPacker
     uint16_t unpackSingle( uint8_t data );
 
     // buff space used (not total unpacked length, caller should manage that)
-    uint8_t  length();
+    uint16_t  length();
 
     void     clear();
 
@@ -35,14 +35,13 @@ class IrPacker
     // unpacking
     uint16_t unpackBit();
     volatile uint8_t *buff_;
-    uint8_t  length_;
+    uint16_t  length_;
 
     // bitpack
     uint8_t  val0_;
     uint8_t  val1_;
     uint8_t  bit_index_;
     uint8_t  byte_index_;
-    uint8_t  bitpack_start_;
     uint8_t  bitpack_length_;
 };
 
