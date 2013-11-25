@@ -7,7 +7,7 @@
 # include <stdlib.h>
 #endif
 
-#define IRPACKER_OFFSET 30
+#define IRPACKER_OFFSET 30 // 0-29 is reserved for special data
 #define BITPACK_MARKER  0x01
 
 // Packing/Unpacking uint16_t data into uint8_t data
@@ -180,7 +180,7 @@ uint8_t IrPacker::packSingle( uint16_t data ) {
         return 0xFF;
     }
     if (data >= tree[TREE_SIZE - 1]) {
-        return IRPACKER_OFFSET + TREE_SIZE - 1;
+        return TREE_SIZE - 1 + IRPACKER_OFFSET;
     }
     uint8_t min_index = 0;
     uint8_t max_index = TREE_SIZE - 1;
@@ -254,7 +254,7 @@ uint16_t IrPacker::unpackSingle( uint8_t data ) {
     if (data == 0xFF) {
         return 0xFFFF;
     }
-    if (data - 30 >= TREE_SIZE - 1) {
+    if (data >= TREE_SIZE - 1 + IRPACKER_OFFSET) {
         return tree[TREE_SIZE - 1];
     }
     return tree[ data - IRPACKER_OFFSET ];
@@ -263,13 +263,6 @@ uint16_t IrPacker::unpackSingle( uint8_t data ) {
 void IrPacker::save( void *offset ) {
 #ifdef ARDUINO
     uint16_t tree[TREE_SIZE] = {
-        30, 31, 32, 33, 34, 35, 36, 38,
-        39, 40, 42, 43, 45, 46, 48, 50,
-        52, 53, 55, 57, 59, 61, 63, 66,
-        68, 70, 73, 75, 78, 81, 84, 87,
-        90, 93, 96, 100, 103, 107, 110, 114,
-        118, 122, 127, 131, 136, 141, 146, 151,
-        156, 161, 167, 173, 179, 185, 192, 198,
         205, 213, 220, 228, 236, 244, 253, 262,
         271, 280, 290, 300, 311, 322, 333, 345,
         357, 369, 382, 395, 409, 424, 439, 454,

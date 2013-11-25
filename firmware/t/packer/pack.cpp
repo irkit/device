@@ -6,13 +6,6 @@
 // Arduino can load from EEPROM, but we can't
 void fillTree(IrPacker *packer) {
     uint16_t tree[TREE_SIZE] = {
-        30, 31, 32, 33, 34, 35, 36, 38,
-        39, 40, 42, 43, 45, 46, 48, 50,
-        52, 53, 55, 57, 59, 61, 63, 66,
-        68, 70, 73, 75, 78, 81, 84, 87,
-        90, 93, 96, 100, 103, 107, 110, 114,
-        118, 122, 127, 131, 136, 141, 146, 151,
-        156, 161, 167, 173, 179, 185, 192, 198,
         205, 213, 220, 228, 236, 244, 253, 262,
         271, 280, 290, 300, 311, 322, 333, 345,
         357, 369, 382, 395, 409, 424, 439, 454,
@@ -47,9 +40,17 @@ int main(int argc,char *argv[]) {
         fprintf(stderr, "usage: pack 64390");
         exit(1);
     }
-    uint16_t input = atoi( argv[1] );
+    char *input_string = argv[1];
+    uint16_t input;
+    if ( strnstr(input_string, "0x", 2) == input_string ) {
+        // if 0x appears in first 2 letters, it's hex
+        input = (uint16_t) strtol( input_string, NULL, 16 );
+    }
+    else {
+        input = atoi( argv[1] );
+    }
     uint8_t packed = packer.packSingle( input );
 
-    printf( "%d (0x%x)\n", packed, packed );
+    printf( "%d (0x%x) -> %d (0x%x)\n", input, input, packed, packed );
     exit(0);
 }

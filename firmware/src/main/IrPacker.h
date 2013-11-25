@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define TREE_SIZE 224
+#define TREE_SIZE 168
 
 class IrPacker
 {
