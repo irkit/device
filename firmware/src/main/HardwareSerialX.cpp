@@ -57,7 +57,9 @@ ISR(USART1_RX_vect)
 {
     if (bit_is_clear(UCSR1A, UPE1)) {
         unsigned char c = UDR1;
-        ring_put( &rx_buffer1, c );
+        if ( !ring_isfull( &rx_buffer1 ) ) {
+            ring_put( &rx_buffer1, c );
+        }
     } else {
         unsigned char c = UDR1;
     }
@@ -197,7 +199,7 @@ try_again:
 void HardwareSerialX::end()
 {
   // wait for transmission of outgoing data
-  while ( ring_used( _tx_buffer ) ) ;
+  while ( ! ring_isempty( _tx_buffer ) ) ;
 
   cbi(*_ucsrb, _rxen);
   cbi(*_ucsrb, _txen);
@@ -210,12 +212,12 @@ void HardwareSerialX::end()
 
 int HardwareSerialX::available(void)
 {
-    return ring_used( _rx_buffer );
+    return ! ring_isempty( _rx_buffer );
 }
 
 int HardwareSerialX::peek(void)
 {
-  return -1; // not implemented
+    return -1; // not implemented
 }
 
 int HardwareSerialX::read(void)
@@ -239,17 +241,11 @@ void HardwareSerialX::flush()
 
 size_t HardwareSerialX::write(uint8_t c)
 {
-    // int i = (_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE;
-
   // If the output buffer is full, there's nothing for it other than to
   // wait for the interrupt handler to empty it a bit
   // ???: return 0 here instead?
-  // while (i == _tx_buffer->tail)
-  //   ;
   while (ring_isfull( _tx_buffer )) ;
 
-  // _tx_buffer->buffer[_tx_buffer->head] = c;
-  // _tx_buffer->head = i;
   ring_put( _tx_buffer, c );
 
   sbi(*_ucsrb, _udrie);

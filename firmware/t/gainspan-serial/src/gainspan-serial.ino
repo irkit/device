@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "pgmStrToRAM.h"
+#include "HardwareSerialX.h"
 
 void setup() {
     // USB serial
@@ -13,13 +14,13 @@ void setup() {
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // gainspan
-    Serial1.begin(38400);
+    Serial1X.begin(38400);
 }
 
 void loop() {
     // gainspan -> usb
-    if (Serial1.available()) {
-        Serial.write(Serial1.read());
+    if (Serial1X.available()) {
+        Serial.write(Serial1X.read());
     }
 
     // usb -> gainspan
@@ -28,7 +29,7 @@ void loop() {
 
         last_character = Serial.read();
 
-        Serial1.write(last_character);
+        Serial1X.write(last_character);
         Serial.write(last_character);
     }
 }

@@ -110,7 +110,7 @@ void timerLoop() {
         connect();
     }
 
-    while (ring_used(&command_queue)) {
+    while (! ring_isempty(&command_queue)) {
         char command;
         ring_get(&command_queue, &command, 1);
 
@@ -427,10 +427,11 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
     ring_put( &command_queue, COMMAND_CLOSE );
     ring_put( &command_queue, cid );
     ring_put( &command_queue, COMMAND_CLOSE );
-    int8_t result = ring_put( &command_queue, post_keys_cid );
-    if ( result < 0 ) {
+    if (ring_isfull( &command_queue )) {
         Serial.println(("!E8"));
+        return -1;
     }
+    ring_put( &command_queue, post_keys_cid );
 
     return 0;
 }
