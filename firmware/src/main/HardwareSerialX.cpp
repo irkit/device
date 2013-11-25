@@ -47,41 +47,41 @@
 
 #define RX_BUFFER_SIZE 64
 #define TX_BUFFER_SIZE 64
-static struct RingBuffer rx_buffer1;
-static char rx_buffer1_data[RX_BUFFER_SIZE + 1];
+volatile struct RingBuffer rx_buffer1;
+volatile char rx_buffer1_data[RX_BUFFER_SIZE + 1];
 
-static struct RingBuffer tx_buffer1;
-static char tx_buffer1_data[TX_BUFFER_SIZE + 1];
+volatile struct RingBuffer tx_buffer1;
+volatile char tx_buffer1_data[TX_BUFFER_SIZE + 1];
 
 ISR(USART1_RX_vect)
 {
-    if (bit_is_clear(UCSR1A, UPE1)) {
-        unsigned char c = UDR1;
-        if ( !ring_isfull( &rx_buffer1 ) ) {
-            ring_put( &rx_buffer1, c );
-        }
-    } else {
-        unsigned char c = UDR1;
+  if (bit_is_clear(UCSR1A, UPE1)) {
+    unsigned char c = UDR1;
+    if ( !ring_isfull( &rx_buffer1 ) ) {
+      ring_put( &rx_buffer1, c );
     }
+  } else {
+    unsigned char c = UDR1;
+  }
 }
 
 ISR(USART1_UDRE_vect)
 {
-    if (ring_isempty( &tx_buffer1 )) {
-        // Buffer empty, so disable interrupts
-        cbi(UCSR1B, UDRIE1);
-    }
-    else {
-        // There is more data in the output buffer. Send the next byte
-        char c;
-        ring_get( &tx_buffer1, &c, 1 );
-        UDR1 = c;
-    }
+  if (ring_isempty( &tx_buffer1 )) {
+    // Buffer empty, so disable interrupts
+    cbi(UCSR1B, UDRIE1);
+  }
+  else {
+    // There is more data in the output buffer. Send the next byte
+    char c;
+    ring_get( &tx_buffer1, &c, 1 );
+    UDR1 = c;
+  }
 }
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-HardwareSerialX::HardwareSerialX(RingBuffer *rx_buffer, RingBuffer *tx_buffer,
+HardwareSerialX::HardwareSerialX(volatile RingBuffer *rx_buffer, volatile RingBuffer *tx_buffer,
   volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
   volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
   volatile uint8_t *ucsrc, volatile uint8_t *udr,
@@ -212,24 +212,24 @@ void HardwareSerialX::end()
 
 int HardwareSerialX::available(void)
 {
-    return ! ring_isempty( _rx_buffer );
+  return ! ring_isempty( _rx_buffer );
 }
 
 int HardwareSerialX::peek(void)
 {
-    return -1; // not implemented
+  return -1;
 }
 
 int HardwareSerialX::read(void)
 {
-    // if the head isn't ahead of the tail, we don't have any characters
-    if (ring_isempty( _rx_buffer )) {
-        return -1;
-    } else {
-        char c;
-        ring_get( _rx_buffer, &c, 1 );
-        return c;
-    }
+  // if the head isn't ahead of the tail, we don't have any characters
+  if (ring_isempty( _rx_buffer )) {
+    return -1;
+  } else {
+    char c;
+    ring_get( _rx_buffer, &c, 1 );
+    return c;
+  }
 }
 
 void HardwareSerialX::flush()
@@ -257,19 +257,9 @@ size_t HardwareSerialX::write(uint8_t c)
 }
 
 HardwareSerialX::operator bool() {
-	return true;
+  return true;
 }
 
 // Preinstantiate Objects //////////////////////////////////////////////////////
 
-// #if defined(UBRRH) && defined(UBRRL)
-//   HardwareSerialX Serial(&rx_buffer, &tx_buffer, &UBRRH, &UBRRL, &UCSRA, &UCSRB, &UCSRC, &UDR, RXEN, TXEN, RXCIE, UDRIE, U2X);
-// #elif defined(UBRR0H) && defined(UBRR0L)
-//   HardwareSerialX Serial(&rx_buffer, &tx_buffer, &UBRR0H, &UBRR0L, &UCSR0A, &UCSR0B, &UCSR0C, &UDR0, RXEN0, TXEN0, RXCIE0, UDRIE0, U2X0);
-// #elif defined(USBCON)
-//   // do nothing - Serial object and buffers are initialized in CDC code
-// #else
-//   #error no serial port defined  (port 0)
-// #endif
-
-HardwareSerialX Serial1X(NULL, NULL, &UBRR1H, &UBRR1L, &UCSR1A, &UCSR1B, &UCSR1C, &UDR1, RXEN1, TXEN1, RXCIE1, UDRIE1, U2X1);
+HardwareSerialX Serial1X(&rx_buffer1, &tx_buffer1, &UBRR1H, &UBRR1L, &UCSR1A, &UCSR1B, &UCSR1C, &UDR1, RXEN1, TXEN1, RXCIE1, UDRIE1, U2X1);

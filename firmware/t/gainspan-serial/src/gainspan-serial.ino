@@ -3,6 +3,13 @@
 #include "pgmStrToRAM.h"
 #include "HardwareSerialX.h"
 
+#define RX_BUFFER_SIZE 64
+#define TX_BUFFER_SIZE 64
+extern volatile struct RingBuffer rx_buffer1;
+extern volatile char rx_buffer1_data[RX_BUFFER_SIZE + 1];
+extern volatile struct RingBuffer tx_buffer1;
+extern volatile char tx_buffer1_data[TX_BUFFER_SIZE + 1];
+
 void setup() {
     // USB serial
     Serial.begin(115200);
@@ -29,7 +36,29 @@ void loop() {
 
         last_character = Serial.read();
 
-        Serial1X.write(last_character);
-        Serial.write(last_character);
+        if (last_character == 'd') {
+            Serial.println("rx:");
+            volatile struct RingBuffer *buf = &rx_buffer1;
+            Serial.print("size: "); Serial.println(buf->size);
+            Serial.print("r: "); Serial.println(buf->addr_r);
+            Serial.print("w: "); Serial.println(buf->addr_w);
+            for (uint8_t i=0; i<64; i++) {
+                Serial.print(rx_buffer1_data[i], HEX); Serial.print(" ");
+            }
+            Serial.println();
+            Serial.println("tx:");
+            buf = &tx_buffer1;
+            Serial.print("size: "); Serial.println(buf->size);
+            Serial.print("r: "); Serial.println(buf->addr_r);
+            Serial.print("w: "); Serial.println(buf->addr_w);
+            for (uint8_t i=0; i<64; i++) {
+                Serial.print(tx_buffer1_data[i], HEX); Serial.print(" ");
+            }
+            Serial.println();
+        }
+        else {
+            Serial1X.write(last_character);
+            Serial.write(last_character);
+        }
     }
 }

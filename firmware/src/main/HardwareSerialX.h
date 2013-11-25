@@ -32,8 +32,8 @@
 class HardwareSerialX : public Stream
 {
   private:
-    RingBuffer *_rx_buffer;
-    RingBuffer *_tx_buffer;
+    volatile RingBuffer *_rx_buffer;
+    volatile RingBuffer *_tx_buffer;
     volatile uint8_t *_ubrrh;
     volatile uint8_t *_ubrrl;
     volatile uint8_t *_ucsra;
@@ -47,7 +47,7 @@ class HardwareSerialX : public Stream
     uint8_t _u2x;
     bool transmitting;
   public:
-    HardwareSerialX(RingBuffer *rx_buffer, RingBuffer *tx_buffer,
+    HardwareSerialX(volatile RingBuffer *rx_buffer, volatile RingBuffer *tx_buffer,
       volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
       volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
       volatile uint8_t *ucsrc, volatile uint8_t *udr,
