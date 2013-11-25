@@ -14,7 +14,7 @@
 #include "LongPressButton.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-GSwifi gs(&Serial1);
+GSwifi gs(&Serial1X);
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 

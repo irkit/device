@@ -44,7 +44,7 @@
 
 static char buf[GS_CMD_SIZE + 1];
 
-GSwifi::GSwifi( HardwareSerial *serial ) :
+GSwifi::GSwifi( HardwareSerialX *serial ) :
     serial_(serial)
 {
     _buf_cmd          = &ring_buffer_;
@@ -77,6 +77,9 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     // enable bulk data mode
     command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
+
+    // enable software flow control
+    command(PB("AT&K1",1), GSCOMMANDMODE_NORMAL);
 
     // get my mac address
     command(PB("AT+NMAC=?",1), GSCOMMANDMODE_MAC);
@@ -164,8 +167,11 @@ void GSwifi::parseByte(uint8_t dat) {
     static uint8_t  next_token; // split each byte into tokens (cid,ip,port,length,data)
     static bool     escape = false;
 
-    if (dat == 0x1b) {
-        Serial.write('$');
+    if ((dat > 0x10) && (dat < 0x20)) {
+        // 0x1B : Escape
+        // 0x11 : XON
+        // 0x13 : XOFF
+        Serial.print(dat,HEX); Serial.print('|');
     }
     else { // if (next_token != NEXT_TOKEN_DATA) {
         Serial.write(dat);
