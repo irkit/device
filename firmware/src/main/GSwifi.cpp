@@ -601,6 +601,8 @@ int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
 
     serial_->println(msg);
     serial_->println(P("Access-Control-Allow-Origin: *"));
+    serial_->print(P("Server: IRKit/"));
+    serial_->println(version);
     serial_->println(P("Content-Type: text/plain\r\n"));
 }
 
