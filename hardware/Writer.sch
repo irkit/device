@@ -1461,6 +1461,11 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <wire x1="160.02" y1="238.76" x2="154.94" y2="238.76" width="0.1524" layer="91"/>
 <wire x1="154.94" y1="238.76" x2="154.94" y2="236.22" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="SW2" gate="G$1" pin="S2"/>
+<pinref part="GND1" gate="1" pin="GND"/>
+<wire x1="215.9" y1="99.06" x2="226.06" y2="99.06" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="+3V3" class="3">
 <segment>
@@ -1660,12 +1665,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <segment>
 <pinref part="SW2" gate="G$1" pin="S1"/>
 <wire x1="215.9" y1="109.22" x2="218.44" y2="109.22" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$8" class="0">
-<segment>
-<pinref part="SW2" gate="G$1" pin="S2"/>
-<wire x1="215.9" y1="99.06" x2="226.06" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$9" class="0">
