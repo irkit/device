@@ -102,14 +102,18 @@ int8_t GSwifi::setupMDNS() {
     command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
 
     // ex: "00:1d:c9:01:99:99"
-    cmd = PB("AT+MDNSHNREG=IRKit%%,local",1);
-    cmd[18] = mac_[15];
-    cmd[19] = mac_[16];
+    cmd = PB("AT+MDNSHNREG=IRKit%%%%,local",1);
+    cmd[18] = mac_[12];
+    cmd[19] = mac_[13];
+    cmd[20] = mac_[15];
+    cmd[21] = mac_[16];
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    cmd = PB("AT+MDNSSRVREG=IRKit%%,,_irkit,_tcp,local,80",1);
-    cmd[19] = mac_[15];
-    cmd[20] = mac_[16];
+    cmd = PB("AT+MDNSSRVREG=IRKit%%%%,,_irkit,_tcp,local,80",1);
+    cmd[19] = mac_[12];
+    cmd[20] = mac_[13];
+    cmd[21] = mac_[15];
+    cmd[22] = mac_[16];
     command(cmd, GSCOMMANDMODE_MDNS);
 
     command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
@@ -765,7 +769,7 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         else if ((gs_response_lines_ == 1) && (buf[1] == 'R')) {
             // 2nd line is something like:
-            // " Registration Success!! for RR: IRKitXX"
+            // " Registration Success!! for RR: IRKitXXXX"
             gs_response_lines_ = RESPONSE_LINES_ENDED;
         }
         break;
@@ -876,7 +880,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
 
     // set DHCP name with mac address
-    sprintf(cmd, P("AT+NDHCP=1,IRKit%c%c"), mac_[15], mac_[16]);
+    sprintf(cmd, P("AT+NDHCP=1,IRKit%c%c%c%c"), mac_[12], mac_[13],  mac_[15], mac_[16]);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
