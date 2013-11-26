@@ -188,6 +188,8 @@ public:
     int8_t post (const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second);
     int8_t close(uint8_t cid);
 
+    char *name();
+
     // TODO make accessor or rename
     struct RingBuffer *_buf_cmd;
 

@@ -869,7 +869,7 @@ void GSwifi::waitResponse (uint8_t timeout_second) {
     }
 }
 
-int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name) {
+int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name_) {
     char cmd[GS_CMD_SIZE];
 
     if (joined_) {
@@ -882,7 +882,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
 
     // set DHCP name with mac address
-    sprintf(cmd, P("AT+NDHCP=1,IRKit%c%c%c%c"), mac_[12], mac_[13],  mac_[15], mac_[16]);
+    sprintf(cmd, P("AT+NDHCP=1,%s"), name());
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
@@ -902,7 +902,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         // normal people don't understand difference between wep open/shared.
         // so we try shared first, and when it failed, try open
         if (gs_failure_ && (sec == GSSECURITY_WEP)) {
-            return join(GSSECURITY_OPEN, ssid, pass, dhcp, name);
+            return join(GSSECURITY_OPEN, ssid, pass, dhcp, name_);
         }
         break;
     case GSSECURITY_WPA_PSK:
@@ -923,7 +923,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
         command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
 
         if (gs_failure_) {
-            return join(GSSECURITY_WPA_PSK, ssid, pass, dhcp, name);
+            return join(GSSECURITY_WPA_PSK, ssid, pass, dhcp, name_);
         }
         break;
     default:
@@ -1098,6 +1098,15 @@ int8_t GSwifi::get(const char *path, GSResponseHandler handler, uint8_t timeout_
 
 int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second) {
     return request( GSMETHOD_POST, path, body, length, handler, timeout_second );
+}
+
+char* GSwifi::name() {
+    char *ret = PB("IRKit%%%%", 2);
+    ret[ 5 ] = mac_[12];
+    ret[ 6 ] = mac_[13];
+    ret[ 7 ] = mac_[15];
+    ret[ 8 ] = mac_[16];
+    return ret;
 }
 
 // careful, called from ISR

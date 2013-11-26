@@ -37,7 +37,7 @@ static uint8_t  post_keys_cid;
 static struct RingBuffer command_queue;
 static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
-#define KEY_BODY_LENGTH 36
+#define KEY_BODY_LENGTH 51
 
 //--- declaration
 
@@ -437,8 +437,9 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 }
 
 void postDoor() {
+    // key=[0-9A-F]{32}&name=IRKit%%%%
     char body[KEY_BODY_LENGTH+1];
-    sprintf(body, "key=%s", keys.getKey());
+    sprintf(body, "key=%s&name=%s", keys.getKey(), gs.name());
     gs.post( "/door", body, KEY_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
