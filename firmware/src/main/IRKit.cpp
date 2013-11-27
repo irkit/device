@@ -598,6 +598,7 @@ void IRKit_setup() {
 
     //--- initialize Wifi
 
+    pinMode(LDO33_ENABLE,     OUTPUT);
     reset3V3();
 
     gs.setup( &onDisconnect, &onReset );
