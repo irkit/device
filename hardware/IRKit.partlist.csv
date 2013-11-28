@@ -23,14 +23,15 @@
 "1";"5MMRGBLED";"5MMRGBLED";"LED5MMRGB";"LED2";"";"";
 "1";"680";"RESISTOR-US2012";"SMD2012";"R6";"Generic Registor";"";
 "1";"ATMEGA32U4AU";"ATMEGA32U4AU";"TQFP44-PAD";"IC1";"";"";
-"1";"BSS138";"BSS138";"SOT23";"T2";"Fairchild Semiconductors BSS138 N-Channel Logic Level Enhancement Mode Field Effect Transistor";"";
+"1";"BSS138";"BSS138";"SOT23";"T2";"";"";
 "3";"CG0603MLC-05E";"VARISTORCN0603";"CT/CN0603";"V1, V2, V3";"VARISTOR";"";
 "1";"EVQPUJ02K";"TACTILE-SWITCHEVQPUJ02K";"TACTILE-SWITCH-EVQPUJ02K";"SW1";"TACTILE SWITCH";"";
 "1";"GS1011MXXS";"GS1011MXXS";"GS1011MXXS";"IC4";"";"";
 "1";"ICSP";"PINHD-2X3";"2X03";"ICSP";"PIN HEADER";"";
-"2";"LA-6";"LED-SPACER";"LED-SPACER";"SP1, SP2";"";"";
+"1";"KUB2823";"MICELECTRET_SMD";"MIC_SMD_4MM";"MIC";"Omni-directional electret condenser microphone.";"";
 "1";"LED-CAP";"LED-CAP";"LED-CAP";"LEDCAP1";"";"";
-"1";"LM386M-1";"LM386M-1";"SO08";"IC3";"Low Voltage Audio Power Amplifier";"";
+"2";"LK-5";"LED-SPACER-LK";"LED-SPACER-LK";"SP1, SP2";"";"";
+"1";"LM386M-1/NOPB";"LM386M-1";"SO08";"IC3";"Low Voltage Audio Power Amplifier";"";
 "1";"MF-MSMF075-2";"L-EUL1812";"L1812";"F1";"INDUCTOR, European symbol";"";
 "1";"OSG50805C1C";"LED-2012";"LED2012";"LED1";"Through-hole LED";"";
 "1";"PL-IRM2161";"PL-IRM2161";"IR-RECEIVER";"IR-RECEIVER";"PL-IRM2161-XD1";"";
@@ -39,4 +40,3 @@
 "2";"VSLB3940";"LED-3MM";"LED3MM";"D1, D2";"Through-hole LED";"";
 "1";"ZX62-B-5PA(11)";"USB-CONNECTORMICROB";"USB-MICROB";"CN1";"";"";
 "4";"flat-head M3 self-tapping";"SCREW";"SCREW-M3";"SCREW1, SCREW2, SCREW3, SCREW4";"";"";
-"1";"kus0323";"MICELECTRET_SMD";"MIC_SMD_4MM";"MIC";"Omni-directional electret condenser microphone.";"";
