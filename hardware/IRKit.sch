@@ -7418,7 +7418,7 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <part name="V2" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="SP1" library="my" deviceset="LED-SPACER" device="-LK" value="LK-5"/>
 <part name="SP2" library="my" deviceset="LED-SPACER" device="-LK" value="LK-5"/>
-<part name="IC3" library="my" deviceset="LM386?-*" device="M" technology="1" value="LM386M-1"/>
+<part name="IC3" library="my" deviceset="LM386?-*" device="M" technology="1" value="LM386M-1/NOPB"/>
 <part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0323"/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
 <part name="R15" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
