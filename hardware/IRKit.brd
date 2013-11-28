@@ -601,17 +601,18 @@ Source: www.farnell.com/datasheets/49238.pdf</description>
 <rectangle x1="-0.5" y1="-0.5" x2="0.5" y2="0.5" layer="39"/>
 <rectangle x1="-0.5" y1="-0.5" x2="0.5" y2="0.5" layer="41"/>
 </package>
-<package name="LED-SPACER">
-<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.127" layer="51" curve="153.215004"/>
-<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51" curve="153.215004"/>
+<package name="LED-SPACER-LK">
+<description>&lt;a href="http://www.mac8sdk.co.jp/mac8/parts/LLL/lk.html"&gt;http://www.mac8sdk.co.jp/mac8/parts/LLL/lk.html&lt;/a&gt;</description>
+<wire x1="1.63" y1="0.5" x2="-1.62" y2="0.5" width="0.127" layer="51" curve="130"/>
+<wire x1="-1.65" y1="-0.5" x2="1.62" y2="-0.5" width="0.127" layer="51" curve="130"/>
 <wire x1="1.26" y1="0.5" x2="1.26" y2="-0.5" width="0.127" layer="51" curve="180"/>
-<wire x1="-2.1" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
-<wire x1="-2.1" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="-1.62" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
+<wire x1="-1.65" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
 <wire x1="-1.25" y1="0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51" curve="-180"/>
 <wire x1="1.25" y1="0.5" x2="1.26" y2="0.5" width="0.127" layer="51"/>
-<wire x1="1.26" y1="0.5" x2="2.1" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="0.5" x2="1.63" y2="0.5" width="0.127" layer="51"/>
 <wire x1="1.25" y1="-0.5" x2="1.26" y2="-0.5" width="0.127" layer="51"/>
-<wire x1="1.26" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="-0.5" x2="1.62" y2="-0.5" width="0.127" layer="51"/>
 </package>
 <package name="MIC_SMD_4MM">
 <circle x="1.9" y="0" radius="1.35" width="0.8" layer="31"/>
@@ -1452,8 +1453,8 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="12.2" y="50.1" size="1.016" layer="27" rot="R180"/>
 </element>
 <element name="U$1" library="logo" package="IRKIT-LOGO" value="" x="29.9" y="7.8"/>
-<element name="SP1" library="my" package="LED-SPACER" value="LA-6" x="29.625" y="5" rot="R195"/>
-<element name="SP2" library="my" package="LED-SPACER" value="LA-6" x="24.375" y="5" rot="R345"/>
+<element name="SP1" library="my" package="LED-SPACER-LK" value="LK-5" x="29.625" y="5" rot="R195"/>
+<element name="SP2" library="my" package="LED-SPACER-LK" value="LK-5" x="24.375" y="5" rot="R345"/>
 <element name="IC3" library="my" package="SO08" value="LM386M-1" x="30.9" y="45.4" smashed="yes" rot="R180">
 <attribute name="NAME" x="28.168" y="43.36" size="0.8128" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="27.598" y="47.94" size="1.27" layer="27" ratio="10" rot="R270"/>

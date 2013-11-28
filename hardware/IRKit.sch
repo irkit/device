@@ -4548,17 +4548,18 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <text x="-3.937" y="-4.064" size="1.27" layer="25" ratio="10" rot="R90">&gt;NAME</text>
 <text x="5.207" y="-4.064" size="1.27" layer="27" ratio="10" rot="R90">&gt;VALUE</text>
 </package>
-<package name="LED-SPACER">
-<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.127" layer="51" curve="153.215004"/>
-<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51" curve="153.215004"/>
+<package name="LED-SPACER-LK">
+<description>&lt;a href="http://www.mac8sdk.co.jp/mac8/parts/LLL/lk.html"&gt;http://www.mac8sdk.co.jp/mac8/parts/LLL/lk.html&lt;/a&gt;</description>
+<wire x1="1.63" y1="0.5" x2="-1.62" y2="0.5" width="0.127" layer="51" curve="130"/>
+<wire x1="-1.65" y1="-0.5" x2="1.62" y2="-0.5" width="0.127" layer="51" curve="130"/>
 <wire x1="1.26" y1="0.5" x2="1.26" y2="-0.5" width="0.127" layer="51" curve="180"/>
-<wire x1="-2.1" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
-<wire x1="-2.1" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="-1.62" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
+<wire x1="-1.65" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
 <wire x1="-1.25" y1="0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51" curve="-180"/>
 <wire x1="1.25" y1="0.5" x2="1.26" y2="0.5" width="0.127" layer="51"/>
-<wire x1="1.26" y1="0.5" x2="2.1" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="0.5" x2="1.63" y2="0.5" width="0.127" layer="51"/>
 <wire x1="1.25" y1="-0.5" x2="1.26" y2="-0.5" width="0.127" layer="51"/>
-<wire x1="1.26" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="-0.5" x2="1.62" y2="-0.5" width="0.127" layer="51"/>
 </package>
 <package name="TACTILE-SWITCH-FSMRA6JH">
 <wire x1="3.683" y1="4.01" x2="3.683" y2="1.27" width="0.1524" layer="51"/>
@@ -5058,6 +5059,19 @@ NS Package M08A</description>
 <rectangle x1="2.159" y1="-2.921" x2="2.921" y2="-1.905" layer="21"/>
 <rectangle x1="2.159" y1="-5.461" x2="2.921" y2="-4.699" layer="21"/>
 <rectangle x1="2.159" y1="-4.699" x2="2.921" y2="-2.921" layer="51"/>
+</package>
+<package name="LED-SPACER-LM">
+<description>&lt;a href="http://www.mac8sdk.co.jp/mac8/parts/LLL/lm.html"&gt;http://www.mac8sdk.co.jp/mac8/parts/LLL/lm.html&lt;/a&gt;</description>
+<wire x1="2.1" y1="0.5" x2="-2.1" y2="0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="-2.1" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51" curve="153.215004"/>
+<wire x1="1.26" y1="0.5" x2="1.26" y2="-0.5" width="0.127" layer="51" curve="180"/>
+<wire x1="-2.1" y1="0.5" x2="-1.25" y2="0.5" width="0.127" layer="51"/>
+<wire x1="-2.1" y1="-0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="-1.25" y1="0.5" x2="-1.25" y2="-0.5" width="0.127" layer="51" curve="-180"/>
+<wire x1="1.25" y1="0.5" x2="1.26" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="0.5" x2="2.1" y2="0.5" width="0.127" layer="51"/>
+<wire x1="1.25" y1="-0.5" x2="1.26" y2="-0.5" width="0.127" layer="51"/>
+<wire x1="1.26" y1="-0.5" x2="2.1" y2="-0.5" width="0.127" layer="51"/>
 </package>
 </packages>
 <symbols>
@@ -6957,7 +6971,12 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <gate name="G$1" symbol="LED-SPACER" x="0" y="0"/>
 </gates>
 <devices>
-<device name="" package="LED-SPACER">
+<device name="-LM" package="LED-SPACER-LM">
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="-LK" package="LED-SPACER-LK">
 <technologies>
 <technology name=""/>
 </technologies>
@@ -7397,8 +7416,8 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <part name="RC2" library="my" deviceset="R" device="3225" value="10Ω 0.5W"/>
 <part name="V1" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
 <part name="V2" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
-<part name="SP1" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
-<part name="SP2" library="my" deviceset="LED-SPACER" device="" value="LA-6"/>
+<part name="SP1" library="my" deviceset="LED-SPACER" device="-LK" value="LK-5"/>
+<part name="SP2" library="my" deviceset="LED-SPACER" device="-LK" value="LK-5"/>
 <part name="IC3" library="my" deviceset="LM386?-*" device="M" technology="1" value="LM386M-1"/>
 <part name="MIC" library="my" deviceset="MIC" device="ELECTRET_SMD" value="kus0323"/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
