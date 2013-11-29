@@ -87,6 +87,7 @@ void reset3V3 () {
 void longPressed() {
     Serial.println("long");
     keys.clear();
+    keys.save();
     reset3V3();
 }
 
@@ -336,6 +337,7 @@ int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
         // keys have expired, we have to start from morse sequence again
         gs.close(cid);
         keys.clear();
+        keys.save();
         break;
     case 408:
     case 503: // heroku responds with 503 if longer than 30sec
@@ -537,7 +539,7 @@ void letterCallback( char letter ) {
         return;
     }
 
-    uint8_t result = keys.put( letter );
+    int8_t result = keys.put( letter );
     if (result != 0) {
         // postpone til this "word" ends
         morse_error = true;
@@ -556,7 +558,6 @@ void wordCallback() {
     int8_t result = keys.putDone();
     if ( result != 0 ) {
         keys.clear();
-        Serial.println(P("cleared"));
     }
     else {
         keys.dump();

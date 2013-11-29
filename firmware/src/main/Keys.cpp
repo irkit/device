@@ -128,8 +128,6 @@ void Keys::clear(void)
 
     clearKey();
 
-    save();
-
     filler.state = KeysFillerStateSecurity;
     filler.index = 0;
 }
