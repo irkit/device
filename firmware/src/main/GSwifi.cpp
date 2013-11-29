@@ -64,9 +64,10 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     clear();
 
+    // version 2.5.1 firmware starts with 115200 baud rate
+    // version 2.4.3 firmware starts with 9600 baud rate
     serial_->begin(57600);
 
-    // version 2.5.1 firmware starts with 115200 baud rate
     // how to change baud rate
     // setBaud(57600);
     // command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
