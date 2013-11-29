@@ -14,15 +14,11 @@
 #include "LongPressButton.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-GSwifi gs(&Serial1X);
-
-FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
-
-MorseListener listener(MICROPHONE,100);
-
-LongPressButton clear_button(RESET_SWITCH, 5);
-
-Keys keys;
+static GSwifi gs(&Serial1X);
+static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+static MorseListener listener(MICROPHONE,100);
+static LongPressButton clear_button(RESET_SWITCH, 5);
+static Keys keys;
 volatile static uint8_t message_timer   = TIMER_OFF;
 volatile static uint8_t reconnect_timer = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
