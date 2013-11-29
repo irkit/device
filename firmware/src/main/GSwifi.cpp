@@ -781,6 +781,11 @@ void GSwifi::parseCmdResponse (char *buf) {
         if ((gs_response_lines_ == 0) && (buf[2] == ':')) {
             // 1st line is something like:
             // "00:1d:c9:01:99:99"
+            for (uint8_t i=0; i<17; i++) {
+                if (buf[i] >= 'a') {
+                    buf[i] -= 0x20; // a -> A
+                }
+            }
             sprintf( mac_, "%s", buf );
             gs_response_lines_ ++;
         }
