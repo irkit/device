@@ -31,7 +31,8 @@ static uint8_t  post_keys_cid;
 
 #define COMMAND_POST_KEYS  1
 #define COMMAND_SETUP      2
-#define COMMAND_CLOSE      3
+#define COMMAND_CONNECT    3
+#define COMMAND_CLOSE      4
 
 #define COMMAND_QUEUE_SIZE 6
 static struct RingBuffer command_queue;
@@ -128,6 +129,8 @@ void timerLoop() {
             break;
         case COMMAND_SETUP:
             gs.setup( &onDisconnect, &onReset );
+            // vv continues
+        case COMMAND_CONNECT:
             connect();
             break;
         case COMMAND_CLOSE:
@@ -169,8 +172,9 @@ int8_t onReset() {
 
 int8_t onDisconnect() {
     Serial.println(("!E11"));
+    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-    connect();
+    ring_put(&command_queue, COMMAND_CONNECT);
     return 0;
 }
 

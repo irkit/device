@@ -682,17 +682,17 @@ void GSwifi::parseLine () {
                  strncmp(buf, P("Disassociat"), 11) == 0) {
             // Disassociated
             // Disassociation Event
-            Serial.println(("!E12"));
             clear();
             on_disconnect_();
+            gs_failure_ = true;
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
                  strncmp(buf, P("APP Reset"), 9) == 0) {
             // APP Reset-APP SW Reset
             // APP Reset-Wlan Except
-            Serial.println(("!E13"));
             clear();
             on_reset_();
+            gs_failure_ = true;
         }
         // else if (strncmp(buf, P("Out of StandBy-Timer"), 20) == 0 ||
         //          strncmp(buf, P("Out of StandBy-Alarm"), 20) == 0) {
@@ -877,7 +877,8 @@ void GSwifi::waitResponse (uint8_t timeout_second) {
 }
 
 int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp, char *name_) {
-    char cmd[GS_CMD_SIZE];
+    char *cmd;
+    uint8_t offset;
 
     if (joined_) {
         return -1;
@@ -889,21 +890,25 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
 
     // set DHCP name with mac address
-    sprintf(cmd, P("AT+NDHCP=1,%s"), name());
+    cmd = PB("AT+NDHCP=1,%",1);
+    strcpy( cmd+11, name());
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
     case GSSECURITY_NONE:
     case GSSECURITY_OPEN:
     case GSSECURITY_WEP:
-        sprintf(cmd, P("AT+WAUTH=%d"), sec);
+        cmd = PB("AT+WAUTH=%",1);
+        cmd[ 9 ] = i2x(sec);
         command(cmd, GSCOMMANDMODE_NORMAL);
         if (sec != GSSECURITY_NONE) {
             // key are either 10 or 26 hexadecimal digits corresponding to a 40- bit or 104-bit key
-            sprintf(cmd, P("AT+WWEP1=%s"), pass);
+            cmd = PB("AT+WWEP1=%",1);
+            strcpy(cmd+9, pass);
             command(cmd, GSCOMMANDMODE_NORMAL);
         }
-        sprintf(cmd, P("AT+WA=%s"), ssid);
+        cmd = PB("AT+WA=%",1);
+        strcpy(cmd+6, ssid);
         command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
 
         // normal people don't understand difference between wep open/shared.
@@ -915,18 +920,30 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     case GSSECURITY_WPA_PSK:
         command(PB("AT+WAUTH=0",1), GSCOMMANDMODE_NORMAL);
 
-        sprintf(cmd, P("AT+WWPA=%s"), pass);
+        cmd = PB("AT+WWPA=%",1);
+        strcpy( cmd+8, pass);
         command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
-        sprintf(cmd, P("AT+WA=%s"), ssid);
+        cmd = PB("AT+WA=%",1);
+        strcpy( cmd+6, ssid);
         command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
         break;
     case GSSECURITY_WPA2_PSK:
         command(PB("AT+WAUTH=0",1), GSCOMMANDMODE_NORMAL);
-        sprintf(cmd, P("AT+WPAPSK=%s,%s"), ssid, pass);
+
+        cmd = PB("AT+WPAPSK=%,%",1);
+        offset = 10;
+        strcpy( cmd+offset, ssid );
+
+        offset += strlen(ssid);
+        cmd[ offset ] = ',';
+
+        offset += 1;
+        strcpy( cmd+offset, pass );
         command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
-        sprintf(cmd, P("AT+WA=%s"), ssid);
+        cmd = PB("AT+WA=%",1);
+        strcpy( cmd+6, ssid);
         command(cmd, GSCOMMANDMODE_DHCP, GS_TIMEOUT_LONG);
 
         if (gs_failure_) {
