@@ -127,7 +127,7 @@ int8_t GSwifi::setupMDNS() {
 
 int8_t GSwifi::close (uint8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
-    cmd[ 10 ]  = cid + '0';
+    cmd[ 10 ] = i2x(cid);
 
     TIMER_STOP( timers_[cid] );
 
@@ -579,7 +579,7 @@ inline bool GSwifi::cidIsRequest(uint8_t cid) {
 
 int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
     char *cmd = PB("S0",1);
-    cmd[ 1 ]  = cid + '0';
+    cmd[ 1 ]  = i2x(cid);
 
     escape( cmd );
 
@@ -1028,35 +1028,37 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     }
 
     uint8_t cid = connected_cid_; // this might change inside command()
+    char xid    = i2x(cid);
 
     handlers_[ cid ] = handler;
 
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,10,10,4"), cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,10,10,4"), xid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // Enable TCP_KEEPALIVE on this socket
     // AT+SETSOCKOPT=0,65535,8,1,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,65535,8,1,4"), cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%c,65535,8,1,4"), xid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_PROBES = 2
     // AT+SETSOCKOPT=0,6,4005,2,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4005,2,4"), cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,4005,2,4"), xid);
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_INTVL = 150
     // AT+SETSOCKOPT=0,6,4001,150,4
     // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    sprintf(cmd, P("AT+SETSOCKOPT=%d,6,4001,150,4"), cid);
+    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,4001,150,4"), xid);
     command(cmd, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
 
-    sprintf(cmd, "S%d", cid);
-    escape( cmd );
+    char *cmd2 = PB("S0",1);
+    cmd2[ 1 ]  = xid;
+    escape( cmd2 );
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("POST "));
