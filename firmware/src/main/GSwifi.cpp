@@ -68,11 +68,10 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     // version 2.4.3 firmware starts with 9600 baud rate
     serial_->begin(57600);
 
-    // how to change baud rate
+    // how to change baud rate (2.5.1 has only one profile, don't need to send AT&Y0)
     // setBaud(57600);
     // command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
     // command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
-    // command(PB("AT&Y0",1), GSCOMMANDMODE_NORMAL);
 
     // need this to ignore initial response
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);
