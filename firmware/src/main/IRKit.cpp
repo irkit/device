@@ -461,6 +461,7 @@ int8_t postKeys() {
 void connect() {
     global.buffer_mode = GBufferModeWifiCredentials;
     IR_state( IR_DISABLED );
+    listener.enable(false);
 
     // load wifi credentials from EEPROM
     keys.load();
