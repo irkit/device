@@ -16,11 +16,17 @@
 #define MAX_KEY_LENGTH           32
 
 enum KeysFillerState {
-    KeysFillerStateSecurity = 0,
-    KeysFillerStateSSID     = 1,
-    KeysFillerStatePassword = 2,
-    KeysFillerStateKey      = 3,
-    KeysFillerStateCRC      = 4,
+    KeysFillerStateSecurity  = 0,
+    KeysFillerStateSSID      = 1,
+    KeysFillerStatePassword  = 2,
+    KeysFillerStateKey       = 3,
+    KeysFillerStateReserved1 = 4,
+    KeysFillerStateReserved2 = 5,
+    KeysFillerStateReserved3 = 6,
+    KeysFillerStateReserved4 = 7,
+    KeysFillerStateReserved5 = 8,
+    KeysFillerStateReserved6 = 9,
+    KeysFillerStateCRC       = 10,
 };
 
 class KeysFiller {

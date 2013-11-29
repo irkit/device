@@ -140,7 +140,9 @@ void Keys::clearKey(void)
 // we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
-// [0248]/#{SSID}/#{Password}/#{Key}/#{CRC}
+// we might want to transfer more in the future (like static IP), so prepare reserved state
+// future iOS and firmware can support more parameters, while still supporting old firmware
+// [0248]/#{SSID}/#{Password}/#{Key}///////#{CRC}
 int8_t Keys::put(char code)
 {
     static uint8_t  character;
