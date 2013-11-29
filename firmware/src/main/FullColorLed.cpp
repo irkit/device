@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include "FullColorLed.h"
+#include "timer.h"
 
 FullColorLed::FullColorLed(int pinR, int pinG, int pinB) :
     pinR_(pinR),
     pinG_(pinG),
     pinB_(pinB),
     blinkOn_(0),
-    isBlinking_(false)
+    isBlinking_(false),
+    blink_timer_(TIMER_OFF)
 {
     pinMode(pinR_, OUTPUT);
     pinMode(pinG_, OUTPUT);
@@ -26,6 +28,14 @@ void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink
     digitalWrite(pinR_, colorR);
     digitalWrite(pinG_, colorG);
     digitalWrite(pinB_, colorB);
+
+    blink_timer_ = TIMER_OFF;
+}
+
+void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink, uint8_t blink_timeout) {
+    setLedColor( colorR, colorG, colorB, blink );
+
+    TIMER_START(blink_timer_, blink_timeout);
 }
 
 void FullColorLed::off() {
@@ -45,5 +55,11 @@ void FullColorLed::toggleBlink() {
         digitalWrite(pinR_, LOW);
         digitalWrite(pinG_, LOW);
         digitalWrite(pinB_, LOW);
+    }
+
+    TIMER_TICK(blink_timer_);
+    if (TIMER_FIRED(blink_timer_)) {
+        TIMER_STOP(blink_timer_);
+        isBlinking_ = false;
     }
 }

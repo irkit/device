@@ -75,25 +75,25 @@ void loop() {
             color.setLedColor(1,1,1);
         }
         else if (lastCharacter == 'R') {
-            color.setLedColor(1,0,0,true);
+            color.setLedColor(1,0,0,true,1);
         }
         else if (lastCharacter == 'G') {
-            color.setLedColor(0,1,0,true);
+            color.setLedColor(0,1,0,true,1);
         }
         else if (lastCharacter == 'B') {
-            color.setLedColor(0,0,1,true);
+            color.setLedColor(0,0,1,true,1);
         }
         else if (lastCharacter == 'C') {
-            color.setLedColor(0,1,1,true);
+            color.setLedColor(0,1,1,true,1);
         }
         else if (lastCharacter == 'M') {
-            color.setLedColor(1,0,1,true);
+            color.setLedColor(1,0,1,true,1);
         }
         else if (lastCharacter == 'Y') {
-            color.setLedColor(1,1,0,true);
+            color.setLedColor(1,1,0,true,1);
         }
         else if (lastCharacter == 'W') {
-            color.setLedColor(1,1,1,true);
+            color.setLedColor(1,1,1,true,1);
         }
     }
 }

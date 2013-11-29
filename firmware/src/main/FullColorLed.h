@@ -7,6 +7,7 @@ public:
     FullColorLed(int pinR, int pinG, int pinB);
     void setLedColor(bool colorR, bool colorG, bool colorB);
     void setLedColor(bool colorR, bool colorG, bool colorB, bool blink);
+    void setLedColor(bool colorR, bool colorG, bool colorB, bool blink, uint8_t blink_timeout);
     void off();
     void toggleBlink();
 
@@ -19,6 +20,7 @@ private:
     bool colorB_;
     bool isBlinking_; // defaults to off
     volatile bool blinkOn_; // altered inside timer ISR
+    volatile uint8_t blink_timer_;
 };
 
 #endif // __FULLCOLORLED_H__

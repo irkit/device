@@ -1,1 +1,1 @@
-../../upload.sh
+../freememory/upload.sh

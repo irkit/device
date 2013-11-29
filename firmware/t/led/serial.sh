@@ -1,1 +1,1 @@
-../../serial.sh
+../freememory/serial.sh

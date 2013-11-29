@@ -255,6 +255,7 @@ void jsonDetectedEnd() {
 
     Serial.println(("xmit"));
     IR_xmit();
+    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
 }
 
 int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
@@ -482,7 +483,7 @@ void connect() {
         keys.setWifiWasValid(true);
         keys.save();
 
-        color.setLedColor( 0, 1, 0, true );
+        color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
         // 0
         gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
@@ -505,18 +506,18 @@ void connect() {
 
         if (keys.wasWifiValid()) {
             // retry
-            color.setLedColor( 1, 0, 0, false );
+            color.setLedColor( 1, 0, 0, false ); // red: error
             TIMER_START(reconnect_timer, 5);
         }
         else {
             keys.clear();
-            color.setLedColor( 1, 0, 0, true );
+            color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
             listener.enable(true);
         }
     }
 
     if (gs.isListening()) {
-        color.setLedColor( 0, 1, 0, false );
+        color.setLedColor( 0, 0, 1, false ); // blue: ready
 
         if (keys.isAPIKeySet() && ! keys.isValid()) {
             postDoor();
@@ -578,7 +579,7 @@ void IRKit_setup() {
 
     FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
     FlexiTimer2::start();
-    color.setLedColor( 1, 0, 0, false );
+    color.setLedColor( 1, 0, 0, false ); // red: error
 
     //--- initialize long press button
 
