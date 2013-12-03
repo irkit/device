@@ -72,6 +72,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     // setBaud(57600);
     // command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
     // command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
+    // command(PB("AT&Y0",1), GSCOMMANDMODE_NORMAL);
 
     // need this to ignore initial response
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);

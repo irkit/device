@@ -3,4 +3,5 @@
 **/build-leonardo/
 src/main/version.c
 TAGS
+logs/
 *.log
