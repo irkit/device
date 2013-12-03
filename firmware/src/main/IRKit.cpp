@@ -628,13 +628,22 @@ void IRKit_loop() {
     // Wifi UART interface test
     if (Serial.available()) {
         static uint8_t last_character = '0';
+        static bool command_mode = false;
         last_character = Serial.read();
 
         Serial.write(last_character);
         Serial.println();
         Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-        if (last_character == 'd') {
+        if (last_character == 0x1B) {
+            command_mode = ! command_mode;
+            Serial.print("command_mode:"); Serial.println(command_mode);
+        }
+
+        if (command_mode) {
+            Serial1X.write(last_character);
+        }
+        else if (last_character == 'd') {
             keys.load();
 
             Serial.println();
