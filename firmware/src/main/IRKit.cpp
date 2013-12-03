@@ -652,6 +652,9 @@ void IRKit_loop() {
             IR_dump();
             Serial.println();
         }
+        else if (last_character == 'l') {
+            longPressed();
+        }
         // else if (last_character == 's') {
         //     keys.set(GSSECURITY_WPA2_PSK,
         //              PB("Rhodos",1),
