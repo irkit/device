@@ -688,9 +688,11 @@ void GSwifi::parseLine () {
             gs_failure_ = true;
         }
         else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
-                 strncmp(buf, P("APP Reset"), 9) == 0) {
+                 strncmp(buf, P("APP Reset"), 9) == 0 ||
+                 strncmp(buf, P("Serial2WiFi APP"), 15) == 0) {
             // APP Reset-APP SW Reset
             // APP Reset-Wlan Except
+            // Serial2Wifi APP
             clear();
             on_reset_();
             gs_failure_ = true;
