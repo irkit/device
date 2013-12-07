@@ -368,6 +368,7 @@ void IR_put (uint16_t data)
 static void IR_put_ (uint16_t data)
 {
     if (packer.length() >= IR_BUFF_SIZE) {
+        Serial.println("!E27");
         return;
     }
     packer.pack(data);

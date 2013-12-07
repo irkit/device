@@ -1150,11 +1150,10 @@ void GSwifi::onTimer() {
     TIMER_TICK( timeout_timer_ );
 }
 
-// for test
-// void GSwifi::dump () {
-//     Serial.print(P("joined_:"));            Serial.println(joined_);
-//     Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
-//     Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
-//     Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
-//     Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
-// }
+void GSwifi::dump () {
+    Serial.print(P("joined_:"));            Serial.println(joined_);
+    Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
+    Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
+    Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
+    Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
+}
