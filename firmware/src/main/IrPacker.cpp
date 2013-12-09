@@ -102,8 +102,12 @@ void IrPacker::packEnd() {
 }
 
 // returns safe length (we might consume less, but not more)
-uint16_t IrPacker::length() {
+uint16_t IrPacker::safelength() {
     return length_ + 5 + (bit_index_ >> 3);
+}
+
+uint16_t IrPacker::length() {
+    return length_;
 }
 
 void IrPacker::bitpack( uint8_t data ) {
@@ -222,10 +226,8 @@ uint16_t IrPacker::unpack() {
         bit_index_      = 0;
         return unpackBit();
     }
-    else {
-        byte_index_ ++;
-        return unpackSingle( data );
-    }
+    byte_index_ ++;
+    return unpackSingle( data );
 }
 
 uint16_t IrPacker::unpackBit() {

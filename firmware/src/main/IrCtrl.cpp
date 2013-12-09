@@ -203,7 +203,7 @@ ISR_CAPTURE()
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
         return;
     }
-    if (packer.length() >= IR_BUFF_SIZE) {
+    if (packer.safelength() >= IR_BUFF_SIZE) {
         // receive buffer overflow
         // data in buffer might be valid (later data might just be "repeat" data)
         // so wait for recv timeout and successfully transit to RECVED state
@@ -244,7 +244,7 @@ ISR_CAPTURE()
         for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailer_count; trailer--) {
             IR_put_(65535);
             IR_put_(0);
-            if (packer.length() >= IR_BUFF_SIZE) {
+            if (packer.safelength() >= IR_BUFF_SIZE) {
                 return;
             }
         }
@@ -372,7 +372,7 @@ uint16_t IR_packedlength (void)
 
 static void IR_put_ (uint16_t data)
 {
-    if (packer.length() >= IR_BUFF_SIZE) {
+    if (packer.safelength() >= IR_BUFF_SIZE) {
         Serial.println("!E27");
         return;
     }

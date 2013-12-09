@@ -76,7 +76,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 159, "17946" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -93,7 +93,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 30, "100" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -110,7 +110,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 197, "65000" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -127,7 +127,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 195, "60108" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -144,7 +144,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 255, "65535" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -161,7 +161,7 @@ int main() {
         packer.packEnd();
 
         ok( buff[ 0 ] == 0, "0" );
-        ok( packer.length() == 6 );
+        ok( packer.length() == 1 );
 
         packer.unpackStart();
         uint16_t unpacked = packer.unpack();
@@ -183,7 +183,7 @@ int main() {
         setBuffer8( expected, 2,
                     159, 139 );
         ok( (memcmp(buff, expected, 2) == 0), "packed ok" );
-        ok( packer.length() == 7 );
+        ok( packer.length() == 2 );
 
         uint16_t unpacked[ 100 ];
         unpack( &packer, unpacked, 2 );
@@ -206,7 +206,7 @@ int main() {
         setBuffer8( expected, 5,
                     1, 159, 0, 2, 0 );
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 10 );
+        ok( packer.length() == 5 );
 
         uint16_t unpacked[ 100 ];
         unpack( &packer, unpacked, 2 );
@@ -230,7 +230,7 @@ int main() {
                     1, 159, 139, 3, 0b00100000 );
 
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 10 );
+        ok( packer.length() == 5 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 5 );
 
@@ -256,7 +256,7 @@ int main() {
                     1, 159, 139, 3, 0b01000000 );
 
         ok( (memcmp(buff, expected, 5) == 0), "compared ok" );
-        ok( packer.length() == 10 );
+        ok( packer.length() == 5 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 5 );
 
@@ -297,7 +297,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 21) == 0), "compared ok" );
-        ok( packer.length() == 26 );
+        ok( packer.length() == 21 );
         // printf("length: %d\n", packer.length());
         // dump8( buff, 21 );
 
@@ -365,7 +365,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 21) == 0), "compared ok" );
-        ok( packer.length() == 26 ); // safe length
+        ok( packer.length() == 21 ); // safe length
         // printf("length: %d\n", packer.length());
         // dump8( buff, 21 );
 
@@ -430,7 +430,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 40) == 0), "compared ok" );
-        ok( packer.length() == 45 ); // safe length
+        ok( packer.length() == 40 ); // safe length
         // printf("length: %d\n", packer.length());
         // dump8( buff, 40 );
 
@@ -462,7 +462,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 7) == 0), "compared ok" );
-        ok( packer.length() == 12 ); // safe length
+        ok( packer.length() == 7 ); // safe length
         // printf("length: %d\n", packer.length());
         // dump8( buff, 7 );
 
@@ -625,7 +625,7 @@ int main() {
                     );
 
         ok( (memcmp(buff, expected, 363) == 0), "compared ok" );
-        ok( packer.length() == 368 ); // safe length
+        ok( packer.length() == 363 ); // safe length
         // printf("length: %d\n", packer.length());
         // dump8( buff, 363 );
 
