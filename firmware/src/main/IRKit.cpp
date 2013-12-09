@@ -39,8 +39,8 @@ static uint8_t  post_keys_cid;
 static struct RingBuffer command_queue;
 static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
-#define POST_DOOR_BODY_LENGTH 51
-#define POST_KEYS_BODY_LENGTH 36
+#define POST_DOOR_BODY_LENGTH 57
+#define POST_KEYS_BODY_LENGTH 42
 
 // 10sec is longer than client request timeout 5sec,
 // so client will retry after request timeout,
@@ -475,23 +475,23 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 }
 
 void postDoor() {
-    // key=[0-9A-F]{32}&name=IRKit%%%%
+    // devicekey=[0-9A-F]{32}&name=IRKit%%%%
     char body[POST_DOOR_BODY_LENGTH+1];
-    sprintf(body, "key=%s&name=%s", keys.getKey(), gs.name());
+    sprintf(body, "devicekey=%s&name=%s", keys.getKey(), gs.name());
     gs.post( "/door", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
 int8_t getMessages() {
-    // /messages?key=C7363FDA0F06406AB11C29BA41272AE3&newer_than=%s
+    // /messages?devicekey=C7363FDA0F06406AB11C29BA41272AE3&newer_than=%s
     char path[80];
-    sprintf(path, P("/messages?key=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
+    sprintf(path, P("/messages?devicekey=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
     return gs.get(path, &onGetMessagesResponse, 50);
 }
 
 int8_t postKeys() {
-    // key=[0-9A-F]{32}
+    // devicekey=[0-9A-F]{32}
     char body[POST_KEYS_BODY_LENGTH+1];
-    sprintf(body, "key=%s", keys.getKey());
+    sprintf(body, "devicekey=%s", keys.getKey());
     return gs.post( "/keys", body, POST_KEYS_BODY_LENGTH, &onPostKeysResponse, 10 );
 }
 
