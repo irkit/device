@@ -23,10 +23,6 @@ static Keys keys;
 volatile static uint8_t message_timer         = TIMER_OFF;
 volatile static uint8_t reconnect_timer       = TIMER_OFF;
 
-// if we have recently received GET /messages request,
-// delay our next request to API server for a while
-// to avoid concurrently processing receiving requests and requesting.
-volatile static uint8_t recently_polled_timer = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
 static uint8_t  post_keys_cid;
@@ -42,12 +38,6 @@ static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
 #define POST_DOOR_BODY_LENGTH 57
 #define POST_KEYS_BODY_LENGTH 42
-
-// 10sec is longer than client request timeout 5sec,
-// so client will retry after request timeout,
-// ensuring that we're not going to issue GET /messages against API server
-// while receiving requests from client
-#define SUSPEND_GET_MESSAGES_INTERVAL 10
 
 //--- declaration
 
@@ -121,11 +111,6 @@ void timerLoop() {
         connect();
     }
 
-    if (TIMER_FIRED(recently_polled_timer)) {
-        TIMER_STOP(recently_polled_timer);
-        Serial.println(P("recent timeout"));
-    }
-
     while (! ring_isempty(&command_queue)) {
         char command;
         ring_get(&command_queue, &command, 1);
@@ -169,8 +154,6 @@ void onTimer() {
     TIMER_TICK( message_timer );
 
     TIMER_TICK( reconnect_timer );
-
-    TIMER_TICK( recently_polled_timer );
 
     gs.onTimer();
 
@@ -362,14 +345,7 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
 
             gs.close(cid);
 
-            // if we have recently received GET /messages as a server
-            // suspend next GET /messages as a client
-            // for a while
-            uint8_t after = 0;
-            if (TIMER_RUNNING(recently_polled_timer)) {
-                after = SUSPEND_GET_MESSAGES_INTERVAL;
-            }
-            TIMER_START(message_timer, after);
+            TIMER_START(message_timer, 0);
         }
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
