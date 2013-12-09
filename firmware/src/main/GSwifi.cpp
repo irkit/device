@@ -29,6 +29,7 @@
 #include "ringbuffer.h"
 #include "version.h"
 #include "timer.h"
+#include "base64encoder.h"
 
 #define DOMAIN "api.getirkit.com"
 
@@ -43,6 +44,10 @@
 #define ESCAPE            0x1B
 
 static char __buf_cmd[GS_CMD_SIZE + 1];
+
+static void base64encoded( char encoded ) {
+    Serial1X.print(encoded);
+}
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
     serial_(serial)
@@ -1031,8 +1036,9 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSResponseHandler handler, uint8_t timeout) {
+int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
     char cmd[ GS_CMD_SIZE ];
+    char *cmd2;
 
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
@@ -1059,29 +1065,33 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,10,10,4"), xid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    cmd2 = PB("AT+SETSOCKOPT=%,6,10,10,4",1);
+    cmd2[ 14 ] = xid;
+    command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // Enable TCP_KEEPALIVE on this socket
     // AT+SETSOCKOPT=0,65535,8,1,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%c,65535,8,1,4"), xid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    cmd2 = PB("AT+SETSOCKOPT=%,65535,8,1,4",1);
+    cmd2[ 14 ] = xid;
+    command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_PROBES = 2
     // AT+SETSOCKOPT=0,6,4005,2,4
-    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,4005,2,4"), xid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    cmd2 = PB("AT+SETSOCKOPT=%,6,4005,2,4",1);
+    cmd2[ 14 ] = xid;
+    command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_INTVL = 150
     // AT+SETSOCKOPT=0,6,4001,150,4
     // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    sprintf(cmd, P("AT+SETSOCKOPT=%c,6,4001,150,4"), xid);
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    cmd2 = PB("AT+SETSOCKOPT=%,6,4001,150,4",1);
+    cmd2[ 14 ] = xid;
+    command(cmd2, GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
 
-    char *cmd2 = PB("S0",1);
+    cmd2 = PB("S0",1);
     cmd2[ 1 ]  = xid;
     escape( cmd2 );
 
@@ -1102,11 +1112,16 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("Content-Length: "));
-        serial_->println(length);
+        serial_->println( is_binary ? base64_length(length) : length );
 
         serial_->println(P("Content-Type: application/x-www-form-urlencoded"));
         serial_->println();
-        serial_->print(body);
+        if (is_binary) {
+            base64_encode((const uint8_t*)body, length, &base64encoded);
+        }
+        else {
+            serial_->print(body);
+        }
     }
     else {
         serial_->println();
@@ -1122,11 +1137,15 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 }
 
 int8_t GSwifi::get(const char *path, GSResponseHandler handler, uint8_t timeout_second) {
-    return request( GSMETHOD_GET, path, NULL, 0, handler, timeout_second );
+    return request( GSMETHOD_GET, path, NULL, 0, handler, timeout_second, false );
 }
 
 int8_t GSwifi::post(const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second) {
-    return request( GSMETHOD_POST, path, body, length, handler, timeout_second );
+    return request( GSMETHOD_POST, path, body, length, handler, timeout_second, false );
+}
+
+int8_t GSwifi::postBinary(const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second) {
+    return request( GSMETHOD_POST, path, body, length, handler, timeout_second, true );
 }
 
 char* GSwifi::name() {

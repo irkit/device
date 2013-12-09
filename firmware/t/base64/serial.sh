@@ -1,0 +1,1 @@
+../freememory/serial.sh

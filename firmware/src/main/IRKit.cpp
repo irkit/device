@@ -12,6 +12,7 @@
 #include "IrJsonParser.h"
 #include "timer.h"
 #include "LongPressButton.h"
+#include "base64encoder.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
 static GSwifi gs(&Serial1X);
@@ -57,7 +58,6 @@ void   onIRReceive();
 void   onTimer();
 int8_t onReset();
 int8_t onDisconnect();
-int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state);
 void   jsonDetectedStart();
 void   jsonDetectedData( uint8_t key, uint16_t value );
 void   jsonDetectedEnd();
@@ -70,6 +70,7 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
 int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state);
 void   postDoor();
 int8_t getMessages();
+int8_t postMessages();
 int8_t postKeys();
 void   connect();
 void   startNormalOperation();
@@ -158,6 +159,7 @@ void timerLoop() {
 
 void onIRReceive() {
     IR_dump();
+    postMessages();
 }
 
 // inside ISR, be careful
@@ -190,50 +192,6 @@ int8_t onDisconnect() {
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
     ring_put(&command_queue, COMMAND_CONNECT);
-    return 0;
-}
-
-int8_t onGetMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
-    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        Serial.println(("!E6"));
-        return -1;
-    }
-
-    TIMER_START(recently_polled_timer, SUSPEND_GET_MESSAGES_INTERVAL);
-    if (TIMER_RUNNING(message_timer)) {
-        // if we're already suspending requesting GET /messages as a client,
-        // keep suspending
-        TIMER_START(message_timer, SUSPEND_GET_MESSAGES_INTERVAL);
-    }
-
-    gs.writeHead(cid, 200);
-
-    if ( (global.buffer_mode == GBufferModeWifiCredentials) ||
-         (IrCtrl.len <= 0) ||
-         (IrCtrl.state != IR_RECVED) ) {
-        // if no data
-        gs.writeEnd();
-        gs.close(cid);
-        return 0;
-    }
-
-    IR_state( IR_READING );
-
-    gs.write(P("{\"format\":\"raw\",\"freq\":")); // format fixed to "raw" for now
-    gs.write(IrCtrl.freq);
-    gs.write(P(",\"data\":["));
-    for (uint16_t i=0; i<IrCtrl.len; i++) {
-        gs.write( IR_get() );
-        if (i != IrCtrl.len - 1) {
-            gs.write(",");
-        }
-    }
-    gs.write("]}");
-    gs.writeEnd();
-    gs.close(cid);
-
-    IR_state( IR_IDLE );
-
     return 0;
 }
 
@@ -326,13 +284,10 @@ int8_t onPostKeysRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
 
 int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
     switch (routeid) {
-    case 0: // GET /messages
-        return onGetMessagesRequest(cid, state);
-
-    case 1: // POST /messages
+    case 0: // POST /messages
         return onPostMessagesRequest(cid, state);
 
-    case 2: // POST /keys
+    case 1: // POST /keys
         // when client requests for a new key,
         // we request server for one, and respond to client with the result from server
         return onPostKeysRequest(cid, state);
@@ -474,6 +429,23 @@ int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
     return 0;
 }
 
+int8_t onPostMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
+    Serial.print(P("P /m RS ")); Serial.println(status_code);
+
+    if (status_code != 200) {
+        ring_clear(gs._buf_cmd);
+    }
+
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+        return 0;
+    }
+
+    ring_put( &command_queue, COMMAND_CLOSE );
+    ring_put( &command_queue, cid );
+
+    return 0;
+}
+
 void postDoor() {
     // devicekey=[0-9A-F]{32}&name=IRKit%%%%
     char body[POST_DOOR_BODY_LENGTH+1];
@@ -488,11 +460,25 @@ int8_t getMessages() {
     return gs.get(path, &onGetMessagesResponse, 50);
 }
 
+int8_t postMessages() {
+    // post body is IR data, move devicekey parameter to query, for implementation simplicity
+    // /packed?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
+    char path[59];
+    sprintf(path, P("/packed?devicekey=%s&freq=%d"), keys.getKey(), IrCtrl.freq);
+    return gs.postBinary( path,
+                          (const char*)global.buffer, IR_packedlength(),
+                          &onPostMessagesResponse,
+                          10 );
+}
+
 int8_t postKeys() {
     // devicekey=[0-9A-F]{32}
     char body[POST_KEYS_BODY_LENGTH+1];
     sprintf(body, "devicekey=%s", keys.getKey());
-    return gs.post( "/keys", body, POST_KEYS_BODY_LENGTH, &onPostKeysResponse, 10 );
+    return gs.post( "/keys",
+                    body, POST_KEYS_BODY_LENGTH,
+                    &onPostKeysResponse,
+                    10 );
 }
 
 void connect() {
@@ -518,10 +504,8 @@ void connect() {
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
         // 0
-        gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
-        // 1
         gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
-        // 2
+        // 1
         gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
 
         gs.setRequestHandler( &onRequest );

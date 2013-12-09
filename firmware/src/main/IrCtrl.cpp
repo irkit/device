@@ -365,6 +365,11 @@ void IR_put (uint16_t data)
     IR_put_(data);
 }
 
+uint16_t IR_packedlength (void)
+{
+    return packer.length();
+}
+
 static void IR_put_ (uint16_t data)
 {
     if (packer.length() >= IR_BUFF_SIZE) {
