@@ -31,6 +31,7 @@ static uint8_t  post_keys_cid;
 #define COMMAND_SETUP      2
 #define COMMAND_CONNECT    3
 #define COMMAND_CLOSE      4
+#define COMMAND_START      5
 
 #define COMMAND_QUEUE_SIZE 6
 static struct RingBuffer command_queue;
@@ -135,6 +136,9 @@ void timerLoop() {
         case COMMAND_CLOSE:
             ring_get(&command_queue, &command, 1);
             gs.close(command);
+            break;
+        case COMMAND_START:
+            startNormalOperation();
             break;
         default:
             break;
@@ -282,7 +286,7 @@ int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
 }
 
 int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.println(P("P /d RS ")); Serial.println(status_code);
+    Serial.print(P("P /d RS ")); Serial.println(status_code);
 
     ring_clear(gs._buf_cmd);
 
@@ -292,11 +296,14 @@ int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTST
 
     switch (status_code) {
     case 200:
-        gs.close(cid);
         keys.setKeyValid(true);
         // save only independent area, since global.buffer might be populated by IR or so.
         keys.save2();
-        startNormalOperation();
+
+        ring_put( &command_queue, COMMAND_CLOSE );
+        ring_put( &command_queue, cid );
+        ring_put( &command_queue, COMMAND_START );
+
         break;
     case 401:
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
@@ -515,7 +522,7 @@ void connect() {
             postDoor();
         }
         else if (keys.isValid()) {
-            startNormalOperation();
+            ring_put( &command_queue, COMMAND_START );
         }
     }
 }
