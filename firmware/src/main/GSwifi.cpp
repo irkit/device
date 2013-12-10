@@ -900,7 +900,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 
     // set DHCP name with mac address
     cmd = PB("AT+NDHCP=1,%",1);
-    strcpy( cmd+11, name());
+    strcpy( cmd+11, hostname());
     command(cmd, GSCOMMANDMODE_NORMAL);
 
     switch (sec) {
@@ -1149,7 +1149,7 @@ int8_t GSwifi::postBinary(const char *path, const char *body, uint16_t length, G
     return request( GSMETHOD_POST, path, body, length, handler, timeout_second, true );
 }
 
-char* GSwifi::name() {
+char* GSwifi::hostname() {
     char *ret = PB("IRKit%%%%", 2);
     ret[ 5 ] = mac_[12];
     ret[ 6 ] = mac_[13];

@@ -37,7 +37,7 @@ static uint8_t  post_keys_cid;
 static struct RingBuffer command_queue;
 static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
-#define POST_DOOR_BODY_LENGTH 57
+#define POST_DOOR_BODY_LENGTH 61
 #define POST_KEYS_BODY_LENGTH 42
 
 //--- declaration
@@ -430,9 +430,9 @@ int8_t onPostMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUE
 }
 
 void postDoor() {
-    // devicekey=[0-9A-F]{32}&name=IRKit%%%%
+    // devicekey=[0-9A-F]{32}&hostname=IRKit%%%%
     char body[POST_DOOR_BODY_LENGTH+1];
-    sprintf(body, "devicekey=%s&name=%s", keys.getKey(), gs.name());
+    sprintf(body, "devicekey=%s&hostname=%s", keys.getKey(), gs.name());
     gs.post( "/d", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
