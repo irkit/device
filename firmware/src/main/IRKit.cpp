@@ -351,9 +351,9 @@ int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUES
                 IR_state( IR_IDLE );
             }
 
-            gs.close(cid);
-
-            TIMER_START(message_timer, 0);
+            ring_put( &command_queue, COMMAND_CLOSE );
+            ring_put( &command_queue, cid );
+            ring_put( &command_queue, COMMAND_START );
         }
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
@@ -529,8 +529,6 @@ void connect() {
 }
 
 void startNormalOperation() {
-    Serial.println(P("start"));
-
     TIMER_START(message_timer, 0);
 
     global.buffer_mode = GBufferModeIR;
