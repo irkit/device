@@ -433,21 +433,21 @@ void postDoor() {
     // devicekey=[0-9A-F]{32}&name=IRKit%%%%
     char body[POST_DOOR_BODY_LENGTH+1];
     sprintf(body, "devicekey=%s&name=%s", keys.getKey(), gs.name());
-    gs.post( "/door", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
+    gs.post( "/d", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
 int8_t getMessages() {
-    // /messages?devicekey=C7363FDA0F06406AB11C29BA41272AE3&newer_than=%s
-    char path[80];
-    sprintf(path, P("/messages?devicekey=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
+    // /m?devicekey=C7363FDA0F06406AB11C29BA41272AE3&newer_than=4294967295
+    char path[70];
+    sprintf(path, P("/m?devicekey=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
     return gs.get(path, &onGetMessagesResponse, 50);
 }
 
 int8_t postMessages() {
     // post body is IR data, move devicekey parameter to query, for implementation simplicity
-    // /packed?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
-    char path[59];
-    sprintf(path, P("/packed?devicekey=%s&freq=%d"), keys.getKey(), IrCtrl.freq);
+    // /p?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
+    char path[54];
+    sprintf(path, P("/p?devicekey=%s&freq=%d"), keys.getKey(), IrCtrl.freq);
     return gs.postBinary( path,
                           (const char*)global.buffer, IR_packedlength(),
                           &onPostMessagesResponse,
@@ -458,7 +458,7 @@ int8_t postKeys() {
     // devicekey=[0-9A-F]{32}
     char body[POST_KEYS_BODY_LENGTH+1];
     sprintf(body, "devicekey=%s", keys.getKey());
-    return gs.post( "/keys",
+    return gs.post( "/k",
                     body, POST_KEYS_BODY_LENGTH,
                     &onPostKeysResponse,
                     10 );

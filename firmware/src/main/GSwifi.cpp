@@ -47,6 +47,7 @@ static char __buf_cmd[GS_CMD_SIZE + 1];
 
 static void base64encoded( char encoded ) {
     Serial1X.print(encoded);
+    Serial.print(encoded);
 }
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
