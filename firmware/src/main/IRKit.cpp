@@ -249,7 +249,8 @@ int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
             gs.writeHead(cid, 200);
             gs.writeEnd();
         }
-        gs.close(cid);
+        ring_put( &command_queue, COMMAND_CLOSE );
+        ring_put( &command_queue, cid );
     }
 
     return 0;
