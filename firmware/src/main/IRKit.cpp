@@ -433,7 +433,7 @@ int8_t onPostMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUE
 void postDoor() {
     // devicekey=[0-9A-F]{32}&hostname=IRKit%%%%
     char body[POST_DOOR_BODY_LENGTH+1];
-    sprintf(body, "devicekey=%s&hostname=%s", keys.getKey(), gs.name());
+    sprintf(body, "devicekey=%s&hostname=%s", keys.getKey(), gs.hostname());
     gs.post( "/d", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
 }
 
