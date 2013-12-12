@@ -148,7 +148,9 @@ void timerLoop() {
 
 void onIRReceive() {
     IR_dump();
-    postMessages();
+    if (IR_packedlength() > 0) {
+        postMessages();
+    }
 }
 
 // inside ISR, be careful
