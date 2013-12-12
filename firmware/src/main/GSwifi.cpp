@@ -71,6 +71,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     clear();
 
     // version 2.5.1 firmware starts with 115200 baud rate
+    // version 2.5.1 (Tue, Dec 10, 2013 at 2:14 PM) firmware starts with 9600 baud rate
     // version 2.4.3 firmware starts with 9600 baud rate
     serial_->begin(57600);
 
@@ -306,6 +307,7 @@ void GSwifi::parseByte(uint8_t dat) {
 
                     routeid = router(method, path);
                     if ( routeid < 0 ) {
+                        Serial.println("!E28");
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
                         ring_clear(_buf_cmd);
