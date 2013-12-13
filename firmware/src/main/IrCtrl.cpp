@@ -297,7 +297,6 @@ ISR_COMPARE()
         if (IrCtrl.trailer_count == 0) {
             // Trailer detected
             IR_state( IR_RECVED );
-            IrCtrl.did_receive = true;
         }
         else {
             // wait for next compare interrupt
@@ -390,7 +389,6 @@ void IR_timer (void)
 
             Serial.println(("!E14"));
             IR_state( IR_RECVED );
-            IrCtrl.did_receive = true;
         }
     }
 
@@ -408,9 +406,9 @@ void IR_timer (void)
 
 void IR_loop ()
 {
-    if (IrCtrl.did_receive) {
-        IrCtrl.did_receive = false;
+    if (IrCtrl.state == IR_RECVED) {
         IrCtrl.on_receive();
+        IR_state( IR_IDLE );
     }
 }
 
@@ -432,9 +430,12 @@ void IR_state (uint8_t nextState)
         TIMER_START( IrCtrl.recv_timer, RECV_TIMEOUT );
         break;
     case IR_RECVED:
+        TIMER_STOP( IrCtrl.recv_timer );
+
         packer.packEnd();
-        IR_CAPTURE_FALL();
-        IR_CAPTURE_ENABLE();
+
+        // disable til IRKit.cpp reports IR data to server
+        IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
 
         if (IrCtrl.len < VALID_IR_LEN_MIN) {
@@ -472,7 +473,6 @@ void IR_initialize (IRReceiveCallback _on_receive)
     IR_INIT_TIMER();
     IR_INIT_XMIT();
 
-    IrCtrl.did_receive = false;
     IrCtrl.on_receive  = _on_receive;
 
     IR_state( IR_DISABLED );

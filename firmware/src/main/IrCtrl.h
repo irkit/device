@@ -38,7 +38,6 @@ typedef struct _irstruct {
     uint8_t           freq;     // carrier wave freq in kHz
     uint8_t           xmit_timer; // xmit timeout timer
     uint8_t           recv_timer; // recv timeout timer
-    bool              did_receive; // just received IR signal now
     IRReceiveCallback on_receive;
     uint16_t          len;      // Size of buff used
     uint16_t          tx_index; // 0 < tx_index < len
