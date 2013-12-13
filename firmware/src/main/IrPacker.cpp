@@ -5,6 +5,7 @@
 #else
 # include <stdio.h>
 # include <stdlib.h>
+# include <string.h>
 #endif
 
 #define IRPACKER_OFFSET 30 // 0-29 is reserved for special data
@@ -228,6 +229,17 @@ uint16_t IrPacker::unpack() {
     }
     byte_index_ ++;
     return unpackSingle( data );
+}
+
+void IrPacker::unpackSequence( uint8_t *in, uint16_t length, IrPackerUnpackCallback callback ) {
+#ifndef ARDUINO
+    memcpy( (void*)buff_, in, length );
+    length_ = length;
+
+    while (byte_index_ < length_) {
+        callback( unpack() );
+    }
+#endif
 }
 
 uint16_t IrPacker::unpackBit() {

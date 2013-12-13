@@ -17,6 +17,9 @@ class IrPacker
     void     unpackStart();
     uint16_t unpackSingle( uint8_t data );
 
+    typedef void (*IrPackerUnpackCallback)(uint16_t);
+    void     unpackSequence( uint8_t *in, uint16_t length, IrPackerUnpackCallback callback );
+
     // buff space used (not total unpacked length, caller should manage that)
     uint16_t safelength();
     uint16_t length();
