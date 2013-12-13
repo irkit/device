@@ -651,8 +651,8 @@ void IRKit_loop() {
             Serial.println();
             keys.dump();
 
-            // Serial.println();
-            // gs.dump();
+            Serial.println();
+            gs.dump();
 
             Serial.println();
             IR_dump();
