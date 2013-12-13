@@ -55,7 +55,6 @@ GSwifi::GSwifi( HardwareSerialX *serial ) :
 {
     _buf_cmd          = &ring_buffer_;
     ring_init( _buf_cmd, __buf_cmd, GS_CMD_SIZE + 1 );
-    route_count_      = 0;
 }
 
 // factory should issue following commands:
@@ -151,6 +150,7 @@ void GSwifi::clear () {
     listening_      = false;
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
+    route_count_    = 0;
     ring_clear(_buf_cmd);
 
     for (uint8_t i=0; i<16; i++) {
