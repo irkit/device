@@ -4,8 +4,12 @@ use warnings;
 use Furl;
 use Time::HiRes qw/gettimeofday tv_interval/;
 
-my $base               = "http://192.168.2.2";
-my $key                = "bd4d0211-9312-44ee-8b0a-02ad8682fad7";
+my $target_ip = shift;
+if (! $target_ip || ($target_ip !~ m![0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}!)) {
+    die "usage: $0 {IRKit ip address, ex:10.0.1.9}";
+}
+
+my $base               = "http://${target_ip}";
 my $number_of_requests = 10;
 
 my $agent = Furl->new(
