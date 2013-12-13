@@ -13,11 +13,6 @@ my $agent = Furl->new(
     timeout => 20,
 );
 
-my $get_message = sub {
-    print "GET /messages\n";
-    return $agent->get( "$base/messages" );
-};
-
 my $post_message = sub {
     # エアコンオン
     print "POST /messages\n";
@@ -32,7 +27,6 @@ my $post_keys = sub {
 };
 
 my @requests = (
-    $get_message,
     $post_message,
     $post_keys
 );
