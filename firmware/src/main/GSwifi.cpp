@@ -638,10 +638,10 @@ int8_t GSwifi::writeEnd () {
 }
 
 GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
-    if (strncmp(method, P("GET"), 3) == 0) {
+    if (strncmp(method, "GET", 3) == 0) {
         return GSMETHOD_GET;
     }
-    else if (strncmp(method, P("POST"), 4) == 0) {
+    else if (strncmp(method, "POST", 4) == 0) {
         return GSMETHOD_POST;
     }
     return GSMETHOD_UNKNOWN;
