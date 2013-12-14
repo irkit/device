@@ -22,6 +22,12 @@ static LongPressButton clear_button(RESET_SWITCH, 5);
 static Keys keys;
 volatile static uint8_t message_timer         = TIMER_OFF;
 volatile static uint8_t reconnect_timer       = TIMER_OFF;
+// if we have recently received POST /messages request,
+// delay our next request to API server for a while
+// to avoid concurrently processing receiving requests and requesting.
+// if user can access us via local wifi, no requests arrive at our server anyway
+// (except another person's trying to send from outside, at the same time)
+volatile static uint8_t recently_posted_timer = TIMER_OFF;
 
 static uint32_t newest_message_id = 0; // on memory only should be fine
 static bool     morse_error       = 0;
@@ -39,6 +45,10 @@ static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
 
 #define POST_DOOR_BODY_LENGTH 61
 #define POST_KEYS_BODY_LENGTH 42
+
+// we will start requesting GET /m again after
+// recently_posted_timer timeouts, and message_timer timeouts: 10sec
+#define SUSPEND_GET_MESSAGES_INTERVAL 5 // [sec]
 
 //--- declaration
 
@@ -96,13 +106,20 @@ void timerLoop() {
     // long poll
     if (TIMER_FIRED(message_timer)) {
         TIMER_STOP(message_timer);
-        int8_t result = getMessages();
-        if ( result != 0 ) {
-            // Serial.println(("!E3"));
-            // maybe time cures GS?
-            TIMER_START(message_timer, 5);
-            // reset if any error happens
-            // reset3V3();
+        Serial.println("message timeout");
+
+        if (TIMER_RUNNING(recently_posted_timer)) {
+            // suspend GET /m for a while if we have received a POST /messages request from client
+            // client is in wifi, we can ignore our server for a while
+            TIMER_START(message_timer, SUSPEND_GET_MESSAGES_INTERVAL);
+        }
+        else {
+            int8_t result = getMessages();
+            if ( result != 0 ) {
+                Serial.println(("!E3"));
+                // maybe time cures GS?
+                TIMER_START(message_timer, 5);
+            }
         }
     }
 
@@ -110,6 +127,11 @@ void timerLoop() {
     if (TIMER_FIRED(reconnect_timer)) {
         TIMER_STOP(reconnect_timer);
         connect();
+    }
+
+    if (TIMER_FIRED(recently_posted_timer)) {
+        TIMER_STOP(recently_posted_timer);
+        Serial.println("recently timeout");
     }
 
     while (! ring_isempty(&command_queue)) {
@@ -160,6 +182,8 @@ void onTimer() {
     TIMER_TICK( message_timer );
 
     TIMER_TICK( reconnect_timer );
+
+    TIMER_TICK( recently_posted_timer );
 
     gs.onTimer();
 
@@ -253,6 +277,8 @@ int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
         }
         ring_put( &command_queue, COMMAND_CLOSE );
         ring_put( &command_queue, cid );
+
+        TIMER_START( recently_posted_timer, SUSPEND_GET_MESSAGES_INTERVAL );
     }
 
     return 0;
