@@ -6,11 +6,14 @@ use Time::HiRes qw/gettimeofday tv_interval/;
 
 my $target_ip = shift;
 if (! $target_ip || ($target_ip !~ m![0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}!)) {
-    die "usage: $0 {IRKit ip address, ex:10.0.1.9}";
+    die "usage: $0 {IRKit ip address, ex:10.0.1.9} {number-of-requests}";
 }
+my $base = "http://${target_ip}";
 
-my $base               = "http://${target_ip}";
-my $number_of_requests = 10;
+my $number_of_requests = shift;
+if (! $number_of_requests) {
+    die "usage: $0 {IRKit ip address, ex:10.0.1.9} {number-of-requests}";
+}
 
 my $agent = Furl->new(
     agent   => 'Bench/1.0',
@@ -32,7 +35,7 @@ my $post_keys = sub {
 
 my @requests = (
     $post_message,
-    $post_keys
+    # $post_keys
 );
 
 for my $i (1..$number_of_requests) {
