@@ -387,7 +387,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
 
-            Serial.println(("!E14"));
+            // Serial.println(("!E14"));
             IR_state( IR_RECVED );
         }
     }
