@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "LongPressButton.h"
-#include "Global.h"
 #include "timer.h"
 
 LongPressButton::LongPressButton(int pin, uint8_t threshold_time) :
