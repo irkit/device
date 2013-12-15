@@ -2,8 +2,7 @@
 #include "Global.h"
 
 Global::Global() :
-    now(0),
-    buffer_mode(GBufferModeUnused)
+    now(0)
 {
 }
 
