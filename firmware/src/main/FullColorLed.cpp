@@ -42,7 +42,7 @@ void FullColorLed::off() {
     setLedColor( 0, 0, 0, false );
 }
 
-void FullColorLed::toggleBlink() {
+void FullColorLed::onTimer() {
     blinkOn_ = ! blinkOn_;
 
     if ( blinkOn_ || ! isBlinking_ ) {

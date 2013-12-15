@@ -21,6 +21,7 @@ static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 static MorseListener listener(MICROPHONE,100);
 static LongPressButton clear_button(RESET_SWITCH, 5);
 static Keys keys;
+
 volatile static uint8_t message_timer         = TIMER_OFF;
 volatile static uint8_t reconnect_timer       = TIMER_OFF;
 // if we have recently received POST /messages request,
@@ -253,7 +254,7 @@ void onIRReceive() {
 
 // inside ISR, be careful
 void onTimer() {
-    color.toggleBlink(); // 200msec blink
+    color.onTimer(); // 200msec blink
 
     TIMER_TICK( message_timer );
 
@@ -598,6 +599,17 @@ void connect() {
 
         // start mDNS
         gs.setupMDNS();
+
+        if (gs.isListening()) {
+            color.setLedColor( 0, 0, 1, false ); // blue: ready
+
+            if (keys.isAPIKeySet() && ! keys.isValid()) {
+                postDoor();
+            }
+            else if (keys.isValid()) {
+                ring_put( &command_queue, COMMAND_START );
+            }
+        }
     }
     else {
         Serial.println(("!E9"));
@@ -612,17 +624,6 @@ void connect() {
             keys.clear();
             color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
             listener.enable(true);
-        }
-    }
-
-    if (gs.isListening()) {
-        color.setLedColor( 0, 0, 1, false ); // blue: ready
-
-        if (keys.isAPIKeySet() && ! keys.isValid()) {
-            postDoor();
-        }
-        else if (keys.isValid()) {
-            ring_put( &command_queue, COMMAND_START );
         }
     }
 }

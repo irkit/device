@@ -9,7 +9,7 @@ public:
     void setLedColor(bool colorR, bool colorG, bool colorB, bool blink);
     void setLedColor(bool colorR, bool colorG, bool colorB, bool blink, uint8_t blink_timeout);
     void off();
-    void toggleBlink();
+    void onTimer();
 
 private:
     int pinR_;
