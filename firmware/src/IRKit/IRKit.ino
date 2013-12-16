@@ -10,54 +10,31 @@
 #include "FlexiTimer2.h"
 #include "Global.h"
 #include "MorseListener.h"
-#include "IrJsonParser.h"
 #include "timer.h"
 #include "LongPressButton.h"
 #include "base64encoder.h"
+#include "IRKitHTTPClient.h"
+#include "CommandQueue.h"
 
 // Serial1(RX=D0,TX=D1) is Wifi module's UART interface
-static GSwifi gs(&Serial1X);
-static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+GSwifi gs(&Serial1X);
+FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 static MorseListener listener(MICROPHONE,100);
 static LongPressButton clear_button(RESET_SWITCH, 5);
-static Keys keys;
+Keys keys;
+IRKitHTTPClient client(&gs);
 
-volatile static uint8_t message_timer         = TIMER_OFF;
 volatile static uint8_t reconnect_timer       = TIMER_OFF;
-// if we have recently received POST /messages request,
-// delay our next request to API server for a while
-// to avoid concurrently processing receiving requests and requesting.
-// if user can access us via local wifi, no requests arrive at our server anyway
-// (except another person's trying to send from outside, at the same time)
-volatile static uint8_t recently_posted_timer = TIMER_OFF;
 
-static uint32_t newest_message_id = 0; // on memory only should be fine
-static bool     morse_error       = 0;
-static uint8_t  post_keys_cid;
+static bool morse_error = 0;
 
-#define COMMAND_POST_KEYS  1
-#define COMMAND_SETUP      2
-#define COMMAND_CONNECT    3
-#define COMMAND_CLOSE      4
-#define COMMAND_START      5
-
-#define COMMAND_QUEUE_SIZE 6
-static struct RingBuffer command_queue;
 static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
-
-#define POST_DOOR_BODY_LENGTH 61
-#define POST_KEYS_BODY_LENGTH 42
-
-// we will start requesting GET /m again after
-// recently_posted_timer timeouts, and message_timer timeouts: 10sec
-#define SUSPEND_GET_MESSAGES_INTERVAL 5 // [sec]
+CommandQueue commands(command_queue_data, COMMAND_QUEUE_SIZE + 1);
 
 void setup() {
     Serial.begin(115200);
 
     while ( ! Serial ) ;
-
-    ring_init( &command_queue, command_queue_data, COMMAND_QUEUE_SIZE + 1 );
 
     //--- initialize LED
 
@@ -180,25 +157,7 @@ void longPressed() {
 }
 
 void timerLoop() {
-    // long poll
-    if (TIMER_FIRED(message_timer)) {
-        TIMER_STOP(message_timer);
-        Serial.println("message timeout");
-
-        if (TIMER_RUNNING(recently_posted_timer)) {
-            // suspend GET /m for a while if we have received a POST /messages request from client
-            // client is in wifi, we can ignore our server for a while
-            TIMER_START(message_timer, SUSPEND_GET_MESSAGES_INTERVAL);
-        }
-        else {
-            int8_t result = getMessages();
-            if ( result != 0 ) {
-                Serial.println(("!E3"));
-                // maybe time cures GS?
-                TIMER_START(message_timer, 5);
-            }
-        }
-    }
+    client.loop();
 
     // reconnect
     if (TIMER_FIRED(reconnect_timer)) {
@@ -206,25 +165,13 @@ void timerLoop() {
         connect();
     }
 
-    if (TIMER_FIRED(recently_posted_timer)) {
-        TIMER_STOP(recently_posted_timer);
-        Serial.println("recently timeout");
-    }
-
-    while (! ring_isempty(&command_queue)) {
+    while (! commands.is_empty()) {
         char command;
-        ring_get(&command_queue, &command, 1);
+        commands.get( &command );
 
         switch (command) {
         case COMMAND_POST_KEYS:
-            {
-                int8_t result = postKeys();
-                if ( result < 0 ) {
-                    gs.writeHead( post_keys_cid, 500 );
-                    gs.writeEnd();
-                    gs.close( post_keys_cid );
-                }
-            }
+            client.postKeys();
             break;
         case COMMAND_SETUP:
             gs.setup( &onDisconnect, &onReset );
@@ -233,7 +180,7 @@ void timerLoop() {
             connect();
             break;
         case COMMAND_CLOSE:
-            ring_get(&command_queue, &command, 1);
+            commands.get( &command );
             gs.close(command);
             break;
         case COMMAND_START:
@@ -248,7 +195,7 @@ void timerLoop() {
 void onIRReceive() {
     IR_dump();
     if (IR_packedlength() > 0) {
-        postMessages();
+        client.postMessages();
     }
 }
 
@@ -256,11 +203,9 @@ void onIRReceive() {
 void onTimer() {
     color.onTimer(); // 200msec blink
 
-    TIMER_TICK( message_timer );
+    client.onTimer();
 
     TIMER_TICK( reconnect_timer );
-
-    TIMER_TICK( recently_posted_timer );
 
     gs.onTimer();
 
@@ -273,7 +218,7 @@ int8_t onReset() {
     Serial.println(("!E10"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-    ring_put(&command_queue, COMMAND_SETUP);
+    commands.put( COMMAND_SETUP );
     return 0;
 }
 
@@ -281,289 +226,8 @@ int8_t onDisconnect() {
     Serial.println(("!E11"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-    ring_put(&command_queue, COMMAND_CONNECT);
+    commands.put( COMMAND_CONNECT );
     return 0;
-}
-
-void jsonDetectedStart() {
-    Serial.println("json<<");
-
-    IR_state( IR_WRITING );
-}
-
-void jsonDetectedData( uint8_t key, uint32_t value ) {
-    if ( IrCtrl.state != IR_WRITING ) {
-        return;
-    }
-
-    switch (key) {
-    case IrJsonParserDataKeyId:
-        newest_message_id = value;
-        break;
-    case IrJsonParserDataKeyFreq:
-        IrCtrl.freq = value;
-        break;
-    case IrJsonParserDataKeyData:
-        IR_put( value );
-        break;
-    default:
-        break;
-    }
-}
-
-void jsonDetectedEnd() {
-    Serial.println(">>json");
-
-    if ( IrCtrl.state != IR_WRITING ) {
-        Serial.println("!E5");
-        IR_dump();
-        return;
-    }
-
-    Serial.println(("xmit"));
-    IR_xmit();
-    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
-}
-
-int8_t onPostMessagesRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
-    while (!ring_isempty(gs._buf_cmd)) {
-        char letter;
-        ring_get(gs._buf_cmd, &letter, 1);
-
-        irjson_parse( letter,
-                      &jsonDetectedStart,
-                      &jsonDetectedData,
-                      &jsonDetectedEnd );
-    }
-
-    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-        // should be xmitting or idle (xmit finished)
-        if (IrCtrl.state == IR_WRITING) {
-            Serial.println(("!E7"));
-            // invalid json
-            gs.writeHead(cid, 400);
-            gs.writeEnd();
-        }
-        else {
-            gs.writeHead(cid, 200);
-            gs.writeEnd();
-        }
-        ring_put( &command_queue, COMMAND_CLOSE );
-        ring_put( &command_queue, cid );
-
-        TIMER_START( recently_posted_timer, SUSPEND_GET_MESSAGES_INTERVAL );
-    }
-
-    return 0;
-}
-
-int8_t onPostKeysRequest(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
-    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-        // don't close other client requests, we can handle multiple concurrent client requests
-        // and "close" and it's response mixing up makes things difficult
-
-        // respond to this cid, when we get a new key
-        post_keys_cid = cid;
-
-        // delay execution to next tick (we get clean stack)
-        // POST /keys to server
-        ring_put(&command_queue, COMMAND_POST_KEYS);
-    }
-}
-
-int8_t onRequest(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
-    switch (routeid) {
-    case 0: // POST /messages
-        return onPostMessagesRequest(cid, state);
-
-    case 1: // POST /keys
-        // when client requests for a new key,
-        // we request server for one, and respond to client with the result from server
-        return onPostKeysRequest(cid, state);
-
-    default:
-        break;
-    }
-    return -1;
-}
-
-int8_t onPostDoorResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /d RS ")); Serial.println(status_code);
-
-    ring_clear(gs._buf_cmd);
-
-    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        return 0;
-    }
-
-    switch (status_code) {
-    case 200:
-        keys.setKeyValid(true);
-        // save only independent area, since global.buffer might be populated by IR or so.
-        keys.save2();
-
-        ring_put( &command_queue, COMMAND_CLOSE );
-        ring_put( &command_queue, cid );
-        ring_put( &command_queue, COMMAND_START );
-
-        break;
-    case 401:
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        // keys have expired, we have to start from morse sequence again
-        gs.close(cid);
-        keys.clear();
-        keys.save();
-        break;
-    case 408:
-    case 503: // heroku responds with 503 if longer than 30sec
-    default:
-        // try again
-        gs.close(cid);
-        postDoor();
-        break;
-    }
-
-    return 0;
-}
-
-int8_t onGetMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("G /m RS ")); Serial.println(status_code);
-
-    if (status_code != 200) {
-        ring_clear(gs._buf_cmd);
-    }
-
-    switch (status_code) {
-    case 200:
-        while (!ring_isempty(gs._buf_cmd)) {
-            char letter;
-            ring_get(gs._buf_cmd, &letter, 1);
-
-            irjson_parse( letter,
-                          &jsonDetectedStart,
-                          &jsonDetectedData,
-                          &jsonDetectedEnd );
-        }
-
-        if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-            // should not be WRITING here, should be XMITTING or IDLE (xmit finished)
-            if (IrCtrl.state == IR_WRITING) {
-                // prevent from locking in WRITING state forever
-                IR_state( IR_IDLE );
-            }
-
-            ring_put( &command_queue, COMMAND_CLOSE );
-            ring_put( &command_queue, cid );
-            ring_put( &command_queue, COMMAND_START );
-        }
-        break;
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        gs.close(cid);
-        TIMER_START(message_timer, 5);
-        break;
-    // heroku responds with 503 if longer than 30sec,
-    // or when deploy occurs
-    case 503:
-    default:
-        if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-            gs.close(cid);
-            TIMER_START(message_timer, 5);
-        }
-        break;
-    }
-
-    return 0;
-}
-
-int8_t onPostKeysResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /k RS ")); Serial.println(status_code);
-
-    if (status_code != 200) {
-        ring_clear(gs._buf_cmd);
-    }
-
-    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        return 0;
-    }
-
-    gs.writeHead( post_keys_cid, status_code );
-
-    switch (status_code) {
-    case 200:
-        while (!ring_isempty(gs._buf_cmd)) {
-            char letter;
-            ring_get(gs._buf_cmd, &letter, 1);
-            gs.write( letter );
-        }
-        gs.writeEnd();
-        break;
-    default:
-        gs.writeEnd();
-        break;
-    }
-
-    ring_put( &command_queue, COMMAND_CLOSE );
-    ring_put( &command_queue, cid );
-    ring_put( &command_queue, COMMAND_CLOSE );
-    if (ring_isfull( &command_queue )) {
-        Serial.println(("!E8"));
-        return -1;
-    }
-    ring_put( &command_queue, post_keys_cid );
-
-    return 0;
-}
-
-int8_t onPostMessagesResponse(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /m RS ")); Serial.println(status_code);
-
-    if (status_code != 200) {
-        ring_clear(gs._buf_cmd);
-    }
-
-    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
-        return 0;
-    }
-
-    ring_put( &command_queue, COMMAND_CLOSE );
-    ring_put( &command_queue, cid );
-
-    return 0;
-}
-
-void postDoor() {
-    // devicekey=[0-9A-F]{32}&hostname=IRKit%%%%
-    char body[POST_DOOR_BODY_LENGTH+1];
-    sprintf(body, "devicekey=%s&hostname=%s", keys.getKey(), gs.hostname());
-    gs.post( "/d", body, POST_DOOR_BODY_LENGTH, &onPostDoorResponse, 50 );
-}
-
-int8_t getMessages() {
-    // /m?devicekey=C7363FDA0F06406AB11C29BA41272AE3&newer_than=4294967295
-    char path[70];
-    sprintf(path, P("/m?devicekey=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
-    return gs.get(path, &onGetMessagesResponse, 50);
-}
-
-int8_t postMessages() {
-    // post body is IR data, move devicekey parameter to query, for implementation simplicity
-    // /p?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
-    char path[54];
-    sprintf(path, P("/p?devicekey=%s&freq=%d"), keys.getKey(), IrCtrl.freq);
-    return gs.postBinary( path,
-                          (const char*)global.buffer, IR_packedlength(),
-                          &onPostMessagesResponse,
-                          10 );
-}
-
-int8_t postKeys() {
-    // devicekey=[0-9A-F]{32}
-    char body[POST_KEYS_BODY_LENGTH+1];
-    sprintf(body, "devicekey=%s", keys.getKey());
-    return gs.post( "/k",
-                    body, POST_KEYS_BODY_LENGTH,
-                    &onPostKeysResponse,
-                    10 );
 }
 
 void connect() {
@@ -587,12 +251,7 @@ void connect() {
 
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
-        // 0
-        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
-        // 1
-        gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
-
-        gs.setRequestHandler( &onRequest );
+        client.registerRequestHandler();
 
         // start http server
         gs.listen(80);
@@ -604,10 +263,10 @@ void connect() {
             color.setLedColor( 0, 0, 1, false ); // blue: ready
 
             if (keys.isAPIKeySet() && ! keys.isValid()) {
-                postDoor();
+                client.postDoor();
             }
             else if (keys.isValid()) {
-                ring_put( &command_queue, COMMAND_START );
+                commands.put( COMMAND_START );
             }
         }
     }
@@ -629,7 +288,7 @@ void connect() {
 }
 
 void startNormalOperation() {
-    TIMER_START(message_timer, 0);
+    client.startTimer( 0 );
 
     IR_state( IR_IDLE );
 }

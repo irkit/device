@@ -1,7 +1,57 @@
-#include "IrJsonParser.h"
+#include "Arduino.h"
+#include "pins.h"
+#include "IRKitJSONParser.h"
+#include "IrCtrl.h"
+#include "FullColorLed.h"
+
+extern FullColorLed color;
+extern uint32_t newest_message_id;
 
 // simple, specialized, JSON like string parser
 // well, I'm fighting with 100bytes of program memory
+
+typedef void (*IrJsonParserStartEnd)();
+typedef void (*IrJsonParserData)(uint8_t key, uint32_t value);
+
+static void jsonDetectedStart() {
+    Serial.println("json<<");
+
+    IR_state( IR_WRITING );
+}
+
+static void jsonDetectedData( uint8_t key, uint32_t value ) {
+    if ( IrCtrl.state != IR_WRITING ) {
+        return;
+    }
+
+    switch (key) {
+    case IrJsonParserDataKeyId:
+        newest_message_id = value;
+        break;
+    case IrJsonParserDataKeyFreq:
+        IrCtrl.freq = value;
+        break;
+    case IrJsonParserDataKeyData:
+        IR_put( value );
+        break;
+    default:
+        break;
+    }
+}
+
+static void jsonDetectedEnd() {
+    Serial.println(">>json");
+
+    if ( IrCtrl.state != IR_WRITING ) {
+        Serial.println("!E5");
+        IR_dump();
+        return;
+    }
+
+    Serial.println(("xmit"));
+    IR_xmit();
+    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
+}
 
 void irjson_parse (char letter,
                    IrJsonParserStartEnd onStart,
@@ -102,4 +152,14 @@ void irjson_parse (char letter,
             }
         }
     }
+}
+
+IRKitJSONParser::IRKitJSONParser() {
+}
+
+void IRKitJSONParser::parse( char letter ) {
+    irjson_parse( letter,
+                  &jsonDetectedStart,
+                  &jsonDetectedData,
+                  &jsonDetectedEnd );
 }
