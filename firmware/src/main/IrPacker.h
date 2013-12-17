@@ -45,7 +45,7 @@ class IrPacker
     uint8_t  val0_;
     uint8_t  val1_;
     uint8_t  bit_index_;
-    uint8_t  byte_index_;
+    uint16_t byte_index_;
     uint8_t  bitpack_length_;
 };
 

@@ -8,6 +8,10 @@
 # include <string.h>
 #endif
 
+#ifndef UINT16_MAX
+# define UINT16_MAX 0xFFFF
+#endif
+
 #define IRPACKER_OFFSET 30 // 0-29 is reserved for special data
 #define BITPACK_MARKER  0x01
 
@@ -213,7 +217,7 @@ void IrPacker::unpackStart() {
 }
 
 uint16_t IrPacker::unpack() {
-    if (byte_index_ == length_) {
+    if ((byte_index_ == length_) || (byte_index_ == UINT16_MAX)) {
         return 0;
     }
     if (bitpack_length_ > 0) {
