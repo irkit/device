@@ -1,58 +1,63 @@
 #include "Arduino.h"
 #include "pins.h"
+#include "const.h"
 #include "MemoryFree.h"
 #include "pgmStrToRAM.h"
 #include "IrCtrl.h"
 #include "FullColorLed.h"
-#include "version.h"
 #include "GSwifi.h"
 #include "Keys.h"
-#include "FlexiTimer2.h"
-#include "Global.h"
-#include "MorseListener.h"
+#include "morse.h"
 #include "timer.h"
-#include "LongPressButton.h"
-#include "base64encoder.h"
-#include "IRKitHTTPClient.h"
-#include "CommandQueue.h"
+#include "longpressbutton.h"
+#include "IRKitHTTPHandler.h"
+#include "commands.h"
 
-// Serial1(RX=D0,TX=D1) is Wifi module's UART interface
+struct morse_t morse_state;
+struct long_press_button_state_t long_press_button_state;
+static volatile uint8_t reconnect_timer = TIMER_OFF;
+static bool morse_error = 0;
+static char commands_data[COMMAND_QUEUE_SIZE];
+struct RingBuffer commands;
+
 GSwifi gs(&Serial1X);
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
-static MorseListener listener(MICROPHONE,100);
-static LongPressButton clear_button(RESET_SWITCH, 5);
 Keys keys;
-IRKitHTTPClient client(&gs);
-
-volatile static uint8_t reconnect_timer       = TIMER_OFF;
-
-static bool morse_error = 0;
-
-static char command_queue_data[COMMAND_QUEUE_SIZE + 1];
-CommandQueue commands(command_queue_data, COMMAND_QUEUE_SIZE + 1);
+unsigned long now;
+volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
 
 void setup() {
     Serial.begin(115200);
 
     while ( ! Serial ) ;
 
-    //--- initialize LED
+    ring_init( &commands, commands_data, COMMAND_QUEUE_SIZE );
 
-    FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
-    FlexiTimer2::start();
+    //--- initialize timer
+
+    timer_init( onTimer );
+    timer_start( TIMER_INTERVAL );
+
+    //--- initialize full color led
+
+    pinMode(FULLCOLOR_LED_R, OUTPUT);
+    pinMode(FULLCOLOR_LED_G, OUTPUT);
+    pinMode(FULLCOLOR_LED_B, OUTPUT);
     color.setLedColor( 1, 0, 0, false ); // red: error
 
     //--- initialize long press button
 
-    clear_button.callback = &longPressed;
+    pinMode( CLEAR_BUTTON, INPUT );
+    long_press_button_state.pin            = CLEAR_BUTTON;
+    long_press_button_state.callback       = &longPressed;
+    long_press_button_state.threshold_time = 5;
 
     //--- initialize morse listener
 
     pinMode(MICROPHONE,  INPUT);
-
-    listener.letterCallback = &letterCallback;
-    listener.wordCallback   = &wordCallback;
-    listener.setup();
+    morse_state.letterCallback = &letterCallback;
+    morse_state.wordCallback   = &wordCallback;
+    morse_setup( &morse_state, MICROPHONE, 100 );
 
     //--- initialize IR
 
@@ -77,13 +82,15 @@ void setup() {
 }
 
 void loop() {
-    global.loop(); // always run first
+    now = millis(); // always run first
 
-    listener.loop();
+    morse_loop( &morse_state );
+
+    irkit_http_loop();
 
     timerLoop();
 
-    clear_button.loop();
+    long_press_button_loop( &long_press_button_state );
 
     // wifi
     gs.loop();
@@ -157,21 +164,19 @@ void longPressed() {
 }
 
 void timerLoop() {
-    client.loop();
-
     // reconnect
     if (TIMER_FIRED(reconnect_timer)) {
         TIMER_STOP(reconnect_timer);
         connect();
     }
 
-    while (! commands.is_empty()) {
+    while (! ring_isempty(&commands)) {
         char command;
-        commands.get( &command );
+        ring_get( &commands, &command, 1 );
 
         switch (command) {
         case COMMAND_POST_KEYS:
-            client.postKeys();
+            irkit_httpclient_post_keys();
             break;
         case COMMAND_SETUP:
             gs.setup( &onDisconnect, &onReset );
@@ -180,7 +185,7 @@ void timerLoop() {
             connect();
             break;
         case COMMAND_CLOSE:
-            commands.get( &command );
+            ring_get( &commands, &command, 1 );
             gs.close(command);
             break;
         case COMMAND_START:
@@ -195,15 +200,20 @@ void timerLoop() {
 void onIRReceive() {
     IR_dump();
     if (IR_packedlength() > 0) {
-        client.postMessages();
+        irkit_httpclient_post_messages();
     }
+}
+
+void onIRXmit() {
+    Serial.println(("xmit"));
+    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
 }
 
 // inside ISR, be careful
 void onTimer() {
     color.onTimer(); // 200msec blink
 
-    client.onTimer();
+    irkit_http_on_timer();
 
     TIMER_TICK( reconnect_timer );
 
@@ -211,14 +221,14 @@ void onTimer() {
 
     IR_timer();
 
-    clear_button.onTimer();
+    long_press_button_ontimer( &long_press_button_state );
 }
 
 int8_t onReset() {
     Serial.println(("!E10"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-    commands.put( COMMAND_SETUP );
+    ring_put( &commands, COMMAND_SETUP );
     return 0;
 }
 
@@ -226,13 +236,13 @@ int8_t onDisconnect() {
     Serial.println(("!E11"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-    commands.put( COMMAND_CONNECT );
+    ring_put( &commands, COMMAND_CONNECT );
     return 0;
 }
 
 void connect() {
     IR_state( IR_DISABLED );
-    listener.enable(false);
+    morse_enable( &morse_state, false );
 
     // load wifi credentials from EEPROM
     keys.load();
@@ -251,7 +261,7 @@ void connect() {
 
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
-        client.registerRequestHandler();
+        irkit_httpserver_register_handler();
 
         // start http server
         gs.listen(80);
@@ -263,10 +273,10 @@ void connect() {
             color.setLedColor( 0, 0, 1, false ); // blue: ready
 
             if (keys.isAPIKeySet() && ! keys.isValid()) {
-                client.postDoor();
+                irkit_httpclient_post_door();
             }
             else if (keys.isValid()) {
-                commands.put( COMMAND_START );
+                ring_put( &commands, COMMAND_START );
             }
         }
     }
@@ -282,13 +292,13 @@ void connect() {
         else {
             keys.clear();
             color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
-            listener.enable(true);
+            morse_enable( &morse_state, true );
         }
     }
 }
 
 void startNormalOperation() {
-    client.startTimer( 0 );
+    irkit_httpclient_start_polling( 0 );
 
     IR_state( IR_IDLE );
 }

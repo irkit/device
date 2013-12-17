@@ -1,5 +1,5 @@
-#ifndef CRC8_H_
-#define CRC8_H_
+#ifndef __CRC8_H__
+#define __CRC8_H__
 
 #include <inttypes.h>
 

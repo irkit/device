@@ -10,9 +10,6 @@ FullColorLed::FullColorLed(int pinR, int pinG, int pinB) :
     isBlinking_(false),
     blink_timer_(TIMER_OFF)
 {
-    pinMode(pinR_, OUTPUT);
-    pinMode(pinG_, OUTPUT);
-    pinMode(pinB_, OUTPUT);
 }
 
 void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB) {

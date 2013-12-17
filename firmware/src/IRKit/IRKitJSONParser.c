@@ -1,62 +1,11 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "IRKitJSONParser.h"
-#include "IrCtrl.h"
-#include "FullColorLed.h"
 
-extern FullColorLed color;
-extern uint32_t newest_message_id;
-
-// simple, specialized, JSON like string parser
-// well, I'm fighting with 100bytes of program memory
-
-typedef void (*IrJsonParserStartEnd)();
-typedef void (*IrJsonParserData)(uint8_t key, uint32_t value);
-
-static void jsonDetectedStart() {
-    Serial.println("json<<");
-
-    IR_state( IR_WRITING );
-}
-
-static void jsonDetectedData( uint8_t key, uint32_t value ) {
-    if ( IrCtrl.state != IR_WRITING ) {
-        return;
-    }
-
-    switch (key) {
-    case IrJsonParserDataKeyId:
-        newest_message_id = value;
-        break;
-    case IrJsonParserDataKeyFreq:
-        IrCtrl.freq = value;
-        break;
-    case IrJsonParserDataKeyData:
-        IR_put( value );
-        break;
-    default:
-        break;
-    }
-}
-
-static void jsonDetectedEnd() {
-    Serial.println(">>json");
-
-    if ( IrCtrl.state != IR_WRITING ) {
-        Serial.println("!E5");
-        IR_dump();
-        return;
-    }
-
-    Serial.println(("xmit"));
-    IR_xmit();
-    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
-}
-
-void irjson_parse (char letter,
-                   IrJsonParserStartEnd onStart,
-                   IrJsonParserData onData,
-                   IrJsonParserStartEnd onEnd) {
+void irkit_json_parse (char letter,
+                       JSONParserStartEnd on_start,
+                       JSONParserData on_data,
+                       JSONParserStartEnd on_end) {
     static uint8_t  current_token;
     static uint32_t data;
     static uint8_t  data_exists;
@@ -73,13 +22,13 @@ void irjson_parse (char letter,
     switch (letter) {
     case '{':
         is_key = 0;
-        onStart();
+        on_start();
         break;
     case '}':
         if (data_exists) {
-            onData(current_token, data);
+            on_data(current_token, data);
         }
-        onEnd();
+        on_end();
         break;
     case '"':
         if ( ! is_key ) {
@@ -119,7 +68,7 @@ void irjson_parse (char letter,
     case ',':
     case ']':
         if (data_exists) {
-            onData(current_token, data);
+            on_data(current_token, data);
             data        = 0;
             data_exists = 0;
         }
@@ -152,14 +101,4 @@ void irjson_parse (char letter,
             }
         }
     }
-}
-
-IRKitJSONParser::IRKitJSONParser() {
-}
-
-void IRKitJSONParser::parse( char letter ) {
-    irjson_parse( letter,
-                  &jsonDetectedStart,
-                  &jsonDetectedData,
-                  &jsonDetectedEnd );
 }

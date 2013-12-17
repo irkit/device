@@ -31,8 +31,6 @@
 #include "timer.h"
 #include "base64encoder.h"
 
-#define DOMAIN "api.getirkit.com"
-
 #define RESPONSE_LINES_ENDED -1
 
 #define NEXT_TOKEN_CID    0
@@ -214,7 +212,7 @@ void GSwifi::parseByte(uint8_t dat) {
             escape = false;
         }
         else {
-            if (dat == 0x1b) {
+            if (dat == ESCAPE) {
                 escape = true;
             }
             else if (dat == '\n') {
@@ -278,7 +276,6 @@ void GSwifi::parseByte(uint8_t dat) {
             switch (request_state) {
             case GSREQUESTSTATE_HEAD1:
                 if (dat != '\n') {
-                    // TODO: document max request line length
                     if ( ! ring_isfull(_buf_cmd) ) {
                         ring_put( _buf_cmd, dat );
                     }
@@ -424,7 +421,6 @@ void GSwifi::parseByte(uint8_t dat) {
                     if (count != 3) {
                         // protocol error
                         // we should receive something like: "200 OK", "401 Unauthorized"
-                        // TODO handle this
                         status_code   = 999;
                         request_state = GSREQUESTSTATE_ERROR;
                         break;
@@ -833,7 +829,7 @@ void GSwifi::escape (const char *cmd, uint8_t timeout_second) {
 
     resetResponse(GSCOMMANDMODE_NONE);
 
-    serial_->write( 0x1B );
+    serial_->write( ESCAPE );
     serial_->print(cmd); // without ln
 
     Serial.println(cmd);
@@ -1158,6 +1154,20 @@ char* GSwifi::hostname() {
     ret[ 7 ] = mac_[15];
     ret[ 8 ] = mac_[16];
     return ret;
+}
+
+void GSwifi::bufferClear() {
+    ring_clear(_buf_cmd);
+}
+
+bool GSwifi::bufferEmpty() {
+    return ring_isempty(_buf_cmd);
+}
+
+char GSwifi::bufferGet() {
+    char letter;
+    ring_get(_buf_cmd, &letter, 1);
+    return letter;
 }
 
 // careful, called from ISR

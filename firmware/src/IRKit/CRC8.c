@@ -1,4 +1,4 @@
-#include <inttypes.h>
+#include "CRC8.h"
 
 #define CRC8INIT 0x00
 #define CRC8POLY 0x31 // = X^8+X^5+X^4+X^0

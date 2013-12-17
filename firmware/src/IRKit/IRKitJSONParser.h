@@ -1,5 +1,5 @@
-#ifndef __IRJSONPARSER_H__
-#define __IRJSONPARSER_H__
+#ifndef __IRKITJSONPARSER_H__
+#define __IRKITJSONPARSER_H__
 
 #include <inttypes.h>
 
@@ -9,12 +9,20 @@
 #define IrJsonParserDataKeyData    0x04
 #define IrJsonParserDataKeyUnknown 0xFF
 
-class IRKitJSONParser {
- public:
-    IRKitJSONParser();
-    void parse( char );
+typedef void (*JSONParserStartEnd)();
+typedef void (*JSONParserData)(uint8_t key, uint32_t value);
 
- private:
-};
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif // __IRJSONPARSER_H__
+extern void irkit_json_parse (char letter,
+                              JSONParserStartEnd on_start,
+                              JSONParserData on_data,
+                              JSONParserStartEnd on_end);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // __IRKITJSONPARSER_H__

@@ -21,7 +21,6 @@
 #include <Arduino.h>
 #include "IrCtrl.h"
 #include "pgmStrToRAM.h"
-#include "Global.h"
 #include "timer.h"
 #include "IrPacker.h"
 
@@ -95,7 +94,7 @@
 // TIFR3 : Timer/Counter3 Interrupt Flag Register
 // ICF3 : Timer/Counter3, Input Capture Flag
 //   ICF3 can be cleared by writing a logic one to its bit location
-// TOV3 : Timer/Counter3, Overflow Flag # TODO
+// TOV3 : Timer/Counter3, Overflow Flag
 // TIMSK3 : Timer/Counter3 Interrupt Mask Register
 // ICIE3 : Timer/Counter3, Input Capture Interrupt Enable
 //   When this bit is written to one,
@@ -185,10 +184,20 @@
 #define EEPROM_OFFSET 169 // sizeof(KeysShared) + sizeof(KeysIndependent)
 
 // Working area for IR communication
-volatile IR_STRUCT IrCtrl;
-static IrPacker packer( (volatile uint8_t*)global.buffer );
 
-static void IR_put_ (uint16_t data);
+volatile IR_STRUCT IrCtrl;
+extern volatile char sharedbuffer[];
+volatile struct irpacker_t packer_state;
+
+static void IR_put_ (uint16_t data)
+{
+    if (irpacker_safelength(&packer_state) >= IR_BUFF_SIZE) {
+        Serial.println("!E27");
+        return;
+    }
+    irpacker_pack(&packer_state, data);
+    IrCtrl.len ++;
+}
 
 // IR receiving interrupt on either edge of input
 ISR_CAPTURE()
@@ -203,7 +212,7 @@ ISR_CAPTURE()
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
         return;
     }
-    if (packer.safelength() >= IR_BUFF_SIZE) {
+    if (irpacker_safelength(&packer_state) >= IR_BUFF_SIZE) {
         // receive buffer overflow
         // data in buffer might be valid (later data might just be "repeat" data)
         // so wait for recv timeout and successfully transit to RECVED state
@@ -244,7 +253,7 @@ ISR_CAPTURE()
         for (trailer=T_TRAIL_COUNT; trailer>IrCtrl.trailer_count; trailer--) {
             IR_put_(65535);
             IR_put_(0);
-            if (packer.safelength() >= IR_BUFF_SIZE) {
+            if (irpacker_safelength(&packer_state) >= IR_BUFF_SIZE) {
                 return;
             }
         }
@@ -309,7 +318,6 @@ ISR_COMPARE()
 
 int IR_xmit ()
 {
-    // TODO errcode
     if (IrCtrl.len == 0) {
         Serial.println("!E26");
         IR_state( IR_IDLE );
@@ -319,7 +327,7 @@ int IR_xmit ()
         return 0; // Abort when collision detected
     }
 
-    packer.packEnd();
+    irpacker_packend( &packer_state );
 
     IR_state( IR_XMITTING );
     if (IrCtrl.freq == 40) {
@@ -330,7 +338,7 @@ int IR_xmit ()
     }
     IR_TX_ON();
 
-    packer.unpackStart();
+    irpacker_unpack_start( &packer_state );
 
     IR_COMPARE_ENABLE( IR_get() );
     IrCtrl.tx_index ++;
@@ -346,13 +354,13 @@ void IR_clear (void)
     IrCtrl.len      = 0;
     IrCtrl.tx_index = 0;
     IrCtrl.freq     = IR_DEFAULT_CARRIER; // reset to 38kHz every time
-    memset( (void*)global.buffer, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
-    packer.clear();
+    memset( (void*)sharedbuffer, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
+    irpacker_clear( &packer_state );
 }
 
 uint16_t IR_get ()
 {
-    return packer.unpack();
+    return irpacker_unpack( &packer_state );
 }
 
 void IR_put (uint16_t data)
@@ -366,17 +374,7 @@ void IR_put (uint16_t data)
 
 uint16_t IR_packedlength (void)
 {
-    return packer.length();
-}
-
-static void IR_put_ (uint16_t data)
-{
-    if (packer.safelength() >= IR_BUFF_SIZE) {
-        Serial.println("!E27");
-        return;
-    }
-    packer.pack(data);
-    IrCtrl.len ++;
+    return irpacker_length( &packer_state );
 }
 
 void IR_timer (void)
@@ -432,7 +430,7 @@ void IR_state (uint8_t nextState)
     case IR_RECVED:
         TIMER_STOP( IrCtrl.recv_timer );
 
-        packer.packEnd();
+        irpacker_packend( &packer_state );
 
         // disable til IRKit.cpp reports IR data to server
         IR_CAPTURE_DISABLE();
@@ -445,7 +443,7 @@ void IR_state (uint8_t nextState)
         }
         break;
     case IR_READING:
-        packer.unpackStart();
+        irpacker_unpack_start( &packer_state );
         IR_CAPTURE_DISABLE();
         IR_COMPARE_DISABLE();
         break;
@@ -477,7 +475,8 @@ void IR_initialize (IRReceiveCallback _on_receive)
 
     IR_state( IR_DISABLED );
 
-    packer.load( (void*)EEPROM_OFFSET );
+    irpacker_init( &packer_state, (volatile uint8_t*)sharedbuffer );
+    irpacker_load( (void*)EEPROM_OFFSET );
 }
 
 void IR_dump (void)
@@ -490,7 +489,7 @@ void IR_dump (void)
     // Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
     // Serial.print(P("p.l:"));  Serial.println(packer.length(),HEX);
     // for (uint16_t i=0; i<packer.length(); i++) {
-    //     Serial.print((uint8_t)global.buffer[i], HEX);
+    //     Serial.print((uint8_t)sharedbuffer[i], HEX);
     //     Serial.print(" ");
     // }
     // Serial.println();

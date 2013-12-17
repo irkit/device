@@ -3,10 +3,11 @@
 #include <avr/eeprom.h>
 #include "pgmStrToRAM.h"
 #include "CRC8.h"
-#include "Global.h"
-#include "convert.h"
+#include "convert.h" // x2i
 
 #define MORSE_CREDENTIALS_SEPARATOR '/'
+
+extern volatile char sharedbuffer[];
 
 //
 // DESCRIPTION:
@@ -25,7 +26,7 @@ KeysFiller::KeysFiller ()
 
 Keys::Keys()
 {
-    data = (KeysShared*)global.buffer;
+    data = (KeysShared*)sharedbuffer;
 }
 
 void Keys::load()
@@ -92,7 +93,7 @@ void Keys::set(GSSECURITY security, const char *ssid, const char *pass)
     data->wifi_is_set = true;
 }
 
-// TODO remove this, for debug only
+// for debug only
 void Keys::setKey(const char *key)
 {
     strcpy(data2.key, key);

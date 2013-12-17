@@ -22,6 +22,6 @@
 
 #define MICROPHONE      A4 // pin40 (ADC1)PF1
 // #define MICROPHONE      A2 // v1.1.0's A4 was connnected to Wifi, use A2 on v1.1.0 for testing
-#define RESET_SWITCH    A5 // pin41 (ADC0)PF0
+#define CLEAR_BUTTON    A5 // pin41 (ADC0)PF0
 
 #endif
