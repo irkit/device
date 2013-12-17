@@ -1039,7 +1039,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
-int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint8_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
+int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint16_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
     char cmd[ GS_CMD_SIZE ];
     char *cmd2;
 
