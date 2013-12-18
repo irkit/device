@@ -79,9 +79,7 @@ void clear( struct morse_t *state ) {
     state->last_on                  = 0;
 }
 
-void morse_setup ( struct morse_t *state, int pin, uint16_t wpm) {
-    state->pin = pin;
-
+void morse_setup ( struct morse_t *state, uint16_t wpm) {
     setWPM( state, wpm );
     clear( state );
 
@@ -192,7 +190,7 @@ void morse_loop( struct morse_t *state ) {
 
             char letter = pgm_read_byte_near(morseTable + state->index);
 
-            state->letterCallback( letter );
+            state->letter_callback( letter );
 
             // after letter detected
             state->index = -1;
@@ -200,7 +198,7 @@ void morse_loop( struct morse_t *state ) {
         else if ( interval > state->min_word_space ) {
             // detected word space
 
-            state->wordCallback();
+            state->word_callback();
 
             // after word detected
             clear( state );

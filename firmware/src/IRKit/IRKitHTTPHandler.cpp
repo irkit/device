@@ -10,7 +10,7 @@
 extern GSwifi gs;
 extern Keys keys;
 extern struct RingBuffer commands;
-extern void onIRXmit();
+extern void on_ir_xmit();
 extern volatile char sharedbuffer[];
 
 // if we have recently received POST /messages request,
@@ -66,7 +66,7 @@ static void on_json_end() {
     }
 
     IR_xmit();
-    onIRXmit();
+    on_ir_xmit();
 }
 
 static void parse_json( char letter ) {

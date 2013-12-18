@@ -35,7 +35,7 @@ void setup() {
 
     //--- initialize timer
 
-    timer_init( onTimer );
+    timer_init( on_timer );
     timer_start( TIMER_INTERVAL );
 
     //--- initialize full color led
@@ -49,15 +49,16 @@ void setup() {
 
     pinMode( CLEAR_BUTTON, INPUT );
     long_press_button_state.pin            = CLEAR_BUTTON;
-    long_press_button_state.callback       = &longPressed;
+    long_press_button_state.callback       = &long_pressed;
     long_press_button_state.threshold_time = 5;
 
     //--- initialize morse listener
 
     pinMode(MICROPHONE,  INPUT);
-    morse_state.letterCallback = &letterCallback;
-    morse_state.wordCallback   = &wordCallback;
-    morse_setup( &morse_state, MICROPHONE, 100 );
+    morse_state.letter_callback = &on_morse_letter;
+    morse_state.word_callback   = &on_morse_word;
+    morse_state.pin            = MICROPHONE;
+    morse_setup( &morse_state, 100 );
 
     //--- initialize IR
 
@@ -67,14 +68,14 @@ void setup() {
     pinMode(IR_IN,            INPUT);
     digitalWrite(IR_IN,       HIGH);
 
-    IR_initialize( &onIRReceive );
+    IR_initialize( &on_ir_receive );
 
     //--- initialize Wifi
 
     pinMode(LDO33_ENABLE,     OUTPUT);
-    reset3V3();
+    reset_3v3();
 
-    gs.setup( &onDisconnect, &onReset );
+    gs.setup( &on_disconnect, &on_reset );
 
     connect();
 
@@ -88,7 +89,7 @@ void loop() {
 
     irkit_http_loop();
 
-    timerLoop();
+    timer_loop();
 
     long_press_button_loop( &long_press_button_state );
 
@@ -129,7 +130,7 @@ void loop() {
             Serial.println();
         }
         else if (last_character == 'l') {
-            longPressed();
+            long_pressed();
         }
         // else if (last_character == 's') {
         //     keys.set(GSSECURITY_WPA2_PSK,
@@ -143,7 +144,7 @@ void loop() {
     // add your own code here!!
 }
 
-void reset3V3 () {
+void reset_3v3 () {
     Serial.println(("!E25"));
 
     gs.reset();
@@ -156,14 +157,14 @@ void reset3V3 () {
     delay( 1000 );
 }
 
-void longPressed() {
+void long_pressed() {
     Serial.println("long");
     keys.clear();
     keys.save();
-    reset3V3();
+    reset_3v3();
 }
 
-void timerLoop() {
+void timer_loop() {
     // reconnect
     if (TIMER_FIRED(reconnect_timer)) {
         TIMER_STOP(reconnect_timer);
@@ -179,7 +180,7 @@ void timerLoop() {
             irkit_httpclient_post_keys();
             break;
         case COMMAND_SETUP:
-            gs.setup( &onDisconnect, &onReset );
+            gs.setup( &on_disconnect, &on_reset );
             // vv continues
         case COMMAND_CONNECT:
             connect();
@@ -189,7 +190,7 @@ void timerLoop() {
             gs.close(command);
             break;
         case COMMAND_START:
-            startNormalOperation();
+            start();
             break;
         default:
             break;
@@ -197,20 +198,20 @@ void timerLoop() {
     }
 }
 
-void onIRReceive() {
+void on_ir_receive() {
     IR_dump();
     if (IR_packedlength() > 0) {
         irkit_httpclient_post_messages();
     }
 }
 
-void onIRXmit() {
+void on_ir_xmit() {
     Serial.println(("xmit"));
     color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
 }
 
 // inside ISR, be careful
-void onTimer() {
+void on_timer() {
     color.onTimer(); // 200msec blink
 
     irkit_http_on_timer();
@@ -224,7 +225,7 @@ void onTimer() {
     long_press_button_ontimer( &long_press_button_state );
 }
 
-int8_t onReset() {
+int8_t on_reset() {
     Serial.println(("!E10"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
@@ -232,7 +233,7 @@ int8_t onReset() {
     return 0;
 }
 
-int8_t onDisconnect() {
+int8_t on_disconnect() {
     Serial.println(("!E11"));
     Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
@@ -297,13 +298,13 @@ void connect() {
     }
 }
 
-void startNormalOperation() {
+void start() {
     irkit_httpclient_start_polling( 0 );
 
     IR_state( IR_IDLE );
 }
 
-void letterCallback( char letter ) {
+void on_morse_letter( char letter ) {
     Serial.print("L:"); Serial.write(letter); Serial.println();
 
     if (morse_error) {
@@ -317,7 +318,7 @@ void letterCallback( char letter ) {
     }
 }
 
-void wordCallback() {
+void on_morse_word() {
     Serial.println("W");
 
     if (morse_error) {

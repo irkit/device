@@ -6,9 +6,9 @@
 
 struct morse_t {
     // called when a letter is detected
-    void (*letterCallback)(char letter);
+    void (*letter_callback)(char letter);
     // called when a word space is detected
-    void (*wordCallback)();
+    void (*word_callback)();
     int           pin;
     uint16_t      wpm;
     int8_t        index;       // index of morseTable
@@ -30,7 +30,7 @@ struct morse_t {
 extern "C" {
 #endif
 
-void morse_setup( struct morse_t *state, int pin, uint16_t wpm );
+void morse_setup( struct morse_t *state, uint16_t wpm );
 void morse_loop( struct morse_t *state );
 void morse_enable( struct morse_t *state, bool enabled );
 
