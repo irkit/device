@@ -12,11 +12,11 @@
 /* Put hardware dependent include files here */
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "Global.h"
+#include "const.h"
 
 // Structure of IR function work area
 // Known most longest IR data uses 363bytes (after compressed using IrPacker)
-#define IR_BUFF_SIZE       GLOBAL_BUFFER_SIZE
+#define IR_BUFF_SIZE       SHARED_BUFFER_SIZE
 
 #define IR_DEFAULT_CARRIER 38
 
@@ -48,6 +48,10 @@ typedef struct _irstruct {
 extern
 volatile IR_STRUCT IrCtrl;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Prototypes */
 extern void IR_initialize (IRReceiveCallback on_receive);
 extern int  IR_xmit (void);
@@ -58,5 +62,9 @@ extern void IR_timer (void);
 extern void IR_loop (void);
 extern void IR_state (uint8_t);
 extern void IR_dump (void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __IRCTRL_H__

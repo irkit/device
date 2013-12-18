@@ -191,11 +191,13 @@ public:
 
     char *hostname();
 
-    // TODO make accessor or rename
-    struct RingBuffer *_buf_cmd;
-
     // on timer ISR
     void onTimer();
+
+    void bufferClear();
+    bool bufferEmpty();
+    char bufferGet();
+
 
 #ifdef DEBUG
     void dump ();
@@ -220,6 +222,7 @@ private:
     GSEventHandler     on_disconnect_;
     GSEventHandler     on_reset_;
     struct RingBuffer  ring_buffer_;
+    struct RingBuffer *_buf_cmd;
 
     uint16_t           cid_bitmap_; // cid:0/1
     GSRequestHandler   request_handler_;

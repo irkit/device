@@ -1,12 +1,11 @@
-#include "IrJsonParser.h"
+#include "Arduino.h"
+#include "pins.h"
+#include "IRKitJSONParser.h"
 
-// simple, specialized, JSON like string parser
-// well, I'm fighting with 100bytes of program memory
-
-void irjson_parse (char letter,
-                   IrJsonParserStartEnd onStart,
-                   IrJsonParserData onData,
-                   IrJsonParserStartEnd onEnd) {
+void irkit_json_parse (char letter,
+                       JSONParserStartEnd on_start,
+                       JSONParserData on_data,
+                       JSONParserStartEnd on_end) {
     static uint8_t  current_token;
     static uint32_t data;
     static uint8_t  data_exists;
@@ -23,13 +22,13 @@ void irjson_parse (char letter,
     switch (letter) {
     case '{':
         is_key = 0;
-        onStart();
+        on_start();
         break;
     case '}':
         if (data_exists) {
-            onData(current_token, data);
+            on_data(current_token, data);
         }
-        onEnd();
+        on_end();
         break;
     case '"':
         if ( ! is_key ) {
@@ -69,7 +68,7 @@ void irjson_parse (char letter,
     case ',':
     case ']':
         if (data_exists) {
-            onData(current_token, data);
+            on_data(current_token, data);
             data        = 0;
             data_exists = 0;
         }

@@ -3,10 +3,18 @@
 
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void (*Base64EncodeCallback)(char);
 extern uint16_t base64_length(uint16_t input_length);
 extern void base64_encode(const uint8_t *input,
                           uint16_t input_length,
                           Base64EncodeCallback callback);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

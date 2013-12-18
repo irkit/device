@@ -17,4 +17,16 @@
 #define TIMER_FIRED(a)     (a == TIMER_FIRE)
 #define TIMER_STOPPED(a)   (a == TIMER_OFF)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void timer_init( void (*callback)() );
+void timer_start( uint16_t interval_ms );
+void timer_stop( void );
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __TIMER_H__

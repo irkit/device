@@ -1,5 +1,5 @@
 /*
-  FlexiTimer2.h - Using timer2 with a configurable resolution
+  timer.c,h - Using timer with a configurable resolution
   Wim Leers <work@wimleers.com>
 
   Based on MsTimer2
@@ -26,17 +26,19 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "FlexiTimer2.h"
+#ifdef __AVR__
+#include <avr/interrupt.h>
+#else
+#error timer library only works on AVR architecture
+#endif
 
-uint16_t FlexiTimer2::time_units;
-void (*FlexiTimer2::func)();
+#include "timer.h"
 
-void FlexiTimer2::set(uint16_t ms, void (*f)()) {
-    // fix to ms timer
+static uint16_t interval_ms;
+static void (*callback)();
 
-    time_units = ms;
-
-    func = f;
+void timer_init( void (*callback_)() ) {
+    callback = callback_;
 
     TCCR4B = 0;
     TCCR4A = 0;
@@ -49,31 +51,33 @@ void FlexiTimer2::set(uint16_t ms, void (*f)()) {
     OCR4C  = 124;
 }
 
-void FlexiTimer2::start() {
+void timer_start( uint16_t interval_ms_ ) {
+    interval_ms = interval_ms_;
+
     TIFR4       = (1<<TOV4);
     TCNT4       = 0;
     TIMSK4      = (1<<TOIE4);
 }
 
-void FlexiTimer2::stop() {
+void timer_stop() {
     TIMSK4 = 0;
 }
 
-void FlexiTimer2::_overflow() {
+static void _overflow() {
     static uint8_t overflowing = 0;
     static uint16_t count = 0;
 
     count += 1;
 
-    if (count >= time_units && !overflowing) {
+    if ((count >= interval_ms) && ! overflowing) {
         overflowing = 1;
-        count = count - time_units; // subtract time_uints to catch missed overflows
+        count = count - interval_ms; // subtract interval to catch missed overflows
                     // set to 0 if you don't want this.
-        (*func)();
+        (*callback)();
         overflowing = 0;
     }
 }
 
 ISR(TIMER4_OVF_vect) {
-    FlexiTimer2::_overflow();
+    _overflow();
 }
