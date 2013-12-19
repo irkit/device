@@ -1,1 +1,1 @@
-../../../src/main/HardwareSerialX.h
+../../../src/IRKit/HardwareSerialX.h

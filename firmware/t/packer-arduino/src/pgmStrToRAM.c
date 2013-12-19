@@ -1,1 +1,1 @@
-../../../src/main/pgmStrToRAM.c
+../../../src/IRKit/pgmStrToRAM.c

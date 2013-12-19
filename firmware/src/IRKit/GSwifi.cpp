@@ -67,9 +67,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     clear();
 
-    // version 2.5.1 firmware starts with 115200 baud rate
-    // version 2.5.1 (Tue, Dec 10, 2013 at 2:14 PM) firmware starts with 9600 baud rate
-    // version 2.4.3 firmware starts with 9600 baud rate
+    // baud rate is written into default profile in factory
     serial_->begin(57600);
 
     // how to change baud rate (2.5.1 has only one profile, don't need to send AT&Y0)
@@ -129,6 +127,51 @@ int8_t GSwifi::setupMDNS() {
     }
     return 0;
 }
+
+#ifdef FACTORY_CHECKER
+
+int8_t GSwifi::factorySetup() {
+    clear();
+
+    // version 2.5.1 firmware starts with 115200 baud rate
+    // version 2.5.1 (Tue, Dec 10, 2013 at 2:14 PM) firmware starts with 9600 baud rate
+    // version 2.4.3 firmware starts with 9600 baud rate
+    serial_->begin(9600);
+
+    // need this to ignore invalid response
+    command(PB("AT",1), GSCOMMANDMODE_NORMAL);
+
+    setBaud(57600);
+
+    command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
+    command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+int8_t GSwifi::checkVersion() {
+    command(PB("AT+VER=?",1), GSCOMMANDMODE_VERSION);
+    if (did_timeout_) {
+        return -1;
+    }
+    return 0;
+}
+
+const char *GSwifi::appVersion() {
+    return versions_[ 0 ];
+}
+
+const char *GSwifi::gepsVersion() {
+    return versions_[ 1 ];
+}
+
+const char *GSwifi::wlanVersion() {
+    return versions_[ 2 ];
+}
+
+#endif // FACTORY_CHECKER
 
 int8_t GSwifi::close (uint8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
@@ -801,6 +844,27 @@ void GSwifi::parseCmdResponse (char *buf) {
             gs_response_lines_ = RESPONSE_LINES_ENDED;
         }
         break;
+#ifdef FACTORY_CHECKER
+    case GSCOMMANDMODE_VERSION:
+        // expects something like:
+        // S2W APP VERSION=2.4.3
+        // S2W GEPS VERSION=2.4.3
+        // S2W WLAN VERSION=2.4.1
+        if (gs_response_lines_ == 0) {
+            memset(versions_, 0, sizeof(versions_));
+            snprintf(versions_[0], 8, buf+16);
+            gs_response_lines_ ++;
+        }
+        else if (gs_response_lines_ == 1) {
+            snprintf(versions_[1], 8, buf+17);
+            gs_response_lines_ ++;
+        }
+        else if (gs_response_lines_ == 2) {
+            snprintf(versions_[2], 8, buf+17);
+            gs_response_lines_ = RESPONSE_LINES_ENDED;
+        }
+        break;
+#endif
     }
 
     return;
