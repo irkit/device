@@ -382,7 +382,9 @@ void GSwifi::parseByte(uint8_t dat) {
                     // "Content-Length: "    .length = 16
                     // "Content-Length: 9999".length = 20
                     char content_length_chars[21];
-                    uint8_t copied = ring_get( _buf_cmd, &content_length_chars[0], 20 );
+                    memset( content_length_chars, 0, 21 );
+
+                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
                     if ((copied >= 16) &&
                         (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
                         content_length_chars[20] = 0;
@@ -501,6 +503,8 @@ void GSwifi::parseByte(uint8_t dat) {
                     // "Content-Length: "    .length = 16
                     // "Content-Length: 9999".length = 20
                     char content_length_chars[21];
+                    memset( content_length_chars, 0, 21 );
+
                     uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
                     if ((copied >= 16) &&
                         (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
