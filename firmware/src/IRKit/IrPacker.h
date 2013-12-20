@@ -31,6 +31,7 @@ extern uint16_t irpacker_length( const volatile struct irpacker_t *state );
 extern void irpacker_unpack_start( volatile struct irpacker_t *state );
 extern uint16_t irpacker_unpack( volatile struct irpacker_t *state );
 extern void irpacker_load( void *offset );
+extern void irpacker_save( void *offset );
 
 #ifdef __cplusplus
 }

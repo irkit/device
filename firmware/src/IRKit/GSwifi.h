@@ -26,6 +26,7 @@
 #define DEBUG
 
 #include "Arduino.h"
+#include "env.h"
 #include "GSwifi_const.h"
 #include "ringbuffer.h"
 #include "HardwareSerialX.h"
@@ -65,6 +66,9 @@ public:
         GSCOMMANDMODE_STATUS,
         GSCOMMANDMODE_MDNS,
         GSCOMMANDMODE_MAC,
+#ifdef FACTORY_CHECKER
+        GSCOMMANDMODE_VERSION,
+#endif
     };
 
     enum GSREQUESTSTATE {
@@ -198,6 +202,13 @@ public:
     bool bufferEmpty();
     char bufferGet();
 
+#ifdef FACTORY_CHECKER
+    int8_t factorySetup();
+    int8_t checkVersion();
+    const char* appVersion();
+    const char* gepsVersion();
+    const char* wlanVersion();
+#endif
 
 #ifdef DEBUG
     void dump ();
@@ -212,6 +223,9 @@ private:
     GSCOMMANDMODE      gs_commandmode_;
     char               ipaddr_[16]; // xxx.xxx.xxx.xxx
     char               mac_[17];    // 00:1d:c9:01:99:99
+#ifdef FACTORY_CHECKER
+    char               versions_[3][8]; // APP,GEPS,WLAN
+#endif
 
     struct GSRoute     routes_[GS_MAX_ROUTES];
     uint8_t            route_count_;

@@ -1336,7 +1336,6 @@ Distributor Buerklin, 11G810</description>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
 <part name="IC1" library="my" deviceset="JAPANINO-SLIM" device=""/>
 <part name="SW1" library="my" deviceset="SLIDE-SWITCH1/2" device="" value="SS12D01G4"/>
-<part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="JP1" library="pinhead" deviceset="PINHD-1X6" device="/90" value="TTL-232R-3V3"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="R4" library="my" deviceset="RESISTOR-US" device="2012" value="1k"/>
@@ -1358,6 +1357,7 @@ Distributor Buerklin, 11G810</description>
 <part name="X3" library="my" deviceset="PAD-N" device=""/>
 <part name="X4" library="my" deviceset="PAD-N" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
+<part name="X5" library="my" deviceset="PAD-N" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -1385,7 +1385,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="+3V3" gate="G$1" x="152.4" y="147.32"/>
 <instance part="IC1" gate="G$1" x="172.72" y="198.12"/>
 <instance part="SW1" gate="1" x="134.62" y="238.76" rot="R270"/>
-<instance part="GND2" gate="1" x="139.7" y="220.98"/>
 <instance part="JP1" gate="A" x="264.16" y="134.62"/>
 <instance part="GND3" gate="1" x="251.46" y="124.46"/>
 <instance part="R4" gate="G$1" x="231.14" y="139.7" rot="R90"/>
@@ -1407,6 +1406,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <instance part="X3" gate="G$1" x="218.44" y="78.74"/>
 <instance part="X4" gate="G$1" x="218.44" y="88.9"/>
 <instance part="GND6" gate="1" x="154.94" y="233.68"/>
+<instance part="X5" gate="G$1" x="142.24" y="233.68"/>
 </instances>
 <busses>
 </busses>
@@ -1435,11 +1435,6 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="GND16" gate="1" pin="GND"/>
 <wire x1="167.64" y1="132.08" x2="175.26" y2="132.08" width="0.1524" layer="91"/>
 <wire x1="175.26" y1="132.08" x2="175.26" y2="129.54" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="SW1" gate="1" pin="S"/>
-<pinref part="GND2" gate="1" pin="GND"/>
-<wire x1="139.7" y1="233.68" x2="139.7" y2="223.52" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND3" gate="1" pin="GND"/>
@@ -1714,6 +1709,12 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <pinref part="JP1" gate="A" pin="2"/>
 <wire x1="236.22" y1="139.7" x2="261.62" y2="139.7" width="0.1524" layer="91"/>
 <label x="266.7" y="139.7" size="1.778" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="N$8" class="0">
+<segment>
+<pinref part="SW1" gate="1" pin="S"/>
+<wire x1="139.7" y1="233.68" x2="142.24" y2="233.68" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
