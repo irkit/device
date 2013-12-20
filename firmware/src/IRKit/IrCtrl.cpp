@@ -377,6 +377,11 @@ uint16_t IR_packedlength (void)
     return irpacker_length( &packer_state );
 }
 
+uint16_t IR_rawlength (void)
+{
+    return IrCtrl.len;
+}
+
 void IR_timer (void)
 {
     if (IrCtrl.state == IR_RECVING) {

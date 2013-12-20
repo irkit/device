@@ -283,8 +283,8 @@ void irpacker_unpack_sequence( volatile struct irpacker_t *state, uint8_t *in, u
 }
 
 void irpacker_save( void *offset ) {
-#ifdef ARDUINO
-    uint16_t tree[TREE_SIZE] = {
+#ifdef FACTORY_CHECKER
+    uint16_t tree[TREE_SIZE]  = {
         205, 213, 220, 228, 236, 244, 253, 262,
         271, 280, 290, 300, 311, 322, 333, 345,
         357, 369, 382, 395, 409, 424, 439, 454,

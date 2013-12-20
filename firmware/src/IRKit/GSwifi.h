@@ -203,7 +203,7 @@ public:
     char bufferGet();
 
 #ifdef FACTORY_CHECKER
-    int8_t factorySetup();
+    int8_t factorySetup(uint32_t initial_baud);
     int8_t checkVersion();
     const char* appVersion();
     const char* gepsVersion();

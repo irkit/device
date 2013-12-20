@@ -130,13 +130,13 @@ int8_t GSwifi::setupMDNS() {
 
 #ifdef FACTORY_CHECKER
 
-int8_t GSwifi::factorySetup() {
+int8_t GSwifi::factorySetup(uint32_t initial_baud) {
     clear();
 
     // version 2.5.1 firmware starts with 115200 baud rate
     // version 2.5.1 (Tue, Dec 10, 2013 at 2:14 PM) firmware starts with 9600 baud rate
     // version 2.4.3 firmware starts with 9600 baud rate
-    serial_->begin(9600);
+    serial_->begin(initial_baud);
 
     // need this to ignore invalid response
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);

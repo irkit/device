@@ -58,6 +58,7 @@ extern int  IR_xmit (void);
 extern uint16_t IR_get ();
 extern void IR_put (uint16_t);
 extern uint16_t IR_packedlength (void);
+extern uint16_t IR_rawlength (void);
 extern void IR_timer (void);
 extern void IR_loop (void);
 extern void IR_state (uint8_t);
