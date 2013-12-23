@@ -24,6 +24,7 @@
 #include "timer.h"
 #include "IrPacker.h"
 #include "env.h"
+#include "const.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -181,8 +182,6 @@
 
 // down -1- up -2- down -3- up -4- down -5- up
 #define VALID_IR_LEN_MIN   5
-
-#define EEPROM_OFFSET 169 // sizeof(KeysShared) + sizeof(KeysIndependent)
 
 // Working area for IR communication
 
@@ -494,7 +493,7 @@ void IR_initialize (IRReceiveCallback _on_receive)
     IR_state( IR_DISABLED );
 
     irpacker_init( &packer_state, (volatile uint8_t*)sharedbuffer );
-    irpacker_load( (void*)EEPROM_OFFSET );
+    irpacker_load( (void*)EEPROM_PACKERTREE_OFFSET );
 }
 
 void IR_dump (void)
