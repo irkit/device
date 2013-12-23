@@ -1130,33 +1130,38 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     handlers_[ cid ] = handler;
 
+    // disable TCP_MAXRT and TCP_KEEPALIVE_X, because these commands takes some time to issue,
+    // and GS1011MIPS denies short TCP_KEEPALIVE_INTVL,
+    // and our server (currently Heroku) disconnects connections after 30seconds,
+    // and it's difficult to handle incoming requests while sending these.
+
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4
-    cmd2 = PB("AT+SETSOCKOPT=%,6,10,10,4",1);
-    cmd2[ 14 ] = xid;
-    command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd2 = PB("AT+SETSOCKOPT=%,6,10,10,4",1);
+    // cmd2[ 14 ] = xid;
+    // command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // Enable TCP_KEEPALIVE on this socket
     // AT+SETSOCKOPT=0,65535,8,1,4
-    cmd2 = PB("AT+SETSOCKOPT=%,65535,8,1,4",1);
-    cmd2[ 14 ] = xid;
-    command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd2 = PB("AT+SETSOCKOPT=%,65535,8,1,4",1);
+    // cmd2[ 14 ] = xid;
+    // command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_PROBES = 2
     // AT+SETSOCKOPT=0,6,4005,2,4
-    cmd2 = PB("AT+SETSOCKOPT=%,6,4005,2,4",1);
-    cmd2[ 14 ] = xid;
-    command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd2 = PB("AT+SETSOCKOPT=%,6,4005,2,4",1);
+    // cmd2[ 14 ] = xid;
+    // command(cmd2, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_INTVL = 150
     // AT+SETSOCKOPT=0,6,4001,150,4
     // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    cmd2 = PB("AT+SETSOCKOPT=%,6,4001,150,4",1);
-    cmd2[ 14 ] = xid;
-    command(cmd2, GSCOMMANDMODE_NORMAL);
-    if (did_timeout_) {
-        return -1;
-    }
+    // cmd2 = PB("AT+SETSOCKOPT=%,6,4001,150,4",1);
+    // cmd2[ 14 ] = xid;
+    // command(cmd2, GSCOMMANDMODE_NORMAL);
+    // if (did_timeout_) {
+    //     return -1;
+    // }
 
     cmd2 = PB("S0",1);
     cmd2[ 1 ]  = xid;
