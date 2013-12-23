@@ -49,7 +49,7 @@ prog_char morseTable[] PROGMEM = "547263EDCB9810/F******A*******";
 
 extern unsigned long now;
 
-void setWPM(struct morse_t *state, uint16_t wpm) {
+static void setWPM(struct morse_t *state, uint16_t wpm) {
     state->wpm = wpm;
 
     // when 13:
@@ -70,7 +70,7 @@ void setWPM(struct morse_t *state, uint16_t wpm) {
 #endif
 }
 
-void clear( struct morse_t *state ) {
+static void clear( struct morse_t *state ) {
     state->index                    = -1; // next index = (index + 1) * 2 + (isDah ? 1 : 0)
     state->is_on                    = false;
     state->word_started             = false;
