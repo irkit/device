@@ -55,6 +55,8 @@ extern "C" {
 /* Prototypes */
 extern void IR_initialize (IRReceiveCallback on_receive);
 extern int  IR_xmit (void);
+extern void IR_clear (void);
+extern void IR_reset (void);
 extern uint16_t IR_get ();
 extern void IR_put (uint16_t);
 extern uint16_t IR_packedlength (void);

@@ -23,6 +23,7 @@
 #include "pgmStrToRAM.h"
 #include "timer.h"
 #include "IrPacker.h"
+#include "env.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -323,9 +324,12 @@ int IR_xmit ()
         IR_state( IR_IDLE );
         return 0;
     }
+#ifndef FACTORY_CHECKER
+    // factory checker xmits after receiving
     if ( IrCtrl.state != IR_WRITING ) {
         return 0; // Abort when collision detected
     }
+#endif
 
     irpacker_packend( &packer_state );
 
@@ -349,6 +353,7 @@ int IR_xmit ()
     return 1;
 }
 
+// _clear clears data, but _reset just resets it's state
 void IR_clear (void)
 {
     IrCtrl.len      = 0;
@@ -356,6 +361,11 @@ void IR_clear (void)
     IrCtrl.freq     = IR_DEFAULT_CARRIER; // reset to 38kHz every time
     memset( (void*)sharedbuffer, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
     irpacker_clear( &packer_state );
+}
+
+void IR_reset (void)
+{
+    irpacker_reset( &packer_state );
 }
 
 uint16_t IR_get ()
@@ -411,7 +421,10 @@ void IR_loop ()
 {
     if (IrCtrl.state == IR_RECVED) {
         IrCtrl.on_receive();
+#ifndef FACTORY_CHECKER
+        // factory checker xmits after receive
         IR_state( IR_IDLE );
+#endif
     }
 }
 

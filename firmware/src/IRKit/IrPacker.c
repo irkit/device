@@ -78,6 +78,12 @@ void irpacker_clear( volatile struct irpacker_t *state ) {
     state->bit_index = 0;
 }
 
+void irpacker_reset( volatile struct irpacker_t *state ) {
+    state->val0      = 0;
+    state->val1      = 0;
+    state->bit_index = 0;
+}
+
 void add_bit(volatile struct irpacker_t *state, bool value) {
     uint8_t byte_index = state->bit_index >> 3;
     uint16_t offset    = state->length + 4 + byte_index;

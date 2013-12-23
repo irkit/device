@@ -26,6 +26,7 @@ extern "C" {
 
 extern void irpacker_init( volatile struct irpacker_t *state, volatile uint8_t *buff );
 extern void irpacker_clear( volatile struct irpacker_t *state );
+extern void irpacker_reset( volatile struct irpacker_t *state );
 extern void irpacker_pack( volatile struct irpacker_t *state, uint16_t data );
 extern void irpacker_packend( volatile struct irpacker_t *state );
 extern uint16_t irpacker_safelength( const volatile struct irpacker_t *state );
