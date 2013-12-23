@@ -93,12 +93,10 @@ void loop() {
 
     long_press_button_loop( &long_press_button_state );
 
-    // wifi
     gs.loop();
 
     IR_loop();
 
-    // Wifi UART interface test
     if (Serial.available()) {
         static uint8_t last_character = '0';
         static bool command_mode = false;
@@ -132,13 +130,6 @@ void loop() {
         else if (last_character == 'l') {
             long_pressed();
         }
-        // else if (last_character == 's') {
-        //     keys.set(GSSECURITY_WPA2_PSK,
-        //              PB("Rhodos",1),
-        //              PB("aaaaaaaaaaaaa",2));
-        //     keys.setKey(P("5284CF0D43994784897ECAB3D9935498"));
-        //     keys.save();
-        // }
     }
 
     // add your own code here!!
@@ -165,7 +156,6 @@ void long_pressed() {
 }
 
 void timer_loop() {
-    // reconnect
     if (TIMER_FIRED(reconnect_timer)) {
         TIMER_STOP(reconnect_timer);
         connect();
