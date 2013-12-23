@@ -1,4 +1,5 @@
 #include "IrPacker.h"
+#include "env.h"
 
 #ifdef ARDUINO
 # include <avr/eeprom.h>
@@ -14,7 +15,6 @@
 
 #define IRPACKER_OFFSET 30 // 0-29 is reserved for special data
 #define BITPACK_MARKER  0x01
-#define TREE_SIZE 168
 
 uint16_t tree[TREE_SIZE];
 
@@ -277,13 +277,13 @@ void irpacker_unpack_sequence( volatile struct irpacker_t *state, uint8_t *in, u
     state->length = length;
 
     while (state->byte_index < state->length) {
-        callback( unpack() );
+        callback( irpacker_unpack(state) );
     }
 #endif
 }
 
-void irpacker_save( void *offset ) {
-#ifdef FACTORY_CHECKER
+int8_t irpacker_save( void *offset ) {
+#ifdef SAVE_IRPACKER_TREE
     uint16_t tree[TREE_SIZE]  = {
         205, 213, 220, 228, 236, 244, 253, 262,
         271, 280, 290, 300, 311, 322, 333, 345,
@@ -308,7 +308,9 @@ void irpacker_save( void *offset ) {
         50610, 52381, 54214, 56112, 58076, 60108, 62212, 64390
     };
     eeprom_write_block( tree, offset, sizeof(tree) );
+    return 0;
 #endif
+    return -1;
 }
 
 void irpacker_load( void *offset ) {

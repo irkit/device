@@ -1,9 +1,9 @@
 
 test:
-	g++ -Wall -g -o .build/test.out IrPacker.cpp test.cpp
+	g++ -Wall -g -o .build/test.out IrPacker.c test.cpp
 	./.build/test.out
 
 all:
-	g++ -Wall -g -o pack.bin IrPacker.cpp pack.cpp
-	g++ -Wall -g -o unpack.bin IrPacker.cpp unpack.cpp
-	g++ -Wall -g -o unpack_sequence.bin IrPacker.cpp unpack_sequence.cpp
+	# g++ -Wall -g -o pack.bin IrPacker.c pack.cpp
+	# g++ -Wall -g -o unpack.bin IrPacker.c unpack.cpp
+	g++ -Wall -g -o unpack_sequence.bin IrPacker.c unpack_sequence.cpp
