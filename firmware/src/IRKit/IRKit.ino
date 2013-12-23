@@ -12,6 +12,7 @@
 #include "longpressbutton.h"
 #include "IRKitHTTPHandler.h"
 #include "commands.h"
+#include "version.h"
 
 struct morse_t morse_state;
 struct long_press_button_state_t long_press_button_state;
@@ -129,6 +130,9 @@ void loop() {
         }
         else if (last_character == 'l') {
             long_pressed();
+        }
+        else if (last_character == 'v') {
+            Serial.print("v:"); Serial.println(version);
         }
     }
 
