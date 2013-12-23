@@ -29,7 +29,7 @@ volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
 void setup() {
     Serial.begin(115200);
 
-    while ( ! Serial ) ;
+    // while ( ! Serial ) ;
 
     ring_init( &commands, commands_data, COMMAND_QUEUE_SIZE );
 
