@@ -3,8 +3,11 @@
 #include "IrCtrl.h"
 #include "pgmStrToRAM.h"
 #include "MemoryFree.h"
-#include "FlexiTimer2.h"
 #include "timer.h"
+#include "IrPacker.h"
+
+volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
+extern uint16_t tree[TREE_SIZE];
 
 void onReceivedIR() {
     Serial.println(P("received!!"));
@@ -12,8 +15,8 @@ void onReceivedIR() {
 }
 
 void setup() {
-    FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
-    FlexiTimer2::start();
+    timer_init( &onTimer );
+    timer_start( TIMER_INTERVAL );
 
     // pull-up
     pinMode(IR_IN,      INPUT);
@@ -68,6 +71,7 @@ void loop() {
         uint8_t status;
         if (lastCharacter == 'd') {
             IR_dump();
+            Serial.print("t:"); Serial.println(tree[0]); Serial.println(tree[1]);
         }
         else if (lastCharacter == 'h') {
             printGuide();
