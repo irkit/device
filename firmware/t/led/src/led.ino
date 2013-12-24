@@ -1,19 +1,19 @@
 #include "Arduino.h"
 #include "pins.h"
 #include "FullColorLed.h"
-#include "FlexiTimer2.h"
+#include "timer.h"
 
 FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 #define LED_BLINK_INTERVAL 200
 
 void timerFired() {
     Serial.println(".");
-    color.toggleBlink();
+    color.onTimer();
 }
 
 void setup() {
-    FlexiTimer2::set( LED_BLINK_INTERVAL, &timerFired );
-    FlexiTimer2::start();
+    timer_init( &timerFired );
+    timer_start( LED_BLINK_INTERVAL );
 
     color.setLedColor( 1, 1, 1 );
 
