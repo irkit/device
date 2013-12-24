@@ -15,6 +15,12 @@ void onReceivedIR() {
 }
 
 void setup() {
+    // USB serial
+    Serial.begin(115200);
+
+    // wait for connection
+    while ( ! Serial ) ;
+
     timer_init( &onTimer );
     timer_start( TIMER_INTERVAL );
 
@@ -32,12 +38,6 @@ void setup() {
 
     IR_initialize( &onReceivedIR );
     IR_state(IR_IDLE);
-
-    // USB serial
-    Serial.begin(115200);
-
-    // wait for connection
-    while ( ! Serial ) ;
 
     printGuide();
 }
