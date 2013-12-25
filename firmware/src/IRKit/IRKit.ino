@@ -4,6 +4,7 @@
 #include "MemoryFree.h"
 #include "pgmStrToRAM.h"
 #include "IrCtrl.h"
+#include "IrPacker.h"
 #include "FullColorLed.h"
 #include "GSwifi.h"
 #include "Keys.h"
@@ -26,6 +27,7 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 Keys keys;
 unsigned long now;
 volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
+extern uint16_t tree[TREE_SIZE];
 
 void setup() {
     Serial.begin(115200);
@@ -127,6 +129,9 @@ void loop() {
             Serial.println();
             IR_dump();
             Serial.println();
+            Serial.print("tree:");
+            Serial.println(tree[ 0 ]);
+            Serial.println(tree[ 1 ]);
         }
         else if (last_character == 'l') {
             long_pressed();
@@ -134,6 +139,13 @@ void loop() {
         else if (last_character == 'v') {
             Serial.print("v:"); Serial.println(version);
         }
+        /* else if (last_character == 's') { */
+        /*     keys.set(GSSECURITY_WPA2_PSK, */
+        /*              PB("Rhodos",1), */
+        /*              PB("aaaaaaaaaaaaa",2)); */
+        /*     keys.setKey(P("5284CF0D43994784897ECAB3D9935498")); */
+        /*     keys.save(); */
+        /* } */
     }
 
     // add your own code here!!
