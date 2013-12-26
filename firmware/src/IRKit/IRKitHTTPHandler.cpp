@@ -396,7 +396,6 @@ void irkit_http_loop() {
     // long poll
     if (TIMER_FIRED(polling_timer)) {
         TIMER_STOP(polling_timer);
-        Serial.println("message timeout");
 
         if (TIMER_RUNNING(suspend_polling_timer)) {
             // suspend GET /m for a while if we have received a POST /messages request from client
@@ -418,6 +417,5 @@ void irkit_http_loop() {
 
     if (TIMER_FIRED(suspend_polling_timer)) {
         TIMER_STOP(suspend_polling_timer);
-        Serial.println("suspend timeout");
     }
 }

@@ -78,6 +78,10 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
 
     // need this to ignore initial response
     command(PB("AT",1), GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        // return here to speed up after hardware reset
+        return -1;
+    }
 
     // enable bulk data mode
     command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
@@ -337,7 +341,6 @@ void GSwifi::parseByte(uint8_t dat) {
                     uint8_t path_size   = GS_MAX_PATH_LENGTH;
                     int8_t  result      = parseRequestLine((char*)method_chars, method_size);
                     if ( result == 0 ) {
-                        Serial.print("M:"); Serial.println(method_chars);
                         result = parseRequestLine((char*)path, path_size);
                     }
                     if ( result != 0 ) {
@@ -347,7 +350,6 @@ void GSwifi::parseByte(uint8_t dat) {
                         ring_clear(_buf_cmd);
                         break;
                     }
-                    Serial.print("P:"); Serial.println(path);
                     GSMETHOD method = x2method(method_chars);
 
                     routeid = router(method, path);

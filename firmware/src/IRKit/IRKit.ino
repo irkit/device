@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include <avr/wdt.h>
 #include "pins.h"
 #include "const.h"
 #include "MemoryFree.h"
@@ -75,11 +76,7 @@ void setup() {
     //--- initialize Wifi
 
     pinMode(LDO33_ENABLE,     OUTPUT);
-    reset_3v3();
-
-    gs.setup( &on_disconnect, &on_reset );
-
-    ring_put( &commands, COMMAND_CONNECT );
+    wifi_hardware_reset();
 
     // add your own code here!!
 }
@@ -149,27 +146,25 @@ void loop() {
     // add your own code here!!
 }
 
-void reset_3v3 () {
+void wifi_hardware_reset () {
     Serial.println(("!E25"));
 
-    gs.reset();
-
     digitalWrite( LDO33_ENABLE, LOW );
-    delay( 3000 );
+    delay( 1000 );
     digitalWrite( LDO33_ENABLE, HIGH );
 
     // wait til gs wakes up
     delay( 1000 );
+
+    ring_put( &commands, COMMAND_SETUP );
 }
 
 void long_pressed() {
-    Serial.println("long");
     color.setLedColor( 1, 0, 0, false ); // red: error
 
     keys.clear();
     keys.save();
-
-    reset_3v3();
+    software_reset();
 }
 
 void process_commands() {
@@ -333,4 +328,10 @@ void on_morse_word() {
         keys.save();
         ring_put( &commands, COMMAND_CONNECT );
     }
+}
+
+void software_reset() {
+    Serial.println("SR");
+    wdt_enable(WDTO_15MS);
+    while (1) ;
 }
