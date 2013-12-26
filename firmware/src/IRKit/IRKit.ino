@@ -205,6 +205,7 @@ void process_commands() {
 }
 
 void on_ir_receive() {
+    color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
     IR_dump();
     if (IR_packedlength() > 0) {
         irkit_httpclient_post_messages();
