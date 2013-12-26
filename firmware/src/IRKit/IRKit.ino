@@ -27,7 +27,6 @@ FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 Keys keys;
 unsigned long now;
 volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
-extern uint16_t tree[TREE_SIZE];
 
 void setup() {
     Serial.begin(115200);
@@ -132,11 +131,6 @@ void loop() {
 
             Serial.println();
             IR_dump();
-
-            Serial.println();
-            Serial.print("tree:");
-            Serial.println(tree[ 0 ]);
-            Serial.println(tree[ 1 ]);
         }
         else if (last_character == 'l') {
             long_pressed();

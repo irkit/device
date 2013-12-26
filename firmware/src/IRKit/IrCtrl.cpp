@@ -188,6 +188,7 @@
 volatile IR_STRUCT IrCtrl;
 extern volatile char sharedbuffer[];
 volatile struct irpacker_t packer_state;
+extern uint16_t tree[TREE_SIZE];
 
 static void IR_put_ (uint16_t data)
 {
@@ -517,4 +518,7 @@ void IR_dump (void)
     //     Serial.print(" ");
     // }
     // Serial.println();
+    // Serial.print("tree:");
+    // Serial.println(tree[ 0 ]);
+    // Serial.println(tree[ 1 ]);
 }
