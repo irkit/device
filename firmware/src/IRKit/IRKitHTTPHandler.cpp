@@ -27,11 +27,8 @@ static uint8_t post_keys_cid;
 #define POST_DOOR_BODY_LENGTH 61
 #define POST_KEYS_BODY_LENGTH 42
 
-// simple, specialized, JSON like string parser
-// well, I'm fighting with 100bytes of program memory
-
 static void on_json_start() {
-    Serial.println("json<<");
+    Serial.println("j<");
 
     IR_state( IR_WRITING );
 }
@@ -57,7 +54,7 @@ static void on_json_data( uint8_t key, uint32_t value ) {
 }
 
 static void on_json_end() {
-    Serial.println(">>json");
+    Serial.println(">j");
 
     if ( IrCtrl.state != IR_WRITING ) {
         Serial.println("!E5");
@@ -77,7 +74,7 @@ static void parse_json( char letter ) {
 }
 
 static int8_t on_post_door_response(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /d RS ")); Serial.println(status_code);
+    Serial.print(P("< P /d ")); Serial.println(status_code);
 
     gs.bufferClear();
 
@@ -117,7 +114,7 @@ static int8_t on_post_door_response(uint8_t cid, uint16_t status_code, GSwifi::G
 }
 
 static int8_t on_get_messages_response(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("G /m RS ")); Serial.println(status_code);
+    Serial.print(P("< G /m ")); Serial.println(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
@@ -162,7 +159,7 @@ static int8_t on_get_messages_response(uint8_t cid, uint16_t status_code, GSwifi
 }
 
 static int8_t on_post_keys_response(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /k RS ")); Serial.println(status_code);
+    Serial.print(P("< P /k ")); Serial.println(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
@@ -200,7 +197,7 @@ static int8_t on_post_keys_response(uint8_t cid, uint16_t status_code, GSwifi::G
 }
 
 static int8_t on_post_messages_response(uint8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("P /m RS ")); Serial.println(status_code);
+    Serial.print(P("< P /m ")); Serial.println(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();

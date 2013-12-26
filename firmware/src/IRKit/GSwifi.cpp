@@ -225,11 +225,14 @@ void GSwifi::parseByte(uint8_t dat) {
     static uint8_t  next_token; // split each byte into tokens (cid,ip,port,length,data)
     static bool     escape = false;
 
-    if ((dat > 0x10) && (dat < 0x20)) {
+    if (dat == ESCAPE) {
         // 0x1B : Escape
+        Serial.print("e< ");
+    }
+    else if ((0x10 < dat) && (dat < 0x20)) {
         // 0x11 : XON
         // 0x13 : XOFF
-        Serial.print(dat,HEX); Serial.print('|');
+        Serial.print("0x"); Serial.print(dat, HEX);
     }
     else { // if (next_token != NEXT_TOKEN_DATA) {
         Serial.write(dat);
@@ -242,6 +245,7 @@ void GSwifi::parseByte(uint8_t dat) {
             case 'O':
             case 'F':
                 // ignore
+                Serial.println();
                 break;
             case 'Z':
             case 'H':
