@@ -90,10 +90,11 @@ static int8_t on_post_door_response(uint8_t cid, uint16_t status_code, GSwifi::G
         keys.setKeyValid(true);
         // save only independent area, since sharedbuffer might be populated by IR or so.
         keys.save2();
+        IR_state( IR_IDLE );
 
         ring_put( &commands, COMMAND_CLOSE );
         ring_put( &commands, cid );
-        ring_put( &commands, COMMAND_START );
+        ring_put( &commands, COMMAND_START_POLLING );
 
         break;
     case 401:
@@ -139,7 +140,7 @@ static int8_t on_get_messages_response(uint8_t cid, uint16_t status_code, GSwifi
 
             ring_put( &commands, COMMAND_CLOSE );
             ring_put( &commands, cid );
-            ring_put( &commands, COMMAND_START );
+            ring_put( &commands, COMMAND_START_POLLING );
         }
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
@@ -215,6 +216,42 @@ static int8_t on_post_messages_response(uint8_t cid, uint16_t status_code, GSwif
     return 0;
 }
 
+static int8_t on_get_messages_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
+        return -1;
+    }
+
+    gs.writeHead(cid, 200);
+
+    if ( (IrCtrl.len <= 0) ||
+         (IrCtrl.state != IR_RECVED_IDLE) ) {
+        // if no data
+        gs.writeEnd();
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+        return 0;
+    }
+
+    IR_state( IR_READING );
+
+    gs.write(P("{\"format\":\"raw\",\"freq\":")); // format fixed to "raw" for now
+    gs.write(IrCtrl.freq);
+    gs.write(P(",\"data\":["));
+    for (uint16_t i=0; i<IrCtrl.len; i++) {
+        gs.write( IR_get() );
+        if (i != IrCtrl.len - 1) {
+            gs.write(",");
+        }
+    }
+    gs.write("]}");
+    gs.writeEnd();
+    ring_put( &commands, COMMAND_CLOSE );
+    ring_put( &commands, cid );
+
+    IR_state( IR_IDLE );
+
+    return 0;
+}
 
 static int8_t on_post_messages_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
     while (! gs.bufferEmpty()) {
@@ -267,6 +304,9 @@ static int8_t on_request(uint8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE sta
         // we request server for one, and respond to client with the result from server
         return on_post_keys_request(cid, state);
 
+    case 2: // GET /messages
+        return on_get_messages_request(cid, state);
+
     default:
         break;
     }
@@ -296,16 +336,16 @@ int8_t irkit_httpclient_post_messages() {
                           (const char*)sharedbuffer, IR_packedlength(),
                           &on_post_messages_response,
                            10 );
- }
+}
 
- int8_t irkit_httpclient_post_keys() {
-     // devicekey=[0-9A-F]{32}
-     char body[POST_KEYS_BODY_LENGTH+1];
-     sprintf(body, "devicekey=%s", keys.getKey());
-     int8_t result = gs.post( "/k",
-                              body, POST_KEYS_BODY_LENGTH,
-                              &on_post_keys_response,
-                              10 );
+int8_t irkit_httpclient_post_keys() {
+    // devicekey=[0-9A-F]{32}
+    char body[POST_KEYS_BODY_LENGTH+1];
+    sprintf(body, "devicekey=%s", keys.getKey());
+    int8_t result = gs.post( "/k",
+                             body, POST_KEYS_BODY_LENGTH,
+                             &on_post_keys_response,
+                             10 );
     if ( result < 0 ) {
         gs.writeHead( post_keys_cid, 500 );
         gs.writeEnd();
@@ -322,6 +362,8 @@ void irkit_httpserver_register_handler() {
     gs.registerRoute( GSwifi::GSMETHOD_POST, P("/messages") );
     // 1
     gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
+    // 2
+    gs.registerRoute( GSwifi::GSMETHOD_GET, P("/messages") );
 
     gs.setRequestHandler( &on_request );
 }

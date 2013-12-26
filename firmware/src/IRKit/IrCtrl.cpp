@@ -206,7 +206,7 @@ ISR_CAPTURE()
 
     _timer_reg_t counter = IR_CAPTURE_REG();
 
-    if (IrCtrl.state == IR_RECVED) {
+    if ((IrCtrl.state == IR_RECVED) || (IrCtrl.state == IR_RECVED_IDLE)) {
         IR_state( IR_IDLE );
     }
     if ((IrCtrl.state != IR_IDLE) && (IrCtrl.state != IR_RECVING)) {
@@ -422,13 +422,15 @@ void IR_loop ()
         IrCtrl.on_receive();
 #ifndef FACTORY_CHECKER
         // factory checker xmits after receive
-        IR_state( IR_IDLE );
+        IR_state( IR_RECVED_IDLE );
 #endif
     }
 }
 
 void IR_state (uint8_t nextState)
 {
+    Serial.print("IR.s:"); Serial.println(nextState);
+
     switch (nextState) {
     case IR_IDLE:
         IR_TX_OFF();
@@ -458,6 +460,11 @@ void IR_state (uint8_t nextState)
             IR_state( IR_IDLE );
             return;
         }
+        break;
+    case IR_RECVED_IDLE:
+        // holds received IR data, and ready to receive next
+        IR_CAPTURE_FALL();
+        IR_CAPTURE_ENABLE();
         break;
     case IR_READING:
         irpacker_unpack_start( &packer_state );
@@ -498,16 +505,16 @@ void IR_initialize (IRReceiveCallback _on_receive)
 
 void IR_dump (void)
 {
-    Serial.print(P("IR.s:")); Serial.println(IrCtrl.state);
-    Serial.print(P(".l:"));   Serial.println(IrCtrl.len,HEX);
-    Serial.print(P(".t:"));   Serial.println(IrCtrl.trailer_count,HEX);
-    Serial.print(P(".x:"));   Serial.println(IrCtrl.tx_index,HEX);
-    Serial.print(P(".r:"));   Serial.println(IrCtrl.recv_timer);
-    Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
-    Serial.print(P("p.l:"));  Serial.println(IR_packedlength(),HEX);
-    for (uint16_t i=0; i<IR_packedlength(); i++) {
-        Serial.print((uint8_t)sharedbuffer[i], HEX);
-        Serial.print(" ");
-    }
-    Serial.println();
+    // Serial.print(P("IR.s:")); Serial.println(IrCtrl.state);
+    // Serial.print(P(".l:"));   Serial.println(IrCtrl.len,HEX);
+    // Serial.print(P(".t:"));   Serial.println(IrCtrl.trailer_count,HEX);
+    // Serial.print(P(".x:"));   Serial.println(IrCtrl.tx_index,HEX);
+    // Serial.print(P(".r:"));   Serial.println(IrCtrl.recv_timer);
+    // Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
+    // Serial.print(P("p.l:"));  Serial.println(IR_packedlength(),HEX);
+    // for (uint16_t i=0; i<IR_packedlength(); i++) {
+    //     Serial.print((uint8_t)sharedbuffer[i], HEX);
+    //     Serial.print(" ");
+    // }
+    // Serial.println();
 }

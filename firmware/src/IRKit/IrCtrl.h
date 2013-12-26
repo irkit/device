@@ -24,6 +24,7 @@
 #define IR_IDLE        0    /* In idle state, ready to receive/transmit */
 #define IR_RECVING     1    /* An IR frame is being received */
 #define IR_RECVED      2    /* An IR frame has been received and data is valid */
+#define IR_RECVED_IDLE 3    /* An IR frame is POSTed to server. Still holds IR data, but ready to receive next */
 #define IR_WRITING     10   /* somebody is wrinting IR data, can't receive IR */
 #define IR_XMITTING    11   /* IR transmission is in progress */
 #define IR_READING     20

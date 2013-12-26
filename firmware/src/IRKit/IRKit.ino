@@ -123,16 +123,16 @@ void loop() {
             Serial1X.write(last_character);
         }
         else if (last_character == 'd') {
-            keys.load();
-
-            Serial.println();
-            keys.dump();
+            /* Serial.println(); */
+            /* keys.load(); */
+            /* keys.dump(); */
 
             Serial.println();
             gs.dump();
 
             Serial.println();
             IR_dump();
+
             Serial.println();
             Serial.print("tree:");
             Serial.println(tree[ 0 ]);
@@ -195,8 +195,8 @@ void process_commands() {
             ring_get( &commands, &command, 1 );
             gs.close(command);
             break;
-        case COMMAND_START:
-            start();
+        case COMMAND_START_POLLING:
+            irkit_httpclient_start_polling( 0 );
             break;
         default:
             break;
@@ -283,7 +283,8 @@ void connect() {
                 irkit_httpclient_post_door();
             }
             else if (keys.isValid()) {
-                ring_put( &commands, COMMAND_START );
+                IR_state( IR_IDLE );
+                ring_put( &commands, COMMAND_START_POLLING );
             }
         }
     }
@@ -302,12 +303,6 @@ void connect() {
             morse_enable( &morse_state, true );
         }
     }
-}
-
-void start() {
-    irkit_httpclient_start_polling( 0 );
-
-    IR_state( IR_IDLE );
 }
 
 void on_morse_letter( char letter ) {

@@ -434,7 +434,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         // we wait til next bulk transfer
                         request_state = GSREQUESTSTATE_RECEIVED;
                     }
-                    // user callback should write(), end() and close()
+                    // user callback should write(), writeEnd() and close()
                     dispatchRequestHandler(current_cid, routeid, request_state);
                 }
                 ring_clear(_buf_cmd);
@@ -1261,8 +1261,8 @@ void GSwifi::dump () {
     // Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
     // Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
     // Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
-    for (uint8_t i=0; i<GS_MAX_ROUTES; i++) {
-        Serial.println(routes_[i].method);
-        Serial.println(routes_[i].path);
-    }
+    // for (uint8_t i=0; i<GS_MAX_ROUTES; i++) {
+    //     Serial.println(routes_[i].method);
+    //     Serial.println(routes_[i].path);
+    // }
 }
