@@ -13,12 +13,12 @@ extern struct RingBuffer commands;
 extern void on_ir_xmit();
 extern volatile char sharedbuffer[];
 
-// if we have recently received POST /messages request,
+// if we have recently received GET or POST /messages request,
 // delay our next request to API server for a while
 // to avoid concurrently processing receiving requests and requesting.
 // if user can access us via local wifi, no requests arrive at our server anyway
 // (except another person's trying to send from outside, at the same time)
-static volatile uint8_t recently_posted_timer = TIMER_OFF;
+static volatile uint8_t suspend_polling_timer = TIMER_OFF;
 static volatile uint8_t polling_timer         = TIMER_OFF;
 
 static uint32_t newest_message_id = 0; // on memory only should be fine
@@ -250,6 +250,8 @@ static int8_t on_get_messages_request(uint8_t cid, GSwifi::GSREQUESTSTATE state)
 
     IR_state( IR_IDLE );
 
+    TIMER_START( suspend_polling_timer, SUSPEND_GET_MESSAGES_INTERVAL );
+
     return 0;
 }
 
@@ -274,7 +276,7 @@ static int8_t on_post_messages_request(uint8_t cid, GSwifi::GSREQUESTSTATE state
         ring_put( &commands, COMMAND_CLOSE );
         ring_put( &commands, cid );
 
-        TIMER_START( recently_posted_timer, SUSPEND_GET_MESSAGES_INTERVAL );
+        TIMER_START( suspend_polling_timer, SUSPEND_GET_MESSAGES_INTERVAL );
     }
 
     return 0;
@@ -371,7 +373,7 @@ void irkit_httpserver_register_handler() {
 void irkit_http_on_timer() {
     TIMER_TICK(polling_timer);
 
-    TIMER_TICK(recently_posted_timer);
+    TIMER_TICK(suspend_polling_timer);
 }
 
 void irkit_http_loop() {
@@ -380,7 +382,7 @@ void irkit_http_loop() {
         TIMER_STOP(polling_timer);
         Serial.println("message timeout");
 
-        if (TIMER_RUNNING(recently_posted_timer)) {
+        if (TIMER_RUNNING(suspend_polling_timer)) {
             // suspend GET /m for a while if we have received a POST /messages request from client
             // client is in wifi, we can ignore our server for a while
             TIMER_START(polling_timer, SUSPEND_GET_MESSAGES_INTERVAL);
@@ -395,8 +397,8 @@ void irkit_http_loop() {
         }
     }
 
-    if (TIMER_FIRED(recently_posted_timer)) {
-        TIMER_STOP(recently_posted_timer);
-        Serial.println("recently timeout");
+    if (TIMER_FIRED(suspend_polling_timer)) {
+        TIMER_STOP(suspend_polling_timer);
+        Serial.println("suspend timeout");
     }
 }
