@@ -113,31 +113,30 @@ void loop() {
         Serial.println();
         Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
 
-        if (last_character == 0x1B) {
-            command_mode = ! command_mode;
-            Serial.print("command_mode:"); Serial.println(command_mode);
-        }
+        /* if (last_character == 0x1B) { */
+        /*     command_mode = ! command_mode; */
+        /*     Serial.print("command_mode:"); Serial.println(command_mode); */
+        /* } */
+        /* if (command_mode) { */
+        /*     Serial1X.write(last_character); */
+        /* } */
+        /* else if (last_character == 'd') { */
+        /*     Serial.println(); */
+        /*     keys.load(); */
+        /*     keys.dump(); */
 
-        if (command_mode) {
-            Serial1X.write(last_character);
-        }
-        else if (last_character == 'd') {
-            /* Serial.println(); */
-            /* keys.load(); */
-            /* keys.dump(); */
+        /*     Serial.println(); */
+        /*     gs.dump(); */
 
-            Serial.println();
-            gs.dump();
-
-            Serial.println();
-            IR_dump();
-        }
-        else if (last_character == 'l') {
-            long_pressed();
-        }
-        else if (last_character == 'v') {
-            Serial.print("v:"); Serial.println(version);
-        }
+        /*     Serial.println(); */
+        /*     IR_dump(); */
+        /* } */
+        /* else if (last_character == 'l') { */
+        /*     long_pressed(); */
+        /* } */
+        /* else if (last_character == 'v') { */
+        /*     Serial.print("v:"); Serial.println(version); */
+        /* } */
         /* else if (last_character == 's') { */
         /*     keys.set(GSSECURITY_WPA2_PSK, */
         /*              PB("Rhodos",1), */

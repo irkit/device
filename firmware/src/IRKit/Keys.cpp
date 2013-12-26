@@ -273,18 +273,18 @@ int8_t Keys::putDone()
 
 void Keys::dump(void)
 {
-    Serial.print(("F:"));
-    Serial.println(data->wifi_is_set);
-    Serial.println(data->wifi_was_valid);
-    Serial.println(data2.key_is_set);
-    Serial.println(data2.key_is_valid);
+    // Serial.print(("F:"));
+    // Serial.println(data->wifi_is_set);
+    // Serial.println(data->wifi_was_valid);
+    // Serial.println(data2.key_is_set);
+    // Serial.println(data2.key_is_valid);
 
-    Serial.print(("E:"));
-    Serial.println(data->security);
+    // Serial.print(("E:"));
+    // Serial.println(data->security);
 
-    Serial.print(("S:"));
-    Serial.println((const char*)data->ssid);
-    Serial.println((const char*)data->password);
-    Serial.println((const char*)data2.key);
-    Serial.println(data->crc8, HEX);
+    // Serial.print(("S:"));
+    // Serial.println((const char*)data->ssid);
+    // Serial.println((const char*)data->password);
+    // Serial.println((const char*)data2.key);
+    // Serial.println(data->crc8, HEX);
 }
