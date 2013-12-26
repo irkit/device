@@ -80,7 +80,7 @@ void setup() {
 
     gs.setup( &on_disconnect, &on_reset );
 
-    connect();
+    ring_put( &commands, COMMAND_CONNECT );
 
     // add your own code here!!
 }
@@ -92,7 +92,12 @@ void loop() {
 
     irkit_http_loop();
 
-    timer_loop();
+    if (TIMER_FIRED(reconnect_timer)) {
+        TIMER_STOP(reconnect_timer);
+        connect();
+    }
+
+    process_commands();
 
     long_press_button_loop( &long_press_button_state );
 
@@ -171,12 +176,7 @@ void long_pressed() {
     reset_3v3();
 }
 
-void timer_loop() {
-    if (TIMER_FIRED(reconnect_timer)) {
-        TIMER_STOP(reconnect_timer);
-        connect();
-    }
-
+void process_commands() {
     while (! ring_isempty(&commands)) {
         char command;
         ring_get( &commands, &command, 1 );
@@ -340,6 +340,6 @@ void on_morse_word() {
     else {
         keys.dump();
         keys.save();
-        connect();
+        ring_put( &commands, COMMAND_CONNECT );
     }
 }
