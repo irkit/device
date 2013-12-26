@@ -35,6 +35,7 @@
 
 // nginx took 499
 #define HTTP_STATUSCODE_CLIENT_TIMEOUT 498
+#define HTTP_STATUSCODE_DISCONNECT     497
 
 /**
  * GSwifi class
@@ -84,8 +85,8 @@ public:
     };
 
     typedef int8_t (*GSEventHandler)();
-    typedef int8_t (*GSRequestHandler)(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
-    typedef int8_t (*GSResponseHandler)(uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
+    typedef int8_t (*GSRequestHandler)(int8_t cid, int8_t routeid, GSREQUESTSTATE state);
+    typedef int8_t (*GSResponseHandler)(int8_t cid, uint16_t status_code, GSREQUESTSTATE state);
 
     struct GSRoute {
         GSMETHOD method;
@@ -174,9 +175,10 @@ public:
     /**
      * attach uri, http method pair to function
      */
+    void clearRoutes ();
     int8_t registerRoute (GSMETHOD method, const char *path);
     void setRequestHandler (GSRequestHandler handler);
-    int8_t writeHead (uint8_t cid, uint16_t status_code);
+    int8_t writeHead (int8_t cid, uint16_t status_code);
     void write (const char *data);
     void write (const char data);
     void write (const uint8_t data);
@@ -191,7 +193,7 @@ public:
     int8_t get (const char *path, GSResponseHandler handler, uint8_t timeout_second);
     int8_t postBinary (const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second);
     int8_t post (const char *path, const char *body, uint16_t length, GSResponseHandler handler, uint8_t timeout_second);
-    int8_t close(uint8_t cid);
+    int8_t close(int8_t cid);
 
     char *hostname();
 
@@ -243,7 +245,7 @@ private:
     GSResponseHandler  handlers_[16]; // handler for each cid
     volatile uint8_t   timers_[16]; // timer for each cid
     uint16_t           content_lengths_[16]; // remaining content-length for each cid
-    uint8_t            connected_cid_; // this cid has just connected
+    int8_t             connected_cid_; // this cid has just connected
 
     void               clear();
     uint8_t            checkActivity();
@@ -255,10 +257,10 @@ private:
     int8_t             router (GSMETHOD method, const char *path);
     GSMETHOD           x2method(const char *method);
 
-    int8_t             dispatchRequestHandler(uint8_t cid, int8_t routeid, GSREQUESTSTATE state);
-    int8_t             dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state);
-    inline void        setCidIsRequest(uint8_t cid, bool is_request);
-    inline bool        cidIsRequest(uint8_t cid);
+    int8_t             dispatchRequestHandler(int8_t cid, int8_t routeid, GSREQUESTSTATE state);
+    int8_t             dispatchResponseHandler (int8_t cid, uint16_t status_code, GSREQUESTSTATE state);
+    inline void        setCidIsRequest(int8_t cid, bool is_request);
+    inline bool        cidIsRequest(int8_t cid);
 };
 
 #endif // __GSWIFI_H__

@@ -173,7 +173,7 @@ const char *GSwifi::wlanVersion() {
 
 #endif // FACTORY_CHECKER
 
-int8_t GSwifi::close (uint8_t cid) {
+int8_t GSwifi::close (int8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
     cmd[ 10 ] = i2x(cid);
 
@@ -193,6 +193,7 @@ void GSwifi::clear () {
     gs_mode_        = GSMODE_COMMAND;
     route_count_    = 0;
     ring_clear(_buf_cmd);
+    memset(ipaddr_, 0, sizeof(ipaddr_));
 
     for (uint8_t i=0; i<16; i++) {
         TIMER_STOP( timers_[i] );
@@ -283,7 +284,7 @@ void GSwifi::parseByte(uint8_t dat) {
 
     static uint16_t       len;
     static char           len_chars[5];
-    static uint8_t        current_cid;
+    static int8_t         current_cid;
     static GSREQUESTSTATE request_state;
 
     if (next_token == NEXT_TOKEN_CID) {
@@ -599,6 +600,10 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     return -1;
 }
 
+void GSwifi::clearRoutes () {
+    route_count_ = 0;
+}
+
 int8_t GSwifi::registerRoute (GSwifi::GSMETHOD method, const char *path) {
     if ( route_count_ >= GS_MAX_ROUTES ) {
         return -1;
@@ -612,15 +617,15 @@ void GSwifi::setRequestHandler (GSRequestHandler handler) {
     request_handler_ = handler;
 }
 
-int8_t GSwifi::dispatchRequestHandler (uint8_t cid, int8_t routeid, GSREQUESTSTATE state) {
+int8_t GSwifi::dispatchRequestHandler (int8_t cid, int8_t routeid, GSREQUESTSTATE state) {
     return request_handler_(cid, routeid, state);
 }
 
-int8_t GSwifi::dispatchResponseHandler (uint8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
+int8_t GSwifi::dispatchResponseHandler (int8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
     return handlers_[ cid ](cid, status_code, state);
 }
 
-inline void GSwifi::setCidIsRequest(uint8_t cid, bool is_request) {
+inline void GSwifi::setCidIsRequest(int8_t cid, bool is_request) {
     if (is_request) {
         cid_bitmap_ |= _BV(cid);
     }
@@ -629,11 +634,11 @@ inline void GSwifi::setCidIsRequest(uint8_t cid, bool is_request) {
     }
 }
 
-inline bool GSwifi::cidIsRequest(uint8_t cid) {
+inline bool GSwifi::cidIsRequest(int8_t cid) {
     return cid_bitmap_ & _BV(cid);
 }
 
-int8_t GSwifi::writeHead (uint8_t cid, uint16_t status_code) {
+int8_t GSwifi::writeHead (int8_t cid, uint16_t status_code) {
     char *cmd = PB("S0",1);
     cmd[ 1 ]  = i2x(cid);
 
@@ -724,7 +729,7 @@ void GSwifi::parseLine () {
             // 2nd cid is for client
             // next line will be "[ESC]Z10140GET / ..."
 
-            uint8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
+            int8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
             setCidIsRequest(cid, true);
             content_lengths_[ cid ] = 0;
 
@@ -732,8 +737,16 @@ void GSwifi::parseLine () {
             // other connections close theirselves on their turn
             // ignore client's IP and port
         }
-        // else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
-        // }
+        else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
+            int8_t cid = x2i(buf[11]);
+            if (cid == 0) {
+                // if it's our server, this is fatal
+                reset();
+            }
+            else if (! cidIsRequest(i) ) {
+                dispatchResponseHandler(i, HTTP_STATUSCODE_DISCONNECT, GSREQUESTSTATE_ERROR);
+            }
+        }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
                  strncmp(buf, P("Disassociat"), 11) == 0) {
             // Disassociated
@@ -748,7 +761,6 @@ void GSwifi::parseLine () {
             // APP Reset-APP SW Reset
             // APP Reset-Wlan Except
             // Serial2Wifi APP
-            clear();
             on_reset_();
             gs_failure_ = true;
         }
@@ -763,10 +775,10 @@ void GSwifi::parseLine () {
 void GSwifi::parseCmdResponse (char *buf) {
     Serial.print(P("c< ")); Serial.println(buf);
 
-    if (strncmp(buf, P("OK"), 3) == 0) {
+    if (strncmp(buf, "OK", 3) == 0) {
         gs_ok_ = true;
     }
-    else if (strncmp(buf, P("ERROR"), 5) == 0) {
+    else if (strncmp(buf, "ERROR", 5) == 0) {
         gs_failure_ = true;
     }
 
@@ -783,6 +795,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 
             if (buf[8] == '0') {
                 // it's server successfully started listening
+                connected_cid_ = 0;
             }
             else {
                 int8_t cid = x2i(buf[8]);
@@ -873,6 +886,8 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         break;
 #endif
+    default:
+        break;
     }
 
     return;
@@ -1058,9 +1073,13 @@ int GSwifi::listen(uint16_t port) {
         return -1;
     }
 
-    listening_   = true;
+    if (connected_cid_ != 0) {
+        // assume CID is 0 for server (only listen on 1 port)
+        reset();
+        return -1;
+    }
 
-    // assume CID is 0 for server (only listen on 1 port)
+    listening_   = true;
 
     return 0;
 }
@@ -1107,6 +1126,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
+// returns -1 on error, >0 on success
 int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint16_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
     char cmd[ GS_CMD_SIZE ];
     char *cmd2;
@@ -1117,20 +1137,28 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // don't fail fatally on dnslookup failure,
     // we cache our server's ipaddress anyway
     // it happens randomly
+    if (ipaddr_[ 0 ] == 0) {
+        // but if it has not been resolved yet,
+        // we must be not connected to internet,
+        // let's show yellow blink on colorled
+        clear();
+        on_disconnect_();
+        return -1;
+    }
 
     sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
 
-    connected_cid_ = 0xFF;
+    connected_cid_ = CID_UNDEFINED;
     command(cmd, GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
         return -1;
     }
-    if (connected_cid_ == 0xFF) {
+    if (connected_cid_ == CID_UNDEFINED) {
         return -1;
     }
 
-    uint8_t cid = connected_cid_; // this might change inside command()
-    char xid    = i2x(cid);
+    int8_t cid = connected_cid_; // this might change inside command()
+    char xid   = i2x(cid);
 
     handlers_[ cid ] = handler;
 
@@ -1209,7 +1237,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     TIMER_START(timers_[cid], timeout);
 
-    return 0;
+    return cid;
 }
 
 int8_t GSwifi::get(const char *path, GSResponseHandler handler, uint8_t timeout_second) {

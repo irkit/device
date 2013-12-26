@@ -165,8 +165,11 @@ void reset_3v3 () {
 
 void long_pressed() {
     Serial.println("long");
+    color.setLedColor( 1, 0, 0, false ); // red: error
+
     keys.clear();
     keys.save();
+
     reset_3v3();
 }
 
@@ -263,28 +266,27 @@ void connect() {
 
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
-        irkit_httpserver_register_handler();
+        irkit_http_init();
 
         // start http server
         gs.listen(80);
 
         // start mDNS
         gs.setupMDNS();
+    }
 
-        if (gs.isListening()) {
-            color.setLedColor( 0, 0, 1, false ); // blue: ready
+    if (gs.isListening()) {
+        color.setLedColor( 0, 0, 1, false ); // blue: ready
 
-            if (keys.isAPIKeySet() && ! keys.isValid()) {
-                irkit_httpclient_post_door();
-            }
-            else if (keys.isValid()) {
-                IR_state( IR_IDLE );
-                ring_put( &commands, COMMAND_START_POLLING );
-            }
+        if (keys.isAPIKeySet() && ! keys.isValid()) {
+            irkit_httpclient_post_door();
+        }
+        else if (keys.isValid()) {
+            IR_state( IR_IDLE );
+            ring_put( &commands, COMMAND_START_POLLING );
         }
     }
     else {
-        Serial.println(("!E9"));
         keys.dump();
 
         if (keys.wasWifiValid()) {
