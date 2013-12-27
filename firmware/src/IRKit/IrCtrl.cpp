@@ -430,8 +430,6 @@ void IR_loop ()
 
 void IR_state (uint8_t nextState)
 {
-    Serial.print("IR.s:"); Serial.println(nextState);
-
     switch (nextState) {
     case IR_IDLE:
         IR_TX_OFF();
