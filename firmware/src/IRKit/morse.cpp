@@ -4,7 +4,7 @@
 // #define DEBUG
 
 // 0-1023
-#define ON_MIN_THRESHOLD 570
+#define ON_MIN_THRESHOLD 600
 
 // # standard morse tree
 // T _    M _ _    O _ _ _    CH _ _ _ _
