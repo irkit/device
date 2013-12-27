@@ -702,12 +702,11 @@ GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
 }
 
 void GSwifi::parseLine () {
-    uint8_t i;
     char buf[GS_CMD_SIZE];
 
     while (! ring_isempty(_buf_cmd)) {
         // received "\n"
-        i = 0;
+        uint8_t i = 0;
         while ( (! ring_isempty(_buf_cmd)) &&
                 (i < sizeof(buf) - 1) ) {
             ring_get( _buf_cmd, &buf[i], 1 );
@@ -732,7 +731,7 @@ void GSwifi::parseLine () {
             // next line will be "[ESC]Z10140GET / ..."
 
             int8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
-            setCidIsRequest(cid, true);
+            setCidIsRequest(cid, true); // request against us
             content_lengths_[ cid ] = 0;
 
             // don't close other connections,
@@ -745,7 +744,8 @@ void GSwifi::parseLine () {
                 // if it's our server, this is fatal
                 reset();
             }
-            else if (! cidIsRequest(i) ) {
+            else if (! cidIsRequest(cid) ) {
+                // request *from* us was disconnected (ex: polling)
                 dispatchResponseHandler(i, HTTP_STATUSCODE_DISCONNECT, GSREQUESTSTATE_ERROR);
             }
         }
