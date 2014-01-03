@@ -11,7 +11,7 @@
 
 #define GS_CMD_SIZE            64
 
-#define GS_MAX_ROUTES           3
+#define GS_MAX_ROUTES           4
 #define GS_MAX_PATH_LENGTH      9    // max: "/messages"
 
 enum GSSECURITY {

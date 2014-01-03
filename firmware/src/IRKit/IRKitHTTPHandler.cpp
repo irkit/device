@@ -304,6 +304,34 @@ static int8_t on_post_keys_request(int8_t cid, GSwifi::GSREQUESTSTATE state) {
     }
 }
 
+static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    while (! gs.bufferEmpty()) {
+        char letter = gs.bufferGet();
+        keys.put( letter );
+    }
+
+    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+        int8_t result = keys.putDone();
+        if (result != 0) {
+            keys.clear();
+            gs.writeHead(cid, 400);
+        }
+        else {
+            keys.dump();
+            keys.save();
+            gs.writeHead(cid, 200);
+        }
+
+        gs.writeEnd();
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+
+        if (result == 0) {
+            ring_put( &commands, COMMAND_CONNECT );
+        }
+    }
+}
+
 static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
     switch (routeid) {
     case 0: // POST /messages
@@ -316,6 +344,9 @@ static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE stat
 
     case 2: // GET /messages
         return on_get_messages_request(cid, state);
+
+    case 3: // POST /wifi
+        return on_post_wifi_request(cid, state);
 
     default:
         break;
@@ -376,6 +407,8 @@ void irkit_httpserver_register_handler() {
     gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
     // 2
     gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
+    // 3
+    gs.registerRoute( GSwifi::GSMETHOD_POST, P("/wifi") );
 
     gs.setRequestHandler( &on_request );
 }

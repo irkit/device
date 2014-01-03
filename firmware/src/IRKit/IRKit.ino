@@ -292,6 +292,10 @@ void connect() {
             keys.clear();
             color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
             morse_enable( &morse_state, true );
+            gs.startLimitedAP();
+            if (gs.isLimitedAP()) {
+                gs.listen(80);
+            }
         }
     }
 }

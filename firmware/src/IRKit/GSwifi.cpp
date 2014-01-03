@@ -193,6 +193,7 @@ int8_t GSwifi::close (int8_t cid) {
 void GSwifi::clear () {
     joined_         = false;
     listening_      = false;
+    limited_ap_     = false;
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
     route_count_    = 0;
@@ -982,6 +983,9 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 
     disconnect();
 
+    // transmit power level: 19dBm - default
+    // command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
+
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
 
@@ -1064,10 +1068,6 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 int GSwifi::listen(uint16_t port) {
     char cmd[15];
 
-    if ( ! joined_ ) {
-        return -1;
-    }
-
     // longest: "AT+NSTCP=65535"
     sprintf(cmd, P("AT+NSTCP=%d"), port);
     command(cmd, GSCOMMANDMODE_CONNECT);
@@ -1086,9 +1086,30 @@ int GSwifi::listen(uint16_t port) {
     return 0;
 }
 
+int8_t GSwifi::startLimitedAP () {
+    disconnect();
+
+    // transmit power level: 5dBm
+    command(PB("AT+WP=7",1),           GSCOMMANDMODE_NORMAL);
+
+    // open security (mDNS enabled firmware can't run WPA security on limited AP)
+    command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WM=2",1),           GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WA=IRKitXX,,11",1), GSCOMMANDMODE_NORMAL); // TODO fix ssid
+    command(PB("AT+DHCPSRVR=1",1),     GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    limited_ap_ = true;
+
+    return 0;
+}
+
 int GSwifi::disconnect () {
-    joined_    = false;
-    listening_ = false;
+    joined_     = false;
+    listening_  = false;
+    limited_ap_ = false;
     command(PB("AT+NCLOSEALL",1), GSCOMMANDMODE_NORMAL);
     command(PB("AT+WD",1),        GSCOMMANDMODE_NORMAL);
     command(PB("AT+NDHCP=0",1),   GSCOMMANDMODE_NORMAL);
@@ -1101,6 +1122,10 @@ bool GSwifi::isJoined () {
 
 bool GSwifi::isListening () {
     return listening_;
+}
+
+bool GSwifi::isLimitedAP () {
+    return limited_ap_;
 }
 
 // 4.2.1 UART Parameters

@@ -138,6 +138,9 @@ public:
     int listen (uint16_t port);
     bool isListening ();
 
+    int8_t startLimitedAP ();
+    bool isLimitedAP ();
+
     /**
      * unassociate
      */
@@ -219,6 +222,7 @@ public:
 private:
     HardwareSerialX*   serial_;
     bool               joined_, listening_;
+    bool               limited_ap_;
     bool               gs_ok_, gs_failure_;
     int                gs_response_lines_;
     GSMODE             gs_mode_;
