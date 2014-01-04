@@ -227,6 +227,7 @@ private:
     int                gs_response_lines_;
     GSMODE             gs_mode_;
     GSCOMMANDMODE      gs_commandmode_;
+    uint8_t            continuous_newlines_; // this should be per cid to handle multiple concurrent connections
     char               ipaddr_[16]; // xxx.xxx.xxx.xxx
     char               mac_[17];    // 00:1d:c9:01:99:99
 #ifdef FACTORY_CHECKER
@@ -255,6 +256,7 @@ private:
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
+    int8_t             parseHead2(uint8_t dat, int8_t cid);
     int8_t             parseRequestLine (char *token, uint8_t token_size);
     void               parseLine ();
     void               parseCmdResponse (char *buf);
