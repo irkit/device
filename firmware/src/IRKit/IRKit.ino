@@ -78,6 +78,7 @@ void setup() {
 
     pinMode(LDO33_ENABLE,     OUTPUT);
     wifi_hardware_reset();
+    irkit_http_init();
 
     // add your own code here!!
 }
@@ -179,6 +180,7 @@ void process_commands() {
             break;
         case COMMAND_SETUP:
             gs.setup( &on_disconnect, &on_reset );
+
             // vv continues
         case COMMAND_CONNECT:
             connect();
@@ -260,8 +262,6 @@ void connect() {
         keys.save();
 
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
-
-        irkit_http_init();
 
         // start http server
         gs.listen(80);

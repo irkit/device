@@ -197,7 +197,6 @@ void GSwifi::clear () {
     limited_ap_     = false;
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
-    route_count_    = 0;
     ring_clear(_buf_cmd);
     memset(ipaddr_, 0, sizeof(ipaddr_));
 
