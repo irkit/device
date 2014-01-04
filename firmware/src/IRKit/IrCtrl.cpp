@@ -25,6 +25,7 @@
 #include "IrPacker.h"
 #include "env.h"
 #include "const.h"
+#include "log.h"
 
 // avr/sfr_defs.h
 #define _BV(bit) (1 << (bit))
@@ -193,7 +194,7 @@ extern uint16_t tree[TREE_SIZE];
 static void IR_put_ (uint16_t data)
 {
     if (irpacker_safelength(&packer_state) >= IR_BUFF_SIZE) {
-        Serial.println("!E27");
+        IRLOG_PRINTLN("!E27");
         return;
     }
     irpacker_pack(&packer_state, data);
@@ -320,7 +321,7 @@ ISR_COMPARE()
 int IR_xmit ()
 {
     if (IrCtrl.len == 0) {
-        Serial.println("!E26");
+        IRLOG_PRINTLN("!E26");
         IR_state( IR_IDLE );
         return 0;
     }
@@ -400,7 +401,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
 
-            // Serial.println(("!E14"));
+            // IRLOG_PRINTLN(("!E14"));
             IR_state( IR_RECVED );
         }
     }
@@ -411,7 +412,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
             TIMER_STOP( IrCtrl.xmit_timer );
 
-            Serial.println(("!E15"));
+            IRLOG_PRINTLN(("!E15"));
             IR_state( IR_IDLE );
         }
     }
@@ -504,19 +505,19 @@ void IR_initialize (IRReceiveCallback _on_receive)
 
 void IR_dump (void)
 {
-    // Serial.print(P("IR.s:")); Serial.println(IrCtrl.state);
-    // Serial.print(P(".l:"));   Serial.println(IrCtrl.len,HEX);
-    // Serial.print(P(".t:"));   Serial.println(IrCtrl.trailer_count,HEX);
-    // Serial.print(P(".x:"));   Serial.println(IrCtrl.tx_index,HEX);
-    // Serial.print(P(".r:"));   Serial.println(IrCtrl.recv_timer);
-    // Serial.print(P(".x:"));   Serial.println(IrCtrl.xmit_timer);
-    // Serial.print(P("p.l:"));  Serial.println(IR_packedlength(),HEX);
+    // IRLOG_PRINT(P("IR.s:")); IRLOG_PRINTLN(IrCtrl.state);
+    // IRLOG_PRINT(P(".l:"));   IRLOG_PRINTLN(IrCtrl.len,HEX);
+    // IRLOG_PRINT(P(".t:"));   IRLOG_PRINTLN(IrCtrl.trailer_count,HEX);
+    // IRLOG_PRINT(P(".x:"));   IRLOG_PRINTLN(IrCtrl.tx_index,HEX);
+    // IRLOG_PRINT(P(".r:"));   IRLOG_PRINTLN(IrCtrl.recv_timer);
+    // IRLOG_PRINT(P(".x:"));   IRLOG_PRINTLN(IrCtrl.xmit_timer);
+    // IRLOG_PRINT(P("p.l:"));  IRLOG_PRINTLN(IR_packedlength(),HEX);
     // for (uint16_t i=0; i<IR_packedlength(); i++) {
-    //     Serial.print((uint8_t)sharedbuffer[i], HEX);
-    //     Serial.print(" ");
+    //     IRLOG_PRINT((uint8_t)sharedbuffer[i], HEX);
+    //     IRLOG_PRINT(" ");
     // }
-    // Serial.println();
-    // Serial.print("tree:");
-    // Serial.println(tree[ 0 ]);
-    // Serial.println(tree[ 1 ]);
+    // IRLOG_PRINTLN();
+    // IRLOG_PRINT("tree:");
+    // IRLOG_PRINTLN(tree[ 0 ]);
+    // IRLOG_PRINTLN(tree[ 1 ]);
 }

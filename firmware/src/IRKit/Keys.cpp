@@ -4,6 +4,7 @@
 #include "pgmStrToRAM.h"
 #include "CRC8.h"
 #include "convert.h" // x2i
+#include "log.h"
 
 #define MORSE_CREDENTIALS_SEPARATOR '/'
 
@@ -191,7 +192,7 @@ int8_t Keys::put(char code)
     if ( ! (('0' <= code) && (code <= '9')) &&
          ! (('A' <= code) && (code <= 'F')) ) {
         // we only use letters which match: [0-9A-F]
-        Serial.print(("!E23:")); Serial.println( code, HEX );
+        KEYLOG_PRINT(("!E23:")); KEYLOG_PRINTLN2( code, HEX );
         return -1;
     }
     if (filler.state == KeysFillerStateSecurity) {
@@ -205,7 +206,7 @@ int8_t Keys::put(char code)
             data->security = (GSSECURITY)x2i(code);
             return 0;
         default:
-            Serial.print(("!E22:")); Serial.println( code, HEX );
+            KEYLOG_PRINT(("!E22:")); KEYLOG_PRINTLN2( code, HEX );
             return -1;
         }
     }
@@ -232,7 +233,7 @@ int8_t Keys::put(char code)
 
     if (filler.state == KeysFillerStateCRC) {
         if (filler.index > 0) {
-            Serial.println(("!E21"));
+            KEYLOG_PRINTLN(("!E21"));
             return -1;
         }
         data->crc8 = character;
@@ -241,7 +242,7 @@ int8_t Keys::put(char code)
     }
 
     if ( filler.index == max_length ) {
-        Serial.println(("!E18"));
+        KEYLOG_PRINTLN(("!E18"));
         return -1;
     }
     container[ filler.index ++ ] = character;
@@ -251,7 +252,7 @@ int8_t Keys::put(char code)
 int8_t Keys::putDone()
 {
     if (filler.state != KeysFillerStateCRC) {
-        Serial.println(("!E17"));
+        KEYLOG_PRINTLN(("!E17"));
         return -1;
     }
 
@@ -266,25 +267,25 @@ int8_t Keys::putDone()
     }
     else {
         dump();
-        Serial.println(("!E16"));
+        KEYLOG_PRINTLN(("!E16"));
         return -1;
     }
 }
 
 void Keys::dump(void)
 {
-    // Serial.print(("F:"));
-    // Serial.println(data->wifi_is_set);
-    // Serial.println(data->wifi_was_valid);
-    // Serial.println(data2.key_is_set);
-    // Serial.println(data2.key_is_valid);
+    // KEYLOG_PRINT(("F:"));
+    // KEYLOG_PRINTLN(data->wifi_is_set);
+    // KEYLOG_PRINTLN(data->wifi_was_valid);
+    // KEYLOG_PRINTLN(data2.key_is_set);
+    // KEYLOG_PRINTLN(data2.key_is_valid);
 
-    // Serial.print(("E:"));
-    // Serial.println(data->security);
+    // KEYLOG_PRINT(("E:"));
+    // KEYLOG_PRINTLN(data->security);
 
-    // Serial.print(("S:"));
-    // Serial.println((const char*)data->ssid);
-    // Serial.println((const char*)data->password);
-    // Serial.println((const char*)data2.key);
-    // Serial.println(data->crc8, HEX);
+    // KEYLOG_PRINT(("S:"));
+    // KEYLOG_PRINTLN((const char*)data->ssid);
+    // KEYLOG_PRINTLN((const char*)data->password);
+    // KEYLOG_PRINTLN((const char*)data2.key);
+    // KEYLOG_PRINTLN(data->crc8, HEX);
 }

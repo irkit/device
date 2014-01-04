@@ -30,6 +30,7 @@
 #include "version.h"
 #include "timer.h"
 #include "base64encoder.h"
+#include "log.h"
 
 #define RESPONSE_LINES_ENDED -1
 
@@ -45,7 +46,7 @@ static char __buf_cmd[GS_CMD_SIZE + 1];
 
 static void base64encoded( char encoded ) {
     Serial1X.print(encoded);
-    Serial.print(encoded);
+    GSLOG_PRINT(encoded);
 }
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
@@ -215,7 +216,7 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            Serial.print(("!E4 ")); Serial.println(i);
+            GSLOG_PRINT(("!E4 ")); GSLOG_PRINTLN(i);
 
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
@@ -233,15 +234,15 @@ void GSwifi::parseByte(uint8_t dat) {
 
     if (dat == ESCAPE) {
         // 0x1B : Escape
-        Serial.print("e< ");
+        GSLOG_PRINT("e< ");
     }
     else if ((0x10 < dat) && (dat < 0x20)) {
         // 0x11 : XON
         // 0x13 : XOFF
-        Serial.print("0x"); Serial.print(dat, HEX);
+        GSLOG_PRINT("0x"); GSLOG_PRINT2(dat, HEX);
     }
     else { // if (next_token != NEXT_TOKEN_DATA) {
-        Serial.write(dat);
+        GSLOG_WRITE(dat);
     }
 
     if (gs_mode_ == GSMODE_COMMAND) {
@@ -251,7 +252,7 @@ void GSwifi::parseByte(uint8_t dat) {
             case 'O':
             case 'F':
                 // ignore
-                Serial.println();
+                GSLOG_PRINTLN();
                 break;
             case 'Z':
             case 'H':
@@ -259,7 +260,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                Serial.print(("!E1 ")); Serial.println(dat,HEX);
+                GSLOG_PRINT(("!E1 ")); GSLOG_PRINTLN2(dat,HEX);
                 break;
             }
             escape = false;
@@ -277,7 +278,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    Serial.println(("!E2"));
+                    GSLOG_PRINTLN(("!E2"));
                 }
             }
         }
@@ -354,7 +355,7 @@ void GSwifi::parseByte(uint8_t dat) {
 
                     routeid = router(method, path);
                     if ( routeid < 0 ) {
-                        Serial.println("!E28");
+                        GSLOG_PRINTLN("!E28");
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
                         ring_clear(_buf_cmd);
@@ -440,7 +441,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         break;
                     }
                     status_code                     = atoi(status_code_chars);
-                    Serial.print("S:"); Serial.println(status_code);
+                    GSLOG_PRINT("S:"); GSLOG_PRINTLN(status_code);
 
                     request_state                   = GSREQUESTSTATE_HEAD2;
                     continuous_newlines_            = 0;
@@ -523,14 +524,13 @@ int8_t GSwifi::parseHead2(uint8_t dat, int8_t cid) {
             (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
             content_length_chars[20] = 0;
             content_lengths_[ cid ] = atoi(&content_length_chars[16]);
-            Serial.print("C: "); Serial.println(content_lengths_[cid]);
+            GSLOG_PRINT("C: "); GSLOG_PRINTLN(content_lengths_[cid]);
         }
         ring_clear(_buf_cmd);
     }
     if (continuous_newlines_ == 2) {
         // if detected double (\r)\n, switch to body mode
         ring_clear(_buf_cmd);
-        Serial.println("rq1");
         return 0;
     }
     return -1;
@@ -563,7 +563,7 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     for (i = 0; i < route_count_; i ++) {
         if ((method == routes_[i].method) &&
             (strncmp(path, routes_[i].path, GS_MAX_PATH_LENGTH) == 0)) {
-            Serial.print("R:"); Serial.println(i);
+            GSLOG_PRINT("R:"); GSLOG_PRINTLN(i);
             return i;
         }
     }
@@ -743,7 +743,7 @@ void GSwifi::parseLine () {
 }
 
 void GSwifi::parseCmdResponse (char *buf) {
-    Serial.print(P("c< ")); Serial.println(buf);
+    GSLOG_PRINT(P("c< ")); GSLOG_PRINTLN(buf);
 
     if (strncmp(buf, "OK", 3) == 0) {
         gs_ok_ = true;
@@ -864,14 +864,14 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
-    Serial.print(P("c> "));
+    GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
+    GSLOG_PRINT(P("c> "));
 
     resetResponse(res);
 
     serial_->println(cmd);
 
-    Serial.println(cmd);
+    GSLOG_PRINTLN(cmd);
 
     if (timeout_second == GS_TIMEOUT_NOWAIT) {
         return;
@@ -882,14 +882,14 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second
 }
 
 void GSwifi::escape (const char *cmd, uint8_t timeout_second) {
-    Serial.print(P("e> "));
+    GSLOG_PRINT(P("e> "));
 
     resetResponse(GSCOMMANDMODE_NONE);
 
     serial_->write( ESCAPE );
     serial_->print(cmd); // without ln
 
-    Serial.println(cmd);
+    GSLOG_PRINTLN(cmd);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
@@ -925,7 +925,7 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        Serial.println(("!E24"));
+        GSLOG_PRINTLN(("!E24"));
         did_timeout_ = true;
         setBusy(false);
     }
@@ -1105,7 +1105,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     // longest: "ATB=921600"
     sprintf(cmd, P("ATB=%ld"), baud);
     serial_->println(cmd);
-    Serial.print(P("c> ")); Serial.println(cmd);
+    GSLOG_PRINT(P("c> ")); GSLOG_PRINTLN(cmd);
 
     delay(1000);
 
@@ -1282,13 +1282,13 @@ void GSwifi::onTimer() {
 }
 
 void GSwifi::dump () {
-    // Serial.print(P("joined_:"));            Serial.println(joined_);
-    // Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
-    // Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
-    // Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
-    // Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
+    // GSLOG_PRINT(P("joined_:"));            GSLOG_PRINTLN(joined_);
+    // GSLOG_PRINT(P("did_timeout_:"));       GSLOG_PRINTLN(did_timeout_);
+    // GSLOG_PRINT(P("gs_response_lines_:")); GSLOG_PRINTLN(gs_response_lines_);
+    // GSLOG_PRINT(P("gs_mode_:"));           GSLOG_PRINTLN(gs_mode_);
+    // GSLOG_PRINT(P("timeout_timer_:"));     GSLOG_PRINTLN(timeout_timer_);
     // for (uint8_t i=0; i<GS_MAX_ROUTES; i++) {
-    //     Serial.println(routes_[i].method);
-    //     Serial.println(routes_[i].path);
+    //     GSLOG_PRINTLN(routes_[i].method);
+    //     GSLOG_PRINTLN(routes_[i].path);
     // }
 }

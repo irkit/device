@@ -1,5 +1,6 @@
 #include "morse.h"
 #include "pgmStrToRAM.h"
+#include "log.h"
 
 // #define DEBUG
 
@@ -61,12 +62,12 @@ static void setWPM(struct morse_t *state, uint16_t wpm) {
     state->min_word_space   = t * 4;
 
 #ifdef DEBUG
-    Serial.print(P("t/2 debouncePeriod:")); Serial.println(debounce_period);
-    Serial.print(P("tx2 minLetterSpace:")); Serial.println(min_letter_space);
-    Serial.print(P("tx4 minWordSpace:"));   Serial.println(min_word_space);
+    MOLOG_PRINT(P("t/2 debouncePeriod:")); MOLOG_PRINTLN(debounce_period);
+    MOLOG_PRINT(P("tx2 minLetterSpace:")); MOLOG_PRINTLN(min_letter_space);
+    MOLOG_PRINT(P("tx4 minWordSpace:"));   MOLOG_PRINTLN(min_word_space);
     float letter = 1200. / (float)wpm_;
-    Serial.print(P("tx1 dit interval:")); Serial.println(letter);
-    Serial.print(P("tx3 dah interval:")); Serial.println(letter * 3);
+    MOLOG_PRINT(P("tx1 dit interval:")); MOLOG_PRINTLN(letter);
+    MOLOG_PRINT(P("tx3 dah interval:")); MOLOG_PRINTLN(letter * 3);
 #endif
 }
 
@@ -94,7 +95,7 @@ void morse_loop( struct morse_t *state ) {
     int  raw   = analogRead(state->pin);
     static bool input = false;
 #ifdef DEBUG
-    Serial.print("raw: "); Serial.println(raw); // add delay when enabling this
+    MOLOG_PRINT("raw: "); MOLOG_PRINTLN(raw); // add delay when enabling this
     delay(1);
 #endif
 
@@ -129,8 +130,8 @@ void morse_loop( struct morse_t *state ) {
             state->word_started = true;
 
 #ifdef DEBUG
-            Serial.print(P("off->on: ")); Serial.println(interval);
-            Serial.print(P(" raw: ")); Serial.println(raw);
+            MOLOG_PRINT(P("off->on: ")); MOLOG_PRINTLN(interval);
+            MOLOG_PRINT(P(" raw: ")); MOLOG_PRINTLN(raw);
 #endif
         }
     }
@@ -145,8 +146,8 @@ void morse_loop( struct morse_t *state ) {
             state->did_call_letter_callback = false; // can call again after 1st letter
 
 #ifdef DEBUG
-            Serial.print(P("on->off: ")); Serial.println(interval);
-            Serial.print(P(" raw: ")); Serial.println(raw);
+            MOLOG_PRINT(P("on->off: ")); MOLOG_PRINTLN(interval);
+            MOLOG_PRINT(P(" raw: ")); MOLOG_PRINTLN(raw);
 #endif
         }
         else {
@@ -185,7 +186,7 @@ void morse_loop( struct morse_t *state ) {
             state->did_call_letter_callback = true;
 
 #ifdef DEBUG
-            Serial.print(P("index: ")); Serial.println(index_);
+            MOLOG_PRINT(P("index: ")); MOLOG_PRINTLN(index_);
 #endif
 
             char letter = pgm_read_byte_near(morseTable + state->index);
