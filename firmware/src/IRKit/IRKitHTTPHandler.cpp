@@ -306,6 +306,11 @@ static int8_t on_post_keys_request(int8_t cid, GSwifi::GSREQUESTSTATE state) {
 }
 
 static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    if (state == GSwifi::GSREQUESTSTATE_BODY_START) {
+        keys.clear();
+        return 0;
+    }
+
     while (! gs.bufferEmpty()) {
         char letter = gs.bufferGet();
         keys.put( letter );

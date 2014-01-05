@@ -3,11 +3,11 @@
 
 #include "Arduino.h"
 
-#define MAINLOG
+// #define MAINLOG
 #define GSLOG
 #define HTTPLOG
 // #define IRLOG
-// #define KEYLOG
+#define KEYLOG
 // #define MOLOG
 
 #ifdef MAINLOG

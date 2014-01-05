@@ -77,11 +77,12 @@ public:
         // 1st line ex: "GET / HTTP/1.1"
         // if respones:
         // ex: "200 OK", "401 UNAUTHORIZED", ..
-        GSREQUESTSTATE_HEAD1    = 0,
-        GSREQUESTSTATE_HEAD2    = 1, // 2nd line and after
-        GSREQUESTSTATE_BODY     = 2,
-        GSREQUESTSTATE_RECEIVED = 3, // received whole HTTP request successfully
-        GSREQUESTSTATE_ERROR    = 4,
+        GSREQUESTSTATE_HEAD1      = 0,
+        GSREQUESTSTATE_HEAD2      = 1, // 2nd line and after
+        GSREQUESTSTATE_BODY_START = 2,
+        GSREQUESTSTATE_BODY       = 3,
+        GSREQUESTSTATE_RECEIVED   = 4, // received whole HTTP request successfully
+        GSREQUESTSTATE_ERROR      = 5,
     };
 
     typedef int8_t (*GSEventHandler)();

@@ -369,6 +369,8 @@ void GSwifi::parseByte(uint8_t dat) {
             case GSREQUESTSTATE_HEAD2:
                 if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
+                    // dispatched once, at start of body
+                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -451,6 +453,8 @@ void GSwifi::parseByte(uint8_t dat) {
             case GSREQUESTSTATE_HEAD2:
                 if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
+                    // dispatched once, at start of body
+                    dispatchRequestHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
