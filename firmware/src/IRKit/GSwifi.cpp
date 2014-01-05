@@ -950,7 +950,7 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     disconnect();
 
     // transmit power level: 19dBm - default
-    // command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
 
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
