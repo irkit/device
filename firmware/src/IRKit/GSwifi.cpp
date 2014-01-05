@@ -1060,9 +1060,14 @@ int8_t GSwifi::startLimitedAP () {
 
     // open security (mDNS enabled firmware can't run WPA security on limited AP)
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
-    command(PB("AT+WM=2",1),           GSCOMMANDMODE_NORMAL);
-    command(PB("AT+WA=IRKitXX,,11",1), GSCOMMANDMODE_NORMAL); // TODO fix ssid
-    command(PB("AT+DHCPSRVR=1",1),     GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WM=2",1),             GSCOMMANDMODE_NORMAL);
+    char *cmd = PB("AT+WA=IRKit%%%%,,11",1);
+    cmd[11] = mac_[12];
+    cmd[12] = mac_[13];
+    cmd[13] = mac_[15];
+    cmd[14] = mac_[16];
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
