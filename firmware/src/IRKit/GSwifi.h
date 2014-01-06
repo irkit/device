@@ -77,11 +77,12 @@ public:
         // 1st line ex: "GET / HTTP/1.1"
         // if respones:
         // ex: "200 OK", "401 UNAUTHORIZED", ..
-        GSREQUESTSTATE_HEAD1    = 0,
-        GSREQUESTSTATE_HEAD2    = 1, // 2nd line and after
-        GSREQUESTSTATE_BODY     = 2,
-        GSREQUESTSTATE_RECEIVED = 3, // received whole HTTP request successfully
-        GSREQUESTSTATE_ERROR    = 4,
+        GSREQUESTSTATE_HEAD1      = 0,
+        GSREQUESTSTATE_HEAD2      = 1, // 2nd line and after
+        GSREQUESTSTATE_BODY_START = 2,
+        GSREQUESTSTATE_BODY       = 3,
+        GSREQUESTSTATE_RECEIVED   = 4, // received whole HTTP request successfully
+        GSREQUESTSTATE_ERROR      = 5,
     };
 
     typedef int8_t (*GSEventHandler)();
@@ -137,6 +138,9 @@ public:
 
     int listen (uint16_t port);
     bool isListening ();
+
+    int8_t startLimitedAP ();
+    bool isLimitedAP ();
 
     /**
      * unassociate
@@ -219,10 +223,12 @@ public:
 private:
     HardwareSerialX*   serial_;
     bool               joined_, listening_;
+    bool               limited_ap_;
     bool               gs_ok_, gs_failure_;
     int                gs_response_lines_;
     GSMODE             gs_mode_;
     GSCOMMANDMODE      gs_commandmode_;
+    uint8_t            continuous_newlines_; // this should be per cid to handle multiple concurrent connections
     char               ipaddr_[16]; // xxx.xxx.xxx.xxx
     char               mac_[17];    // 00:1d:c9:01:99:99
 #ifdef FACTORY_CHECKER
@@ -251,6 +257,7 @@ private:
     uint8_t            checkActivity();
     bool               setBusy(bool busy);
     void               parseByte(uint8_t dat);
+    int8_t             parseHead2(uint8_t dat, int8_t cid);
     int8_t             parseRequestLine (char *token, uint8_t token_size);
     void               parseLine ();
     void               parseCmdResponse (char *buf);

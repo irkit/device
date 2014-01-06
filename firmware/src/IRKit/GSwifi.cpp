@@ -30,6 +30,7 @@
 #include "version.h"
 #include "timer.h"
 #include "base64encoder.h"
+#include "log.h"
 
 #define RESPONSE_LINES_ENDED -1
 
@@ -45,7 +46,7 @@ static char __buf_cmd[GS_CMD_SIZE + 1];
 
 static void base64encoded( char encoded ) {
     Serial1X.print(encoded);
-    Serial.print(encoded);
+    GSLOG_PRINT(encoded);
 }
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
@@ -193,9 +194,9 @@ int8_t GSwifi::close (int8_t cid) {
 void GSwifi::clear () {
     joined_         = false;
     listening_      = false;
+    limited_ap_     = false;
     resetResponse(GSCOMMANDMODE_NONE);
     gs_mode_        = GSMODE_COMMAND;
-    route_count_    = 0;
     ring_clear(_buf_cmd);
     memset(ipaddr_, 0, sizeof(ipaddr_));
 
@@ -214,7 +215,7 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            Serial.print(("!E4 ")); Serial.println(i);
+            GSLOG_PRINT(("!E4 ")); GSLOG_PRINTLN(i);
 
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
@@ -232,15 +233,15 @@ void GSwifi::parseByte(uint8_t dat) {
 
     if (dat == ESCAPE) {
         // 0x1B : Escape
-        Serial.print("e< ");
+        GSLOG_PRINT("e< ");
     }
     else if ((0x10 < dat) && (dat < 0x20)) {
         // 0x11 : XON
         // 0x13 : XOFF
-        Serial.print("0x"); Serial.print(dat, HEX);
+        GSLOG_PRINT("0x"); GSLOG_PRINT2(dat, HEX);
     }
     else { // if (next_token != NEXT_TOKEN_DATA) {
-        Serial.write(dat);
+        GSLOG_WRITE(dat);
     }
 
     if (gs_mode_ == GSMODE_COMMAND) {
@@ -250,7 +251,7 @@ void GSwifi::parseByte(uint8_t dat) {
             case 'O':
             case 'F':
                 // ignore
-                Serial.println();
+                GSLOG_PRINTLN();
                 break;
             case 'Z':
             case 'H':
@@ -258,7 +259,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                Serial.print(("!E1 ")); Serial.println(dat,HEX);
+                GSLOG_PRINT(("!E1 ")); GSLOG_PRINTLN2(dat,HEX);
                 break;
             }
             escape = false;
@@ -276,7 +277,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    Serial.println(("!E2"));
+                    GSLOG_PRINTLN(("!E2"));
                 }
             }
         }
@@ -319,9 +320,8 @@ void GSwifi::parseByte(uint8_t dat) {
     }
     else if (next_token == NEXT_TOKEN_DATA) {
         len --;
-        static uint8_t continuous_newlines = 0;
 
-        if (cidIsRequest(current_cid)) {
+        if (cidIsRequest(current_cid)) { // request against us
             static uint16_t error_code;
             static int8_t   routeid;
 
@@ -354,57 +354,23 @@ void GSwifi::parseByte(uint8_t dat) {
 
                     routeid = router(method, path);
                     if ( routeid < 0 ) {
-                        Serial.println("!E28");
+                        GSLOG_PRINTLN("!E28");
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
                         ring_clear(_buf_cmd);
                         break;
                     }
                     request_state                   = GSREQUESTSTATE_HEAD2;
-                    continuous_newlines             = 0;
+                    continuous_newlines_            = 0;
                     content_lengths_[ current_cid ] = 0;
                     ring_clear(_buf_cmd);
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
-                if (dat == '\n') {
-                    continuous_newlines ++;
-                }
-                else if (dat == '\r') {
-                    // preserve
-                }
-                else {
-                    continuous_newlines = 0;
-                    if ( ! ring_isfull(_buf_cmd) ) {
-                        // ignore if overflowed
-                        ring_put( _buf_cmd, dat );
-                    }
-                }
-                if (continuous_newlines == 1) {
-                    // check "Content-Length: x" header
-                    // if it's non 0, wait for more body data
-                    // otherwise disconnect after handling response
-                    // GS splits HTTP requests/responses into multiple bulk messages,
-                    // 1st ends just after headers, and 2nd contains only response body
-                    // "Content-Length: "    .length = 16
-                    // "Content-Length: 9999".length = 20
-                    char content_length_chars[21];
-                    memset( content_length_chars, 0, 21 );
-
-                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
-                    if ((copied >= 16) &&
-                        (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
-                        content_length_chars[20] = 0;
-                        content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
-                        Serial.print("C: "); Serial.println(content_lengths_[current_cid]);
-                    }
-                    ring_clear(_buf_cmd);
-                }
-                if (continuous_newlines == 2) {
-                    // if detected double (\r)\n, switch to body mode
+                if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
-                    ring_clear(_buf_cmd);
-                    Serial.println("rq1");
+                    // dispatched once, at start of body
+                    dispatchRequestHandler(current_cid, routeid, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -426,8 +392,6 @@ void GSwifi::parseByte(uint8_t dat) {
 
             // end of bulk transfered data
             if (len == 0) {
-                Serial.println("rq2");
-
                 gs_mode_ = GSMODE_COMMAND;
 
                 if ( request_state == GSREQUESTSTATE_ERROR ) {
@@ -477,55 +441,20 @@ void GSwifi::parseByte(uint8_t dat) {
                         request_state = GSREQUESTSTATE_ERROR;
                         break;
                     }
-                    ring_clear(_buf_cmd);
                     status_code                     = atoi(status_code_chars);
+                    GSLOG_PRINT("S:"); GSLOG_PRINTLN(status_code);
+
                     request_state                   = GSREQUESTSTATE_HEAD2;
-                    continuous_newlines             = 0;
+                    continuous_newlines_            = 0;
                     content_lengths_[ current_cid ] = 0;
-                    Serial.print("S:"); Serial.println(status_code);
+                    ring_clear(_buf_cmd);
                 }
                 break;
             case GSREQUESTSTATE_HEAD2:
-                // we don't read *any* headers except 1st request line.
-                // "Expect: 100-continue" doesn't work
-                if (dat == '\n') {
-                    continuous_newlines ++;
-                }
-                else if (dat == '\r') {
-                    // preserve
-                }
-                else {
-                    continuous_newlines = 0;
-                    if ( ! ring_isfull(_buf_cmd) ) {
-                        // ignore if overflowed
-                        ring_put( _buf_cmd, dat );
-                    }
-                }
-                if (continuous_newlines == 1) {
-                    // check "Content-Length: x" header
-                    // if it's non 0, wait for more body data
-                    // otherwise disconnect after handling response
-                    // GS splits HTTP requests/responses into multiple bulk messages,
-                    // 1st ends just after headers, and 2nd contains only response body
-                    // "Content-Length: "    .length = 16
-                    // "Content-Length: 9999".length = 20
-                    char content_length_chars[21];
-                    memset( content_length_chars, 0, 21 );
-
-                    uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
-                    if ((copied >= 16) &&
-                        (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
-                        content_length_chars[20] = 0;
-                        content_lengths_[ current_cid ] = atoi(&content_length_chars[16]);
-                        Serial.print("C: "); Serial.println(content_lengths_[current_cid]);
-                    }
-                    ring_clear(_buf_cmd);
-                }
-                if (continuous_newlines == 2) {
-                    // if detected double (\r)\n, switch to body mode
+                if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
-                    ring_clear(_buf_cmd);
-                    Serial.println("rs2");
+                    // dispatched once, at start of body
+                    dispatchRequestHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -568,6 +497,48 @@ void GSwifi::parseByte(uint8_t dat) {
     } // (next_token == NEXT_TOKEN_DATA)
 }
 
+int8_t GSwifi::parseHead2(uint8_t dat, int8_t cid) {
+    if (dat == '\n') {
+        continuous_newlines_ ++;
+    }
+    else if (dat == '\r') {
+        // preserve
+    }
+    else {
+        continuous_newlines_ = 0;
+        if ( ! ring_isfull(_buf_cmd) ) {
+            // ignore if overflowed
+            ring_put( _buf_cmd, dat );
+        }
+    }
+    if (continuous_newlines_ == 1) {
+        // check "Content-Length: x" header
+        // if it's non 0, wait for more body data
+        // otherwise disconnect after handling response
+        // GS splits HTTP requests/responses into multiple bulk messages,
+        // 1st ends just after headers, and 2nd contains only response body
+        // "Content-Length: "    .length = 16
+        // "Content-Length: 9999".length = 20
+        char content_length_chars[21];
+        memset( content_length_chars, 0, 21 );
+
+        uint8_t copied = ring_get( _buf_cmd, content_length_chars, 20 );
+        if ((copied >= 16) &&
+            (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
+            content_length_chars[20] = 0;
+            content_lengths_[ cid ] = atoi(&content_length_chars[16]);
+            GSLOG_PRINT("C: "); GSLOG_PRINTLN(content_lengths_[cid]);
+        }
+        ring_clear(_buf_cmd);
+    }
+    if (continuous_newlines_ == 2) {
+        // if detected double (\r)\n, switch to body mode
+        ring_clear(_buf_cmd);
+        return 0;
+    }
+    return -1;
+}
+
 int8_t GSwifi::parseRequestLine (char *token, uint8_t token_size) {
     uint8_t i;
     for ( i = 0; i <= token_size; i++ ) {
@@ -595,7 +566,7 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     for (i = 0; i < route_count_; i ++) {
         if ((method == routes_[i].method) &&
             (strncmp(path, routes_[i].path, GS_MAX_PATH_LENGTH) == 0)) {
-            Serial.print("R:"); Serial.println(i);
+            GSLOG_PRINT("R:"); GSLOG_PRINTLN(i);
             return i;
         }
     }
@@ -775,7 +746,7 @@ void GSwifi::parseLine () {
 }
 
 void GSwifi::parseCmdResponse (char *buf) {
-    Serial.print(P("c< ")); Serial.println(buf);
+    GSLOG_PRINT(P("c< ")); GSLOG_PRINTLN(buf);
 
     if (strncmp(buf, "OK", 3) == 0) {
         gs_ok_ = true;
@@ -896,14 +867,14 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
-    Serial.print(P("c> "));
+    GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
+    GSLOG_PRINT(P("c> "));
 
     resetResponse(res);
 
     serial_->println(cmd);
 
-    Serial.println(cmd);
+    GSLOG_PRINTLN(cmd);
 
     if (timeout_second == GS_TIMEOUT_NOWAIT) {
         return;
@@ -914,14 +885,14 @@ void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second
 }
 
 void GSwifi::escape (const char *cmd, uint8_t timeout_second) {
-    Serial.print(P("e> "));
+    GSLOG_PRINT(P("e> "));
 
     resetResponse(GSCOMMANDMODE_NONE);
 
     serial_->write( ESCAPE );
     serial_->print(cmd); // without ln
 
-    Serial.println(cmd);
+    GSLOG_PRINTLN(cmd);
 }
 
 void GSwifi::resetResponse (GSCOMMANDMODE res) {
@@ -957,7 +928,7 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        Serial.println(("!E24"));
+        GSLOG_PRINTLN(("!E24"));
         did_timeout_ = true;
         setBusy(false);
     }
@@ -981,6 +952,9 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     }
 
     disconnect();
+
+    // transmit power level: 19dBm - default
+    command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
 
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
@@ -1064,10 +1038,6 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 int GSwifi::listen(uint16_t port) {
     char cmd[15];
 
-    if ( ! joined_ ) {
-        return -1;
-    }
-
     // longest: "AT+NSTCP=65535"
     sprintf(cmd, P("AT+NSTCP=%d"), port);
     command(cmd, GSCOMMANDMODE_CONNECT);
@@ -1086,9 +1056,35 @@ int GSwifi::listen(uint16_t port) {
     return 0;
 }
 
+int8_t GSwifi::startLimitedAP () {
+    disconnect();
+
+    // transmit power level: 5dBm
+    command(PB("AT+WP=7",1),           GSCOMMANDMODE_NORMAL);
+
+    // open security (mDNS enabled firmware can't run WPA security on limited AP)
+    command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WM=2",1),             GSCOMMANDMODE_NORMAL);
+    char *cmd = PB("AT+WA=IRKit%%%%,,11",1);
+    cmd[11] = mac_[12];
+    cmd[12] = mac_[13];
+    cmd[13] = mac_[15];
+    cmd[14] = mac_[16];
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
+    if (did_timeout_) {
+        return -1;
+    }
+
+    limited_ap_ = true;
+
+    return 0;
+}
+
 int GSwifi::disconnect () {
-    joined_    = false;
-    listening_ = false;
+    joined_     = false;
+    listening_  = false;
+    limited_ap_ = false;
     command(PB("AT+NCLOSEALL",1), GSCOMMANDMODE_NORMAL);
     command(PB("AT+WD",1),        GSCOMMANDMODE_NORMAL);
     command(PB("AT+NDHCP=0",1),   GSCOMMANDMODE_NORMAL);
@@ -1103,6 +1099,10 @@ bool GSwifi::isListening () {
     return listening_;
 }
 
+bool GSwifi::isLimitedAP () {
+    return limited_ap_;
+}
+
 // 4.2.1 UART Parameters
 // Allowed baud rates include: 9600, 19200, 38400, 57600, 115200, 230400,460800 and 921600.
 // The new UART parameters take effect immediately. However, they are stored in RAM and will be lost when power is lost unless they are saved to a profile using AT&W (section 4.6.1). The profile used in that command must also be set as the power-on profile using AT&Y (section 4.6.3).
@@ -1113,7 +1113,7 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     // longest: "ATB=921600"
     sprintf(cmd, P("ATB=%ld"), baud);
     serial_->println(cmd);
-    Serial.print(P("c> ")); Serial.println(cmd);
+    GSLOG_PRINT(P("c> ")); GSLOG_PRINTLN(cmd);
 
     delay(1000);
 
@@ -1290,13 +1290,13 @@ void GSwifi::onTimer() {
 }
 
 void GSwifi::dump () {
-    // Serial.print(P("joined_:"));            Serial.println(joined_);
-    // Serial.print(P("did_timeout_:"));       Serial.println(did_timeout_);
-    // Serial.print(P("gs_response_lines_:")); Serial.println(gs_response_lines_);
-    // Serial.print(P("gs_mode_:"));           Serial.println(gs_mode_);
-    // Serial.print(P("timeout_timer_:"));     Serial.println(timeout_timer_);
+    // GSLOG_PRINT(P("joined_:"));            GSLOG_PRINTLN(joined_);
+    // GSLOG_PRINT(P("did_timeout_:"));       GSLOG_PRINTLN(did_timeout_);
+    // GSLOG_PRINT(P("gs_response_lines_:")); GSLOG_PRINTLN(gs_response_lines_);
+    // GSLOG_PRINT(P("gs_mode_:"));           GSLOG_PRINTLN(gs_mode_);
+    // GSLOG_PRINT(P("timeout_timer_:"));     GSLOG_PRINTLN(timeout_timer_);
     // for (uint8_t i=0; i<GS_MAX_ROUTES; i++) {
-    //     Serial.println(routes_[i].method);
-    //     Serial.println(routes_[i].path);
+    //     GSLOG_PRINTLN(routes_[i].method);
+    //     GSLOG_PRINTLN(routes_[i].path);
     // }
 }

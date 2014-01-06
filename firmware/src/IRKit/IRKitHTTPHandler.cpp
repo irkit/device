@@ -6,6 +6,7 @@
 #include "IrCtrl.h"
 #include "timer.h"
 #include "commands.h"
+#include "log.h"
 
 extern GSwifi gs;
 extern Keys keys;
@@ -29,7 +30,7 @@ static int8_t polling_cid = CID_UNDEFINED; // GET /m continues forever
 #define POST_KEYS_BODY_LENGTH 42
 
 static void on_json_start() {
-    Serial.println("j<");
+    HTTPLOG_PRINTLN("j<");
 
     IR_state( IR_WRITING );
 }
@@ -55,10 +56,10 @@ static void on_json_data( uint8_t key, uint32_t value ) {
 }
 
 static void on_json_end() {
-    Serial.println(">j");
+    HTTPLOG_PRINTLN(">j");
 
     if ( IrCtrl.state != IR_WRITING ) {
-        Serial.println("!E5");
+        HTTPLOG_PRINTLN("!E5");
         IR_dump();
         return;
     }
@@ -75,7 +76,7 @@ static void parse_json( char letter ) {
 }
 
 static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("< P /d ")); Serial.println(status_code);
+    HTTPLOG_PRINT(P("< P /d ")); HTTPLOG_PRINTLN(status_code);
 
     gs.bufferClear();
 
@@ -115,7 +116,7 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
 }
 
 static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("< G /m ")); Serial.println(status_code);
+    HTTPLOG_PRINT(P("< G /m ")); HTTPLOG_PRINTLN(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
@@ -170,7 +171,7 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
 }
 
 static int8_t on_post_keys_response(int8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("< P /k ")); Serial.println(status_code);
+    HTTPLOG_PRINT(P("< P /k ")); HTTPLOG_PRINTLN(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
@@ -199,7 +200,7 @@ static int8_t on_post_keys_response(int8_t cid, uint16_t status_code, GSwifi::GS
     ring_put( &commands, cid );
     ring_put( &commands, COMMAND_CLOSE );
     if (ring_isfull( &commands )) {
-        Serial.println(("!E8"));
+        HTTPLOG_PRINTLN(("!E8"));
         return -1;
     }
     ring_put( &commands, post_keys_cid );
@@ -208,7 +209,7 @@ static int8_t on_post_keys_response(int8_t cid, uint16_t status_code, GSwifi::GS
 }
 
 static int8_t on_post_messages_response(int8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    Serial.print(P("< P /m ")); Serial.println(status_code);
+    HTTPLOG_PRINT(P("< P /m ")); HTTPLOG_PRINTLN(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
@@ -272,7 +273,7 @@ static int8_t on_post_messages_request(int8_t cid, GSwifi::GSREQUESTSTATE state)
     if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
         // should be xmitting or idle (xmit finished)
         if (IrCtrl.state == IR_WRITING) {
-            Serial.println(("!E7"));
+            HTTPLOG_PRINTLN(("!E7"));
             // invalid json
             gs.writeHead(cid, 400);
             gs.writeEnd();
@@ -304,6 +305,39 @@ static int8_t on_post_keys_request(int8_t cid, GSwifi::GSREQUESTSTATE state) {
     }
 }
 
+static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
+    if (state == GSwifi::GSREQUESTSTATE_BODY_START) {
+        keys.clear();
+        return 0;
+    }
+
+    while (! gs.bufferEmpty()) {
+        char letter = gs.bufferGet();
+        keys.put( letter );
+    }
+
+    if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+        int8_t result = keys.putDone();
+        if (result != 0) {
+            keys.clear();
+            gs.writeHead(cid, 400);
+        }
+        else {
+            keys.dump();
+            keys.save();
+            gs.writeHead(cid, 200);
+        }
+
+        gs.writeEnd();
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+
+        if (result == 0) {
+            ring_put( &commands, COMMAND_CONNECT );
+        }
+    }
+}
+
 static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
     switch (routeid) {
     case 0: // POST /messages
@@ -316,6 +350,9 @@ static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE stat
 
     case 2: // GET /messages
         return on_get_messages_request(cid, state);
+
+    case 3: // POST /wifi
+        return on_post_wifi_request(cid, state);
 
     default:
         break;
@@ -376,6 +413,8 @@ void irkit_httpserver_register_handler() {
     gs.registerRoute( GSwifi::GSMETHOD_POST, P("/keys") );
     // 2
     gs.registerRoute( GSwifi::GSMETHOD_GET,  P("/messages") );
+    // 3
+    gs.registerRoute( GSwifi::GSMETHOD_POST, P("/wifi") );
 
     gs.setRequestHandler( &on_request );
 }
@@ -405,7 +444,7 @@ void irkit_http_loop() {
         else {
             int8_t result = irkit_httpclient_get_messages();
             if ( result < 0 ) {
-                Serial.println(("!E3"));
+                HTTPLOG_PRINTLN(("!E3"));
                 // maybe time cures GS? (no it doesn't)
                 ring_put( &commands, COMMAND_SETUP );
             }

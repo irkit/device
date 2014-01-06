@@ -15,6 +15,7 @@
 #include "IRKitHTTPHandler.h"
 #include "commands.h"
 #include "version.h"
+#include "log.h"
 
 struct morse_t morse_state;
 struct long_press_button_state_t long_press_button_state;
@@ -77,6 +78,7 @@ void setup() {
 
     pinMode(LDO33_ENABLE,     OUTPUT);
     wifi_hardware_reset();
+    irkit_http_init();
 
     // add your own code here!!
 }
@@ -106,33 +108,33 @@ void loop() {
         static bool command_mode = false;
         last_character = Serial.read();
 
-        Serial.write(last_character);
-        Serial.println();
-        Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
+        MAINLOG_WRITE(last_character);
+        MAINLOG_PRINTLN();
+        MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
         /* if (last_character == 0x1B) { */
         /*     command_mode = ! command_mode; */
-        /*     Serial.print("command_mode:"); Serial.println(command_mode); */
+        /*     MAINLOG_PRINT("command_mode:"); MAINLOG_PRINTLN(command_mode); */
         /* } */
         /* if (command_mode) { */
         /*     Serial1X.write(last_character); */
         /* } */
         /* else if (last_character == 'd') { */
-        /*     Serial.println(); */
+        /*     MAINLOG_PRINTLN(); */
         /*     keys.load(); */
         /*     keys.dump(); */
 
-        /*     Serial.println(); */
+        /*     MAINLOG_PRINTLN(); */
         /*     gs.dump(); */
 
-        /*     Serial.println(); */
+        /*     MAINLOG_PRINTLN(); */
         /*     IR_dump(); */
         /* } */
         /* else if (last_character == 'l') { */
         /*     long_pressed(); */
         /* } */
         /* else if (last_character == 'v') { */
-        /*     Serial.print("v:"); Serial.println(version); */
+        /*     MAINLOG_PRINT("v:"); MAINLOG_PRINTLN(version); */
         /* } */
         /* else if (last_character == 's') { */
         /*     keys.set(GSSECURITY_WPA2_PSK, */
@@ -147,7 +149,7 @@ void loop() {
 }
 
 void wifi_hardware_reset () {
-    Serial.println(("!E25"));
+    MAINLOG_PRINTLN(("!E25"));
 
     digitalWrite( LDO33_ENABLE, LOW );
     delay( 1000 );
@@ -178,6 +180,7 @@ void process_commands() {
             break;
         case COMMAND_SETUP:
             gs.setup( &on_disconnect, &on_reset );
+
             // vv continues
         case COMMAND_CONNECT:
             connect();
@@ -204,7 +207,7 @@ void on_ir_receive() {
 }
 
 void on_ir_xmit() {
-    Serial.println(("xmit"));
+    MAINLOG_PRINTLN(("xmit"));
     color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
 }
 
@@ -224,16 +227,16 @@ void on_timer() {
 }
 
 int8_t on_reset() {
-    Serial.println(("!E10"));
-    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
+    MAINLOG_PRINTLN(("!E10"));
+    MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
     ring_put( &commands, COMMAND_SETUP );
     return 0;
 }
 
 int8_t on_disconnect() {
-    Serial.println(("!E11"));
-    Serial.print(P("F: 0x")); Serial.println( freeMemory(), HEX );
+    MAINLOG_PRINTLN(("!E11"));
+    MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
     ring_put( &commands, COMMAND_CONNECT );
     return 0;
@@ -259,8 +262,6 @@ void connect() {
         keys.save();
 
         color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
-
-        irkit_http_init();
 
         // start http server
         gs.listen(80);
@@ -292,12 +293,16 @@ void connect() {
             keys.clear();
             color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
             morse_enable( &morse_state, true );
+            gs.startLimitedAP();
+            if (gs.isLimitedAP()) {
+                gs.listen(80);
+            }
         }
     }
 }
 
 void on_morse_letter( char letter ) {
-    Serial.print("L:"); Serial.write(letter); Serial.println();
+    MOLOG_PRINT("L:"); MOLOG_WRITE(letter); MOLOG_PRINTLN();
 
     if (morse_error) {
         return;
@@ -311,7 +316,7 @@ void on_morse_letter( char letter ) {
 }
 
 void on_morse_word() {
-    Serial.println("W");
+    MOLOG_PRINTLN("W");
 
     if (morse_error) {
         morse_error = false;
@@ -331,7 +336,7 @@ void on_morse_word() {
 }
 
 void software_reset() {
-    Serial.println("SR");
+    MAINLOG_PRINTLN("SR");
     wdt_enable(WDTO_15MS);
     while (1) ;
 }
