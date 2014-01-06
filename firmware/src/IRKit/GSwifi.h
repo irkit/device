@@ -230,7 +230,7 @@ private:
     GSCOMMANDMODE      gs_commandmode_;
     uint8_t            continuous_newlines_; // this should be per cid to handle multiple concurrent connections
     char               ipaddr_[16]; // xxx.xxx.xxx.xxx
-    char               mac_[17];    // 00:1d:c9:01:99:99
+    char               mac_[18];    // 00:1d:c9:01:99:99
 #ifdef FACTORY_CHECKER
     char               versions_[3][8]; // APP,GEPS,WLAN
 #endif
