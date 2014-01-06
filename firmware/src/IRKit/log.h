@@ -8,7 +8,7 @@
 #define HTTPLOG
 // #define IRLOG
 #define KEYLOG
-// #define MOLOG
+#define MOLOG
 
 #ifdef MAINLOG
 # define MAINLOG_PRINTLN(a)    Serial.println(a)
