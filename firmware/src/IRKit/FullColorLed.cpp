@@ -22,10 +22,6 @@ void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink
     colorB_      = colorB;
     isBlinking_  = blink;
 
-    digitalWrite(pinR_, colorR);
-    digitalWrite(pinG_, colorG);
-    digitalWrite(pinB_, colorB);
-
     blink_timer_ = TIMER_OFF;
 }
 

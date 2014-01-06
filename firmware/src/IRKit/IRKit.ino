@@ -250,7 +250,7 @@ void connect() {
     keys.load();
 
     if (keys.isWifiCredentialsSet()) {
-        color.setLedColor( 1, 1, 0, true ); // yellow blink if we have valid keys
+        color.setLedColor( 0, 1, 0, true ); // green blink: connecting
 
         gs.join(keys.getSecurity(),
                 keys.getSSID(),
@@ -258,10 +258,10 @@ void connect() {
     }
 
     if (gs.isJoined()) {
+        color.setLedColor( 0, 1, 1, true ); // cyan blink: setting up
+
         keys.setWifiWasValid(true);
         keys.save();
-
-        color.setLedColor( 0, 1, 0, true ); // green blink: joined successfully, setting up
 
         // start http server
         gs.listen(80);
@@ -312,6 +312,10 @@ void on_morse_letter( char letter ) {
     if (result != 0) {
         // postpone til this "word" ends
         morse_error = true;
+        color.setLedColor( 1, 0, 0, true ); // back to morse
+    }
+    else {
+        color.setLedColor( 1, 1, 0, true ); // yellow blink morse proceeding
     }
 }
 
@@ -327,6 +331,7 @@ void on_morse_word() {
     int8_t result = keys.putDone();
     if ( result != 0 ) {
         keys.clear();
+        color.setLedColor( 1, 0, 0, true ); // back to morse
     }
     else {
         keys.dump();
