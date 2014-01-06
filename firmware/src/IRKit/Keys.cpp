@@ -197,6 +197,13 @@ int8_t Keys::put(char code)
     }
     if (filler.state == KeysFillerStateSecurity) {
         switch (code) {
+        case '3':
+            // start of the 1st sine wave includes envelope = fadein effect
+            // so 1st short sound can be mistaken as long sound,
+            // fix it (3: _ _ -> 2: . _)
+            code = '2';
+            // continues vv
+
         // we try OPEN when WEP failed, to present less options to user
         case '0': // GSwifi::GSSECURITY_NONE:
         // case '1': // GSwifi::GSSECURITY_OPEN:
