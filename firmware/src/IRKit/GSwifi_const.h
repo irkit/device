@@ -3,8 +3,6 @@
 
 #define DOMAIN "api.getirkit.com"
 
-#define GS_WREGDOMAIN           2 // 0:FCC, 1:ETSI, 2:TELEC
-
 #define GS_TIMEOUT             20 // [s]
 #define GS_TIMEOUT_LONG        50 // [s]
 #define GS_TIMEOUT_NOWAIT       0
