@@ -1,4 +1,5 @@
 /* Copyright (C) 2013 gsfan, MIT License
+ * Copyright (C) 2013-2014 Masakazu Ohtsuka
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -16,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /** @file
- * @brief Gainspan wi-fi module library for mbed
+ * @brief Gainspan wi-fi module library for Arduino
  * GS1011MIC, GS1011MIP, GainSpan WiFi Breakout, etc.
  */
 

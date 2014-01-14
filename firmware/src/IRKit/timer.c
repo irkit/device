@@ -1,14 +1,16 @@
 /*
-  timer.c,h - Using timer with a configurable resolution
+  timer.c,h - timer library, based on FlexiTimer2
+  Masakazu Ohtsuka <o.masakazu@gmail.com>
+
+  FlexiTimer2.h - Using timer2 with a configurable resolution
   Wim Leers <work@wimleers.com>
 
   Based on MsTimer2
   Javier Valencia <javiervalencia80@gmail.com>
 
   History:
-    25/Oct/2013 - Optimize for 32U4 to reduce program memory (mash)
     16/Dec/2011 - Added Teensy/Teensy++ support (bperrybap)
-           note: teensy uses timer4 instead of timer2
+		   note: teensy uses timer4 instead of timer2
     25/April/10 - Based on MsTimer2 V0.5 (from 29/May/09)
 
   This library is free software; you can redistribute it and/or
