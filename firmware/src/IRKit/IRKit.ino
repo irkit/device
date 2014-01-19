@@ -124,9 +124,9 @@ void loop() {
         static bool command_mode = false;
         last_character = Serial.read();
 
-        MAINLOG_WRITE(last_character);
-        MAINLOG_PRINTLN();
-        MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
+        /* MAINLOG_WRITE(last_character); */
+        /* MAINLOG_PRINTLN(); */
+        /* MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX ); */
 
         /* if (last_character == 0x1B) { */
         /*     command_mode = ! command_mode; */
