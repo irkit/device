@@ -281,12 +281,12 @@ void connect() {
 
         // start http server
         gs.listen(80);
-
-        // start mDNS
-        gs.setupMDNS();
     }
 
     if (gs.isListening()) {
+        // start mDNS
+        gs.setupMDNS();
+
         color.setLedColor( 0, 0, 1, false ); // blue: ready
 
         if (keys.isAPIKeySet() && ! keys.isValid()) {
