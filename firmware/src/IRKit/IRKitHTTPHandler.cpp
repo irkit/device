@@ -461,8 +461,9 @@ void irkit_http_loop() {
             int8_t result = irkit_httpclient_get_messages();
             if ( result < 0 ) {
                 HTTPLOG_PRINTLN(("!E3"));
-                // maybe time cures GS? (no it doesn't)
-                ring_put( &commands, COMMAND_SETUP );
+                // maybe time cures GS? (no it doesn't, let's software reset)
+                // don't software reset AVR, because that cuts off serial logging (for debug purpose only)
+                gs.reset();
             }
             else {
                 polling_cid = result;
