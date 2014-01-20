@@ -414,8 +414,9 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 ring_clear(_buf_cmd);
             }
-        } // is request
+        }
         else {
+            // is request from us
             static uint16_t status_code;
 
             switch (request_state) {
@@ -458,7 +459,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
                     // dispatched once, at start of body
-                    dispatchRequestHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
+                    dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -594,10 +595,12 @@ void GSwifi::setRequestHandler (GSRequestHandler handler) {
     request_handler_ = handler;
 }
 
+// request against us
 int8_t GSwifi::dispatchRequestHandler (int8_t cid, int8_t routeid, GSREQUESTSTATE state) {
     return request_handler_(cid, routeid, state);
 }
 
+// response to our request
 int8_t GSwifi::dispatchResponseHandler (int8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
     return handlers_[ cid ](cid, status_code, state);
 }
