@@ -24,8 +24,6 @@
 #ifndef __GSWIFI_H__
 #define __GSWIFI_H__
 
-#define DEBUG
-
 #include "Arduino.h"
 #include "env.h"
 #include "GSwifi_const.h"
@@ -217,9 +215,7 @@ public:
     const char* wlanVersion();
 #endif
 
-#ifdef DEBUG
     void dump ();
-#endif
 
 private:
     HardwareSerialX*   serial_;

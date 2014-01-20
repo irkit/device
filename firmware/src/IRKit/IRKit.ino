@@ -119,6 +119,7 @@ void loop() {
 
     IR_loop();
 
+#ifdef DEBUG
     if (Serial.available()) {
         static uint8_t last_character = '0';
         static bool command_mode = false;
@@ -126,7 +127,6 @@ void loop() {
 
         MAINLOG_WRITE(last_character);
         MAINLOG_PRINTLN();
-        MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
         /* if (last_character == 0x1B) { */
         /*     command_mode = ! command_mode; */
@@ -160,6 +160,7 @@ void loop() {
         /*     keys.save(); */
         /* } */
     }
+#endif
 
     // add your own code here!!
 }
