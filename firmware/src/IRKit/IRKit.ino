@@ -167,6 +167,9 @@ void loop() {
 void wifi_hardware_reset () {
     MAINLOG_PRINTLN("!E25");
 
+    // UART line powers GS and pulls 3.3V line up to around 1.4V so GS won't reset without this
+    Serial1X.end();
+
     digitalWrite( LDO33_ENABLE, LOW );
     delay( 1000 );
     digitalWrite( LDO33_ENABLE, HIGH );
