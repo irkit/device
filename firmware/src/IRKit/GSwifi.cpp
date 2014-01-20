@@ -941,7 +941,7 @@ uint8_t GSwifi::checkActivity() {
         setBusy(false);
     }
 
-    if ( continuous_timeouts_ > 10 ) {
+    if ( continuous_timeouts_ > 5 ) {
         // need a GS hardware reset, which we issue in setup()
         software_reset();
     }
