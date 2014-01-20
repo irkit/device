@@ -181,8 +181,8 @@
 #define RECV_TIMEOUT           2
 #define XMIT_TIMEOUT           2
 
-// down -1- up -2- down -3- up -4- down -5- up
-#define VALID_IR_LEN_MIN   5
+// down -1- up -2- down -3- up -4- down -5- up -6- down -7- up
+#define VALID_IR_LEN_MIN   7
 
 // Working area for IR communication
 
