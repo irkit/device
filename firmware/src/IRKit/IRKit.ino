@@ -165,7 +165,7 @@ void loop() {
 }
 
 void wifi_hardware_reset () {
-    MAINLOG_PRINTLN(("!E25"));
+    MAINLOG_PRINTLN("!E25");
 
     digitalWrite( LDO33_ENABLE, LOW );
     delay( 1000 );
@@ -215,7 +215,10 @@ void process_commands() {
 }
 
 void on_ir_receive() {
+    MAINLOG_PRINTLN("i<");
+#ifdef IRLOG
     IR_dump();
+#endif
     if (IR_packedlength() > 0) {
         color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
         irkit_httpclient_post_messages();
@@ -223,7 +226,7 @@ void on_ir_receive() {
 }
 
 void on_ir_xmit() {
-    MAINLOG_PRINTLN(("xmit"));
+    MAINLOG_PRINTLN("i>");
     color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
 }
 
@@ -243,16 +246,14 @@ void on_timer() {
 }
 
 int8_t on_reset() {
-    MAINLOG_PRINTLN(("!E10"));
-    MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
+    MAINLOG_PRINT("!E10 "); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
     ring_put( &commands, COMMAND_SETUP );
     return 0;
 }
 
 int8_t on_disconnect() {
-    MAINLOG_PRINTLN(("!E11"));
-    MAINLOG_PRINT(P("F: 0x")); MAINLOG_PRINTLN2( freeMemory(), HEX );
+    MAINLOG_PRINT("!E11 "); MAINLOG_PRINTLN2( freeMemory(), HEX );
 
     ring_put( &commands, COMMAND_CONNECT );
     return 0;
@@ -357,7 +358,7 @@ void on_morse_word() {
 }
 
 void software_reset() {
-    MAINLOG_PRINTLN("SR");
+    MAINLOG_PRINTLN("!E6");
     wdt_enable(WDTO_15MS);
     while (1) ;
 }

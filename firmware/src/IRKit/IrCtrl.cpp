@@ -401,7 +401,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
 
-            // IRLOG_PRINTLN(("!E14"));
+            // IRLOG_PRINTLN("!E14");
             IR_state( IR_RECVED );
         }
     }
@@ -412,7 +412,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
             TIMER_STOP( IrCtrl.xmit_timer );
 
-            IRLOG_PRINTLN(("!E15"));
+            IRLOG_PRINTLN("!E15");
             IR_state( IR_IDLE );
         }
     }

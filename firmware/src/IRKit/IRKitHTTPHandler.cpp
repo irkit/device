@@ -216,7 +216,7 @@ static int8_t on_post_keys_response(int8_t cid, uint16_t status_code, GSwifi::GS
     ring_put( &commands, cid );
     ring_put( &commands, COMMAND_CLOSE );
     if (ring_isfull( &commands )) {
-        HTTPLOG_PRINTLN(("!E8"));
+        HTTPLOG_PRINTLN("!E8");
         return -1;
     }
     ring_put( &commands, post_keys_cid );
@@ -289,7 +289,7 @@ static int8_t on_post_messages_request(int8_t cid, GSwifi::GSREQUESTSTATE state)
     if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
         // should be xmitting or idle (xmit finished)
         if (IrCtrl.state == IR_WRITING) {
-            HTTPLOG_PRINTLN(("!E7"));
+            HTTPLOG_PRINTLN("!E7");
             // invalid json
             gs.writeHead(cid, 400);
             gs.writeEnd();
@@ -460,7 +460,7 @@ void irkit_http_loop() {
         else {
             int8_t result = irkit_httpclient_get_messages();
             if ( result < 0 ) {
-                HTTPLOG_PRINTLN(("!E3"));
+                HTTPLOG_PRINTLN("!E3");
                 // maybe time cures GS? (no it doesn't, let's software reset)
                 // don't software reset AVR, because that cuts off serial logging (for debug purpose only)
                 gs.reset();

@@ -208,7 +208,7 @@ int8_t Keys::put(char code)
     if ( ! (('0' <= code) && (code <= '9')) &&
          ! (('A' <= code) && (code <= 'F')) ) {
         // we only use letters which match: [0-9A-F]
-        KEYLOG_PRINT(("!E23:")); KEYLOG_PRINTLN2( code, HEX );
+        KEYLOG_PRINT("!E23:"); KEYLOG_PRINTLN2( code, HEX );
         return -1;
     }
     if (filler.state == KeysFillerStateSecurity) {
@@ -229,7 +229,7 @@ int8_t Keys::put(char code)
             data->security = (GSSECURITY)x2i(code);
             return 0;
         default:
-            KEYLOG_PRINT(("!E22:")); KEYLOG_PRINTLN2( code, HEX );
+            KEYLOG_PRINT("!E22:"); KEYLOG_PRINTLN2( code, HEX );
             return -1;
         }
     }
@@ -256,7 +256,7 @@ int8_t Keys::put(char code)
 
     if (filler.state == KeysFillerStateCRC) {
         if (filler.index > 0) {
-            KEYLOG_PRINTLN(("!E21"));
+            KEYLOG_PRINTLN("!E21");
             return -1;
         }
         data->crc8 = character;
@@ -265,7 +265,7 @@ int8_t Keys::put(char code)
     }
 
     if ( filler.index == max_length ) {
-        KEYLOG_PRINTLN(("!E18"));
+        KEYLOG_PRINTLN("!E18");
         return -1;
     }
     container[ filler.index ++ ] = character;
@@ -275,7 +275,7 @@ int8_t Keys::put(char code)
 int8_t Keys::putDone()
 {
     if (filler.state != KeysFillerStateCRC) {
-        KEYLOG_PRINTLN(("!E17"));
+        KEYLOG_PRINTLN("!E17");
         return -1;
     }
 
@@ -290,23 +290,23 @@ int8_t Keys::putDone()
     }
     else {
         dump();
-        KEYLOG_PRINTLN(("!E16"));
+        KEYLOG_PRINTLN("!E16");
         return -1;
     }
 }
 
 void Keys::dump(void)
 {
-    // KEYLOG_PRINT(("F:"));
+    // KEYLOG_PRINT("F:");
     // KEYLOG_PRINTLN(data->wifi_is_set);
     // KEYLOG_PRINTLN(data->wifi_was_valid);
     // KEYLOG_PRINTLN(data2.key_is_set);
     // KEYLOG_PRINTLN(data2.key_is_valid);
 
-    // KEYLOG_PRINT(("E:"));
+    // KEYLOG_PRINT("E:");
     // KEYLOG_PRINTLN(data->security);
 
-    // KEYLOG_PRINT(("S:"));
+    // KEYLOG_PRINT("S:");
     // KEYLOG_PRINTLN((const char*)data->ssid);
     // KEYLOG_PRINTLN((const char*)data->password);
     // KEYLOG_PRINTLN((const char*)data2.key);

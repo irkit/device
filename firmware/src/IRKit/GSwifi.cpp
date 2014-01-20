@@ -217,7 +217,7 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            GSLOG_PRINT(("!E4 ")); GSLOG_PRINTLN(i);
+            GSLOG_PRINT("!E4 "); GSLOG_PRINTLN(i);
 
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
@@ -261,7 +261,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                GSLOG_PRINT(("!E1 ")); GSLOG_PRINTLN2(dat,HEX);
+                GSLOG_PRINT("!E1 "); GSLOG_PRINTLN2(dat,HEX);
                 break;
             }
             escape = false;
@@ -279,7 +279,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    GSLOG_PRINTLN(("!E2"));
+                    GSLOG_PRINTLN("!E2");
                 }
             }
         }
@@ -930,8 +930,8 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        GSLOG_PRINTLN(("!E24"));
         did_timeout_ = true;
+        GSLOG_PRINTLN("!E24");
         setBusy(false);
     }
 
