@@ -44,6 +44,8 @@
 
 #define ESCAPE            0x1B
 
+extern void software_reset();
+
 static char __buf_cmd[GS_CMD_SIZE + 1];
 
 static void base64encoded( char encoded ) {
@@ -217,7 +219,7 @@ void GSwifi::loop() {
             TIMER_FIRED(timers_[i])) {
             TIMER_STOP(timers_[i]);
 
-            GSLOG_PRINT(("!E4 ")); GSLOG_PRINTLN(i);
+            GSLOG_PRINT("!E4 "); GSLOG_PRINTLN(i);
 
             dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
         }
@@ -261,7 +263,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                GSLOG_PRINT(("!E1 ")); GSLOG_PRINTLN2(dat,HEX);
+                GSLOG_PRINT("!E1 "); GSLOG_PRINTLN2(dat,HEX);
                 break;
             }
             escape = false;
@@ -279,7 +281,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     ring_put(_buf_cmd, dat);
                 }
                 else {
-                    GSLOG_PRINTLN(("!E2"));
+                    GSLOG_PRINTLN("!E2");
                 }
             }
         }
@@ -699,7 +701,7 @@ void GSwifi::parseLine () {
         if (strncmp(buf, P("CONNECT "), 8) == 0 && buf[8] >= '0' && buf[8] <= 'F' && buf[9] != 0) {
             // connect from client
             // CONNECT 0 1 192.168.2.1 63632
-            // 1st cid is our http server's, should be 0
+            // 1st cid is our http server's
             // 2nd cid is for client
             // next line will be "[ESC]Z10140GET / ..."
 
@@ -713,7 +715,7 @@ void GSwifi::parseLine () {
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             int8_t cid = x2i(buf[11]);
-            if (cid == 0) {
+            if (cid == server_cid_) {
                 // if it's our server, this is fatal
                 reset();
             }
@@ -766,23 +768,20 @@ void GSwifi::parseCmdResponse (char *buf) {
             // both "AT+NSTCP=port" and "AT+NCTCP=ip,port" responds with
             // CONNECT <cid>
 
+            // following lines are needed for client cids,
+            // but won't be a problem if we run it for a server cid
+
             gs_response_lines_ = RESPONSE_LINES_ENDED;
 
-            if (buf[8] == '0') {
-                // it's server successfully started listening
-                connected_cid_ = 0;
-            }
-            else {
-                int8_t cid = x2i(buf[8]);
-                setCidIsRequest(cid, false);
-                content_lengths_[ cid ] = 0;
+            int8_t cid = x2i(buf[8]);
+            setCidIsRequest(cid, false);
+            content_lengths_[ cid ] = 0;
 
-                // don't close other connections,
-                // other connections close theirselves on their turn
-
-                TIMER_STOP(timers_[cid]);
-                connected_cid_ = cid;
-            }
+            // don't close other connections,
+            // other connections close theirselves on their turn
+            
+            TIMER_STOP(timers_[cid]);
+            connected_cid_ = cid;
         }
         break;
     case GSCOMMANDMODE_DHCP:
@@ -912,6 +911,8 @@ bool GSwifi::setBusy(bool busy) {
 }
 
 uint8_t GSwifi::checkActivity() {
+    static uint8_t continuous_timeouts_ = 0;
+
     while ( serial_->available() &&
             ! TIMER_FIRED(timeout_timer_) ) {
 
@@ -921,7 +922,8 @@ uint8_t GSwifi::checkActivity() {
              (gs_ok_ &&
               (gs_response_lines_ == RESPONSE_LINES_ENDED ||
                gs_commandmode_    == GSCOMMANDMODE_NONE)) ) {
-            gs_commandmode_ = GSCOMMANDMODE_NONE;
+            gs_commandmode_      = GSCOMMANDMODE_NONE;
+            continuous_timeouts_ = 0;
             setBusy(false);
             break;
         }
@@ -930,9 +932,15 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        GSLOG_PRINTLN(("!E24"));
-        did_timeout_ = true;
+        GSLOG_PRINTLN("!E24");
+        did_timeout_          = true;
+        continuous_timeouts_ ++;
         setBusy(false);
+    }
+
+    if ( continuous_timeouts_ > 5 ) {
+        // need a GS hardware reset, which we issue in setup()
+        software_reset();
     }
 
     return busy_;
@@ -1047,13 +1055,8 @@ int GSwifi::listen(uint16_t port) {
         return -1;
     }
 
-    if (connected_cid_ != 0) {
-        // assume CID is 0 for server (only listen on 1 port)
-        reset();
-        return -1;
-    }
-
-    listening_   = true;
+    server_cid_ = connected_cid_;
+    listening_  = true;
 
     return 0;
 }
