@@ -28,6 +28,7 @@ extern GSwifi gs;
 extern Keys keys;
 extern struct RingBuffer commands;
 extern void on_ir_xmit();
+extern void wifi_hardware_reset();
 extern volatile char sharedbuffer[];
 
 // if we have recently received GET or POST /messages request,
@@ -461,9 +462,9 @@ void irkit_http_loop() {
             int8_t result = irkit_httpclient_get_messages();
             if ( result < 0 ) {
                 HTTPLOG_PRINTLN("!E3");
-                // maybe time cures GS? (no it doesn't, let's software reset)
+                // maybe time cures GS? (no it doesn't, let's hardware reset, software reset doesn't work here)
                 // don't software reset AVR, because that cuts off serial logging (for debug purpose only)
-                gs.reset();
+                wifi_hardware_reset();
             }
             else {
                 polling_cid = result;
