@@ -249,6 +249,7 @@ private:
     volatile uint8_t   timers_[16]; // timer for each cid
     uint16_t           content_lengths_[16]; // remaining content-length for each cid
     int8_t             connected_cid_; // this cid has just connected
+    int8_t             server_cid_;
 
     void               clear();
     uint8_t            checkActivity();

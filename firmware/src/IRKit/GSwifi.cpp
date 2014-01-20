@@ -701,7 +701,7 @@ void GSwifi::parseLine () {
         if (strncmp(buf, P("CONNECT "), 8) == 0 && buf[8] >= '0' && buf[8] <= 'F' && buf[9] != 0) {
             // connect from client
             // CONNECT 0 1 192.168.2.1 63632
-            // 1st cid is our http server's, should be 0
+            // 1st cid is our http server's
             // 2nd cid is for client
             // next line will be "[ESC]Z10140GET / ..."
 
@@ -715,7 +715,7 @@ void GSwifi::parseLine () {
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             int8_t cid = x2i(buf[11]);
-            if (cid == 0) {
+            if (cid == server_cid_) {
                 // if it's our server, this is fatal
                 reset();
             }
@@ -768,23 +768,20 @@ void GSwifi::parseCmdResponse (char *buf) {
             // both "AT+NSTCP=port" and "AT+NCTCP=ip,port" responds with
             // CONNECT <cid>
 
+            // following lines are needed for client cids,
+            // but won't be a problem if we run it for a server cid
+
             gs_response_lines_ = RESPONSE_LINES_ENDED;
 
-            if (buf[8] == '0') {
-                // it's server successfully started listening
-                connected_cid_ = 0;
-            }
-            else {
-                int8_t cid = x2i(buf[8]);
-                setCidIsRequest(cid, false);
-                content_lengths_[ cid ] = 0;
+            int8_t cid = x2i(buf[8]);
+            setCidIsRequest(cid, false);
+            content_lengths_[ cid ] = 0;
 
-                // don't close other connections,
-                // other connections close theirselves on their turn
-
-                TIMER_STOP(timers_[cid]);
-                connected_cid_ = cid;
-            }
+            // don't close other connections,
+            // other connections close theirselves on their turn
+            
+            TIMER_STOP(timers_[cid]);
+            connected_cid_ = cid;
         }
         break;
     case GSCOMMANDMODE_DHCP:
@@ -1058,13 +1055,8 @@ int GSwifi::listen(uint16_t port) {
         return -1;
     }
 
-    if (connected_cid_ != 0) {
-        // assume CID is 0 for server (only listen on 1 port)
-        reset();
-        return -1;
-    }
-
-    listening_   = true;
+    server_cid_ = connected_cid_;
+    listening_  = true;
 
     return 0;
 }
