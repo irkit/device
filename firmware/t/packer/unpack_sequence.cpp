@@ -35,20 +35,30 @@ void fill_tree() {
 }
 
 void on_unpack(uint16_t out) {
-    printf( "%d ", out );
+    printf( "%d (%04x) ", out, out );
 }
 
 int main(int argc,char *argv[]) {
     volatile struct irpacker_t packer_state;
     irpacker_init( &packer_state, (volatile uint8_t*)sharedbuffer );
     fill_tree();
+    irpacker_unpack_start( &packer_state );
 
-    uint8_t input[] = {
-        0xA0, 0x8B, 0x1, 0x51, 0x6F, 0x41, 0x15, 0x15,
-        0x54, 0x1, 0x44, 0x0, 0x1, 0x55, 0x0
-    };
+    uint8_t binary[1024];
+    memset(binary, 0, sizeof(binary));
 
-    irpacker_unpack_sequence( &packer_state, input, 15, &on_unpack );
+    uint16_t offset_binary = 0;
+    char hexstring[3];
+    while (fgets(hexstring, 3, stdin)) {
+        if (hexstring[0] == '\n') {
+            break;
+        }
+        // printf("hex: %s %d\n", hexstring, hexstring[0]);
+        uint8_t letter = strtol( (const char*)hexstring, NULL, 16 );
+        binary[ offset_binary ++ ] = letter;
+    }
+
+    irpacker_unpack_sequence( &packer_state, binary, offset_binary, &on_unpack );
 
     exit(0);
 }
