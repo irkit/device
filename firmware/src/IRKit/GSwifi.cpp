@@ -44,6 +44,8 @@
 
 #define ESCAPE            0x1B
 
+extern void software_reset();
+
 static char __buf_cmd[GS_CMD_SIZE + 1];
 
 static void base64encoded( char encoded ) {
@@ -912,6 +914,8 @@ bool GSwifi::setBusy(bool busy) {
 }
 
 uint8_t GSwifi::checkActivity() {
+    static uint8_t continuous_timeouts_ = 0;
+
     while ( serial_->available() &&
             ! TIMER_FIRED(timeout_timer_) ) {
 
@@ -921,7 +925,8 @@ uint8_t GSwifi::checkActivity() {
              (gs_ok_ &&
               (gs_response_lines_ == RESPONSE_LINES_ENDED ||
                gs_commandmode_    == GSCOMMANDMODE_NONE)) ) {
-            gs_commandmode_ = GSCOMMANDMODE_NONE;
+            gs_commandmode_      = GSCOMMANDMODE_NONE;
+            continuous_timeouts_ = 0;
             setBusy(false);
             break;
         }
@@ -930,9 +935,15 @@ uint8_t GSwifi::checkActivity() {
     if ( busy_ &&
          TIMER_FIRED(timeout_timer_) ) {
         TIMER_STOP(timeout_timer_);
-        did_timeout_ = true;
         GSLOG_PRINTLN("!E24");
+        did_timeout_          = true;
+        continuous_timeouts_ ++;
         setBusy(false);
+    }
+
+    if ( continuous_timeouts_ > 10 ) {
+        // need a GS hardware reset, which we issue in setup()
+        software_reset();
     }
 
     return busy_;
