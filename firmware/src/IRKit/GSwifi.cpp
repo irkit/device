@@ -34,6 +34,8 @@
 #include "base64encoder.h"
 #include "log.h"
 
+extern void software_reset();
+
 #define RESPONSE_LINES_ENDED -1
 
 #define NEXT_TOKEN_CID    0
@@ -44,7 +46,7 @@
 
 #define ESCAPE            0x1B
 
-extern void software_reset();
+#define ASSERT(a) if (!(a)) { software_reset(); }
 
 static char __buf_cmd[GS_CMD_SIZE + 1];
 
@@ -299,6 +301,8 @@ void GSwifi::parseByte(uint8_t dat) {
     if (next_token == NEXT_TOKEN_CID) {
         // dat is cid
         current_cid = x2i(dat);
+        ASSERT((0 <= current_cid) && (current_cid <= 16));
+
         next_token  = NEXT_TOKEN_LENGTH;
         len         = 0;
     }
@@ -414,8 +418,9 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 ring_clear(_buf_cmd);
             }
-        } // is request
+        }
         else {
+            // is request from us
             static uint16_t status_code;
 
             switch (request_state) {
@@ -458,7 +463,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 if(0 == parseHead2(dat, current_cid)) {
                     request_state = GSREQUESTSTATE_BODY;
                     // dispatched once, at start of body
-                    dispatchRequestHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
+                    dispatchResponseHandler(current_cid, status_code, GSREQUESTSTATE_BODY_START);
                 }
                 break;
             case GSREQUESTSTATE_BODY:
@@ -594,10 +599,12 @@ void GSwifi::setRequestHandler (GSRequestHandler handler) {
     request_handler_ = handler;
 }
 
+// request against us
 int8_t GSwifi::dispatchRequestHandler (int8_t cid, int8_t routeid, GSREQUESTSTATE state) {
     return request_handler_(cid, routeid, state);
 }
 
+// response to our request
 int8_t GSwifi::dispatchResponseHandler (int8_t cid, uint16_t status_code, GSREQUESTSTATE state) {
     return handlers_[ cid ](cid, status_code, state);
 }
@@ -706,6 +713,8 @@ void GSwifi::parseLine () {
             // next line will be "[ESC]Z10140GET / ..."
 
             int8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
+            ASSERT((0 <= cid) && (cid <= 16));
+
             setCidIsRequest(cid, true); // request against us
             content_lengths_[ cid ] = 0;
 
@@ -715,6 +724,8 @@ void GSwifi::parseLine () {
         }
         else if (strncmp(buf, P("DISCONNECT "), 11) == 0) {
             int8_t cid = x2i(buf[11]);
+            ASSERT((0 <= cid) && (cid <= 16));
+
             if (cid == server_cid_) {
                 // if it's our server, this is fatal
                 reset();
@@ -774,6 +785,8 @@ void GSwifi::parseCmdResponse (char *buf) {
             gs_response_lines_ = RESPONSE_LINES_ENDED;
 
             int8_t cid = x2i(buf[8]);
+            ASSERT((0 <= cid) && (cid <= 16));
+
             setCidIsRequest(cid, false);
             content_lengths_[ cid ] = 0;
 
@@ -938,10 +951,8 @@ uint8_t GSwifi::checkActivity() {
         setBusy(false);
     }
 
-    if ( continuous_timeouts_ > 5 ) {
-        // need a GS hardware reset, which we issue in setup()
-        software_reset();
-    }
+    // need a GS hardware reset, which we issue in setup()
+    ASSERT( continuous_timeouts_ <= 5 );
 
     return busy_;
 }
@@ -1157,15 +1168,19 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     connected_cid_ = CID_UNDEFINED;
     command(cmd, GSCOMMANDMODE_CONNECT);
+    int8_t cid = connected_cid_;
+    char   xid = i2x(cid);
+
     if (did_timeout_) {
         return -1;
     }
-    if (connected_cid_ == CID_UNDEFINED) {
+    if ((0 <= cid) && (cid <= 16)) {
+        // OK
+    }
+    else {
         return -1;
     }
 
-    int8_t cid = connected_cid_; // this might change inside command()
-    char xid   = i2x(cid);
 
     handlers_[ cid ] = handler;
 
