@@ -7461,7 +7461,7 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <text x="266.7" y="259.08" size="3.81" layer="94" ratio="10">WiFi</text>
 <text x="325.12" y="45.72" size="3.81" layer="94" ratio="10">STANDOFFs</text>
 <text x="330.2" y="142.24" size="3.81" layer="94" ratio="10">WiFi UART HEADER</text>
-<text x="33.02" y="142.24" size="3.81" layer="94" ratio="10">USB MiniB, Power</text>
+<text x="33.02" y="142.24" size="3.81" layer="94" ratio="10">USB MicroB, Power</text>
 <text x="271.78" y="142.24" size="3.81" layer="94" ratio="10">PIN HEADER</text>
 <text x="154.94" y="259.08" size="3.81" layer="94" ratio="10">Logic Level Converter</text>
 <text x="147.32" y="142.24" size="3.81" layer="94" ratio="10">Reset Switch</text>
