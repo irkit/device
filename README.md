@@ -14,7 +14,7 @@ Buy on [amazon.co.jp](http://www.amazon.co.jp/gp/product/B00H91KK26)
 Basically, it's a [Arduino Leonardo](http://arduino.cc/en/Main/ArduinoBoardLeonardo) fork with following modifications:
 
 * added a [WiFi module](http://www.gainspan.com/gs1011mips) ( [GainSpan](http://www.gainspan.com/home) 's WiFi module ).
-* added infrared receiver and LED
+* added Infrared Receiver, Infrared LED, some LEDs, and a microphone.
 
 <img src="https://raw.github.com/irkit/device/master/hardware/schematic.png" />
 
@@ -57,11 +57,15 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 1. IRKitをUSB Micro-Bケーブルを使ってMacに接続します。
 1. Arduino IDEのメニューから ツール -> マイコンボード -> "Arduino Leonardo" を選びます。
 1. Arduino IDEのメニューから ツール -> シリアルポート -> "/dev/tty.usbmodemXXXX" を選びます。
-  環境によってXXXXの部分やその前後が異なる場合があります。
+
+   環境によってXXXXの部分やその前後が異なる場合があります。
+
 1. [IRKit device tag一覧](https://github.com/irkit/device/releases) から最新のzipを選択しダウンロードし、解凍します。
 1. 解凍したディレクトリ内にある `firmware/src/IRKit/` ディレクトリを開きます。
-1. 同ディレクトリ内の `version.template` を `version.c` にリネームします。
-  参考) 製品版ではIRKitのバージョン情報をここに埋め込んでいます。
+1. 同ディレクトリ内の `version.template` を `version.c` にリネームします。  
+
+   参考) 製品版ではIRKitのバージョン情報をここに埋め込んでいます。
+
 1. 同ディレクトリ内の `IRKit.ino` をダブルクリックして Arduino IDE で開きます。
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
