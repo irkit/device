@@ -1,1 +1,1 @@
-../../src/main/GSwifi_const.h
+../../src/IRKit/GSwifi_const.h

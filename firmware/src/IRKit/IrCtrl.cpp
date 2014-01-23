@@ -181,8 +181,8 @@
 #define RECV_TIMEOUT           2
 #define XMIT_TIMEOUT           2
 
-// down -1- up -2- down -3- up -4- down -5- up
-#define VALID_IR_LEN_MIN   5
+// down -1- up -2- down -3- up -4- down -5- up -6- down -7- up
+#define VALID_IR_LEN_MIN   7
 
 // Working area for IR communication
 
@@ -401,7 +401,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
 
-            // IRLOG_PRINTLN(("!E14"));
+            // IRLOG_PRINTLN("!E14");
             IR_state( IR_RECVED );
         }
     }
@@ -412,7 +412,7 @@ void IR_timer (void)
         if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
             TIMER_STOP( IrCtrl.xmit_timer );
 
-            IRLOG_PRINTLN(("!E15"));
+            IRLOG_PRINTLN("!E15");
             IR_state( IR_IDLE );
         }
     }
