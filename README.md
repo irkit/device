@@ -70,3 +70,14 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
 
+## License
+
+Firmware is licensed under GPLv2 or later.  
+See details in [firmware/LICENSE](https://github.com/irkit/device/blob/master/firmware/LICENSE).
+
+Schematics are licensed under Creative Commons Attribution Share-Alike license.  
+See details in [hardware/LICENSE](https://github.com/irkit/device/blob/master/hardware/LICENSE).
+
+Case is licensed under Creative Commons Attribution NonCommercial Share-Alike license.  
+See details in [case/LICENSE](https://github.com/irkit/device/blob/master/case/LICENSE).
+
