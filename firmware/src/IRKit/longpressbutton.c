@@ -18,7 +18,7 @@
 #include "longpressbutton.h"
 #include "timer.h"
 
-void long_press_button_loop( struct long_press_button_state_t* state ) {
+void long_press_button_ontimer( struct long_press_button_state_t* state ) {
     static uint8_t button_state = BUTTON_OFF;
 
     uint8_t next_button_state = digitalRead( state->pin );
@@ -31,15 +31,17 @@ void long_press_button_loop( struct long_press_button_state_t* state ) {
     else if ((BUTTON_ON == button_state) &&
              (BUTTON_ON == next_button_state)) {
         // still pressing
+
+        TIMER_TICK( state->timer );
+
         if (TIMER_FIRED( state->timer )) {
             state->callback();
+
+            // fires again after state->threshold_time
             button_state = BUTTON_OFF;
             return;
         }
     }
-    button_state = next_button_state;
-}
 
-void long_press_button_ontimer( struct long_press_button_state_t* state ) {
-    TIMER_TICK( state->timer );
+    button_state = next_button_state;
 }

@@ -113,8 +113,6 @@ void loop() {
 
     process_commands();
 
-    long_press_button_loop( &long_press_button_state );
-
     gs.loop();
 
     IR_loop();

@@ -32,7 +32,6 @@ struct long_press_button_state_t {
 extern "C" {
 #endif
 
-void long_press_button_loop( struct long_press_button_state_t* state );
 void long_press_button_ontimer( struct long_press_button_state_t* state );
 
 #ifdef  __cplusplus

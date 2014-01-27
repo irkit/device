@@ -1,37 +1,39 @@
 #include "Arduino.h"
 #include "pins.h"
-#include "LongPressButton.h"
-#include "Global.h"
-#include "FlexiTimer2.h"
+#include "longpressbutton.h"
 #include "timer.h"
 
-LongPressButton button( RESET_SWITCH, 3 );
+struct long_press_button_state_t long_press_button_state;
 
-void longPressed() {
+void long_pressed() {
     Serial.println("long pressed");
 }
 
 // inside ISR, be careful
-void onTimer() {
-    button.onTimer();
+void on_timer() {
+    long_press_button_ontimer( &long_press_button_state );
 }
 
 void setup() {
-    button.callback = &longPressed;
+    //--- initialize timer
+
+    timer_init( on_timer );
+    timer_start( TIMER_INTERVAL );
+
+    //--- initialize long press button
+
+    pinMode( CLEAR_BUTTON, INPUT );
+    long_press_button_state.pin            = CLEAR_BUTTON;
+    long_press_button_state.callback       = &long_pressed;
+    long_press_button_state.threshold_time = 5;
 
     // USB serial
     Serial.begin(115200);
 
     while (! Serial) ;
-
-    FlexiTimer2::set( TIMER_INTERVAL, &onTimer );
-    FlexiTimer2::start();
 }
 
 void loop() {
-    global.loop();
-    button.loop();
-
     delay(100);
     Serial.print(".");
 }
