@@ -93,6 +93,26 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
 
+<a id="logging"></a>
+## ログ取得方法
+
+IRKitは、USB Micro-Bを使いパソコンまたはMacに接続すると、動作ログを取得することができます。  
+以下の手順でログを取得します(MacOS編)。
+
+1. [Arduino IDE](http://arduino.cc/en/Main/Software) をダウンロードしてインストール後、起動します。
+1. IRKitをUSB Micro-Bケーブルを使ってMacに接続します。
+1. Arduino IDEのメニューから ツール -> シリアルポート -> "/dev/tty.usbmodemXXXX" を選びます。
+
+   環境によってXXXXの部分やその前後が異なる場合があります。
+
+1. Arduino IDEのメニューから ツール -> シリアルモニタ を選びます。
+1. 新しく開いたウィンドウの右下の設定を "改行なし" "115200baud" に変更し、一度ウィンドウを閉じます。
+1. IRKitのUSB Micro-Bケーブルを外し、再度接続した直後に、上記同様に シリアルモニタ を開きます。
+
+   IRKit起動直後からのログを取得するためです。
+
+1. ウィンドウに表示される文字列をコピーして開発者へメールしてください。
+
 ## License
 
 Firmware is licensed under GPLv2 or later.  
