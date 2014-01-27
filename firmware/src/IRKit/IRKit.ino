@@ -362,7 +362,6 @@ void on_morse_word() {
 }
 
 void software_reset() {
-    MAINLOG_PRINTLN("!E6");
     wdt_enable(WDTO_15MS);
     while (1) ;
 }
