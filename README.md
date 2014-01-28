@@ -70,6 +70,26 @@ Follow this procedure (for MacOS).
 1. Navigate to Arduino IDE Menu and click File -> Upload, to write into IRKit.
 1. All Done!
 
+<a id="logging-en"></a>
+## How to get logs
+
+IRKit logs what it's doing to USB serial, and you can use [Arduino IDE](http://arduino.cc/en/Main/Software) to see it.  
+Follow this procedure (for MacOS).
+
+1. Download, install and run [Arduino IDE](http://arduino.cc/en/Main/Software)
+1. Connect IRKit using USB Micro-B cable to Mac.
+1. Navigate to Arduino IDE Menu and select Tools -> Serial Port -> "/dev/tty.usbmodemXXXX".
+
+   XXXX part should differ on your environment.
+
+1. Navigate to Arduino IDE Menu and select Tools -> Serial Monitor.
+1. Change new window's right-bottom settings to "No line ending" and "115200 baud", and close the window.
+1. Reconnect IRKit and immediately start Serial Monitor again.
+
+   This is to collect logs as soon as IRKit startups.
+
+1. Copy and send logs to IRKit developer, thanks!
+
 <a id="firmware-update"></a>
 ## ファームウェアアップデート方法
 
@@ -111,7 +131,7 @@ IRKitは、USB Micro-Bを使いパソコンまたはMacに接続すると、動�
 
    IRKit起動直後からのログを取得するためです。
 
-1. ウィンドウに表示される文字列をコピーして開発者へメールしてください。
+1. ウィンドウに表示される文字列をコピーして開発者へメールしてください。ありがとうございます！
 
 ## License
 
