@@ -150,7 +150,10 @@ int8_t GSwifi::factorySetup(uint32_t initial_baud) {
     serial_->begin(initial_baud);
 
     // need this to ignore invalid response
-    command(PB("AT",1), GSCOMMANDMODE_NORMAL);
+    command(PB("AT",1), GSCOMMANDMODE_NORMAL, GS_TIMEOUT_SHORT);
+    if (did_timeout_) {
+        return -1;
+    }
 
     setBaud(57600);
 
