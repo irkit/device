@@ -35,7 +35,8 @@ void fill_tree() {
 }
 
 void on_unpack(uint16_t out) {
-    printf( "%d (%04x) ", out, out );
+    // printf( "%d (%04x) ", out, out );
+    printf( "%d,", out );
 }
 
 int main(int argc,char *argv[]) {
