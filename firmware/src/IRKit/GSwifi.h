@@ -185,7 +185,10 @@ public:
     bool bufferEmpty();
     char bufferGet();
 
+    void loadLimitedAPPassword(char *);
+
 #ifdef FACTORY_CHECKER
+    void saveLimitedAPPassword(const char *);
     int8_t factorySetup(uint32_t initial_baud);
     int8_t checkVersion();
     const char* appVersion();

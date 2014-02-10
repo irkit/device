@@ -34,6 +34,8 @@
 #include "base64encoder.h"
 #include "log.h"
 #include "cert.h"
+#include <avr/eeprom.h>
+#include "const.h"
 
 extern void software_reset();
 
@@ -144,7 +146,19 @@ int8_t GSwifi::setupMDNS() {
     return 0;
 }
 
+void GSwifi::loadLimitedAPPassword( char *password ) {
+    eeprom_read_block( (void*)password,
+                       (void*)EEPROM_LIMITEDAPPASSWORD_OFFSET,
+                       EEPROM_LIMITEDAPPASSWORD_LENGTH );
+}
+
 #ifdef FACTORY_CHECKER
+
+void GSwifi::saveLimitedAPPassword( const char *password ) {
+    eeprom_write_block( password,
+                        (void*)EEPROM_LIMITEDAPPASSWORD_OFFSET,
+                        EEPROM_LIMITEDAPPASSWORD_LENGTH );
+}
 
 int8_t GSwifi::factorySetup(uint32_t initial_baud) {
     clear();
@@ -1075,13 +1089,21 @@ int8_t GSwifi::startLimitedAP () {
 
     // open security (mDNS enabled firmware can't run WPA security on limited AP)
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
+
     command(PB("AT+WM=2",1),             GSCOMMANDMODE_NORMAL);
+
     char *cmd = PB("AT+WA=IRKit%%%%,,11",1);
     cmd[11] = mac_[12];
     cmd[12] = mac_[13];
     cmd[13] = mac_[15];
     cmd[14] = mac_[16];
     command(cmd, GSCOMMANDMODE_NORMAL);
+
+    // wep security (mDNS enabled firmware can't run WPA security on limited AP)
+    cmd = PB("AT+WWEP1=%", 1);
+    loadLimitedAPPassword( cmd + 9 );
+    command(cmd, GSCOMMANDMODE_NORMAL);
+
     command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
