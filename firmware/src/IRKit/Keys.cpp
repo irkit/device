@@ -21,6 +21,7 @@
 #include "CRC8.h"
 #include "convert.h" // x2i
 #include "log.h"
+#include "const.h"
 
 #define MORSE_CREDENTIALS_SEPARATOR '/'
 
@@ -48,8 +49,8 @@ Keys::Keys()
 
 void Keys::load()
 {
-    eeprom_read_block((void*)data,   (void*)0,                  sizeof(KeysShared));
-    eeprom_read_block((void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
+    eeprom_read_block((void*)data,   (void*)EEPROM_KEYS_OFFSET,        sizeof(KeysShared));
+    eeprom_read_block((void*)&data2, (void*)EEPROM_INDEPENDENT_OFFSET, sizeof(KeysIndependent));
     if (! isCRCOK()) {
         clear();
     }
@@ -131,13 +132,13 @@ void Keys::setKeyValid(bool valid)
 void Keys::save(void)
 {
     data->crc8    = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
-    eeprom_write_block((const void*)data,   (void*)0,                  sizeof(KeysShared));
+    eeprom_write_block((const void*)data,   (void*)EEPROM_KEYS_OFFSET,        sizeof(KeysShared));
     save2();
 }
 
 void Keys::save2(void)
 {
-    eeprom_write_block((const void*)&data2, (void*)sizeof(KeysShared), sizeof(KeysIndependent));
+    eeprom_write_block((const void*)&data2, (void*)EEPROM_INDEPENDENT_OFFSET, sizeof(KeysIndependent));
 }
 
 void Keys::clear(void)
@@ -155,12 +156,12 @@ void Keys::clearKey(void)
     memset( &data2, 0, sizeof(KeysIndependent) );
 }
 
-// we use morse code to transfer Security, SSID, Password, Key, CRC8 to IRKit device
+// we use morse code to transfer Security, SSID, Password, Key, REGDOMAIN, CRC8 to IRKit device
 // SSID can be multi byte, so we transfer HEX 4bit as 1 ASCII character (0-9A-F),
 // so we need 2 morse letters to transfer a single character.
 // we might want to transfer more in the future (like static IP), so prepare reserved state
 // future iOS and firmware can support more parameters, while still supporting old firmware
-// [0248]/#{SSID}/#{Password}/#{Key}///////#{CRC}
+// [0248]/#{SSID}/#{Password}/#{Key}/#{Regdomain}//////#{CRC}
 int8_t Keys::put(char code)
 {
     static uint8_t  character;
@@ -261,6 +262,14 @@ int8_t Keys::put(char code)
         }
         data->crc8 = character;
         filler.index ++;
+        return 0;
+    }
+    else if (filler.state == KeysFillerStateRegdomain) {
+        if ( (filler.index > 0) || (code > '2') ) {
+            KEYLOG_PRINTLN("!E29");
+            return -1;
+        }
+        regdomain = code;
         return 0;
     }
 

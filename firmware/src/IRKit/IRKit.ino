@@ -33,15 +33,15 @@
 #include "version.h"
 #include "log.h"
 
-struct morse_t morse_state;
-struct long_press_button_state_t long_press_button_state;
+static struct morse_t morse_state;
+static struct long_press_button_state_t long_press_button_state;
 static volatile uint8_t reconnect_timer = TIMER_OFF;
 static bool morse_error = 0;
 static char commands_data[COMMAND_QUEUE_SIZE];
-struct RingBuffer commands;
+static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
+struct RingBuffer commands;
 GSwifi gs(&Serial1X);
-FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 Keys keys;
 unsigned long now;
 volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
@@ -355,6 +355,7 @@ void on_morse_word() {
     else {
         keys.dump();
         keys.save();
+        gs.setRegDomain( keys.regdomain );
         ring_put( &commands, COMMAND_CONNECT );
     }
 }

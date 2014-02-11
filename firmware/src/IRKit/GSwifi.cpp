@@ -1147,6 +1147,13 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     return 0;
 }
 
+int8_t GSwifi::setRegDomain (char regdomain) {
+    char *cmd = PB("AT+WREGDOMAIN=%",1);
+    cmd[ 14 ] = regdomain;
+    command(cmd, GSCOMMANDMODE_NORMAL);
+    return 0;
+}
+
 // returns -1 on error, >0 on success
 int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint16_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
     char cmd[ GS_CMD_SIZE ];

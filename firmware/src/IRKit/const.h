@@ -19,6 +19,15 @@
 
 #define SHARED_BUFFER_SIZE 512
 
-#define EEPROM_PACKERTREE_OFFSET 169 // sizeof(KeysShared) + sizeof(KeysIndependent)
+#define EEPROM_KEYS_OFFSET                0
+
+// sizeof(KeysShared)
+#define EEPROM_INDEPENDENT_OFFSET       134
+
+// sizeof(KeysShared) + sizeof(KeysIndependent)
+#define EEPROM_PACKERTREE_OFFSET        169
+
+// sizeof(KeysShared) + sizeof(KeysIndependent) + sizeof(tree)
+#define EEPROM_OTHER_OFFSET             505
 
 #endif

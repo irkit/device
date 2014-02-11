@@ -36,7 +36,7 @@ enum KeysFillerState {
     KeysFillerStateSSID      = 1,
     KeysFillerStatePassword  = 2,
     KeysFillerStateKey       = 3,
-    KeysFillerStateReserved1 = 4,
+    KeysFillerStateRegdomain = 4,
     KeysFillerStateReserved2 = 5,
     KeysFillerStateReserved3 = 6,
     KeysFillerStateReserved4 = 7,
@@ -62,10 +62,11 @@ class Keys {
     bool isAPIKeySet();
     bool isValid();
     bool wasWifiValid();
+    GSSECURITY getSecurity();
     const char* getSSID();
     const char* getPassword();
     const char* getKey();
-    GSSECURITY getSecurity();
+    char getRegDomain();
     void set(GSSECURITY security, const char *ssid, const char *pass);
     void setKey(const char *key);
     void setWifiWasValid(bool valid);
@@ -129,7 +130,11 @@ class Keys {
         char       key     [MAX_KEY_LENGTH           + 1];
         bool       key_is_set;
         bool       key_is_valid; // POST /door succeeded
-    };
+    } __attribute__ ((packed));
+
+    // don't need to remember in EEPROM
+    // GS saves this value to Flash
+    char regdomain;  // '0': FCC, '1': ETSI, '2': TELEC (defaults to FCC)
 
  private:
     bool isCRCOK();
