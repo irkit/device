@@ -884,7 +884,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
+    // GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
     GSLOG_PRINT(P("c> "));
 
     resetResponse(res);

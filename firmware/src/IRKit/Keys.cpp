@@ -161,7 +161,7 @@ void Keys::clearKey(void)
 // so we need 2 morse letters to transfer a single character.
 // we might want to transfer more in the future (like static IP), so prepare reserved state
 // future iOS and firmware can support more parameters, while still supporting old firmware
-// [0248]/#{SSID}/#{Password}/#{Key}/#{Regdomain}//////#{CRC}
+// [0248]/#{SSID}/#{Password}/#{Key}/#{RegDomain}//////#{CRC}
 int8_t Keys::put(char code)
 {
     static uint8_t  character;
