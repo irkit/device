@@ -145,10 +145,9 @@ public:
      * unassociate
      */
     int disconnect ();
-    /**
-     * main polling
-     */
+
     int8_t setBaud (uint32_t baud);
+    int8_t setRegDomain (char regdomain);
 
     /**
      * use DHCP

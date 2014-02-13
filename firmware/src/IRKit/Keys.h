@@ -36,7 +36,7 @@ enum KeysFillerState {
     KeysFillerStateSSID      = 1,
     KeysFillerStatePassword  = 2,
     KeysFillerStateKey       = 3,
-    KeysFillerStateReserved1 = 4,
+    KeysFillerStateRegdomain = 4,
     KeysFillerStateReserved2 = 5,
     KeysFillerStateReserved3 = 6,
     KeysFillerStateReserved4 = 7,
@@ -44,6 +44,12 @@ enum KeysFillerState {
     KeysFillerStateReserved6 = 9,
     KeysFillerStateCRC       = 10,
 };
+
+#define REGDOMAIN_FCC   '0'
+#define REGDOMAIN_ETSI  '1' 
+#define REGDOMAIN_TELEC '2' 
+#define REGDOMAIN_MIN   REGDOMAIN_FCC
+#define REGDOMAIN_MAX   REGDOMAIN_TELEC
 
 class KeysFiller {
  public:
@@ -62,10 +68,11 @@ class Keys {
     bool isAPIKeySet();
     bool isValid();
     bool wasWifiValid();
+    GSSECURITY getSecurity();
     const char* getSSID();
     const char* getPassword();
     const char* getKey();
-    GSSECURITY getSecurity();
+    char getRegDomain();
     void set(GSSECURITY security, const char *ssid, const char *pass);
     void setKey(const char *key);
     void setWifiWasValid(bool valid);
@@ -129,7 +136,18 @@ class Keys {
         char       key     [MAX_KEY_LENGTH           + 1];
         bool       key_is_set;
         bool       key_is_valid; // POST /door succeeded
-    };
+    } __attribute__ ((packed));
+
+    // don't need to remember in EEPROM
+    // GS saves this value to Flash
+    // factory default is '0',
+    // iphone sends it's domain over morse,
+    // if regdomain information is not included in morse (ex: old version iOS SDK doesn't have this code)
+    // regdomain defaults to '2'
+    // WiFi access points automatically choose band within allowed bands,
+    // and Japanese WiFi access points might choose one from 13-14, which
+    // GS1011MIPS can't connect if in FCC regdomain, 
+    char regdomain;  // '0': FCC, '1': ETSI, '2': TELEC (factory default: FCC)
 
  private:
     bool isCRCOK();

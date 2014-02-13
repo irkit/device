@@ -884,7 +884,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 }
 
 void GSwifi::command (const char *cmd, GSCOMMANDMODE res, uint8_t timeout_second) {
-    GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
+    // GSLOG_PRINT(P("F: 0x")); GSLOG_PRINTLN2( freeMemory(), HEX );
     GSLOG_PRINT(P("c> "));
 
     resetResponse(res);
@@ -1144,6 +1144,13 @@ int8_t GSwifi::setBaud (uint32_t baud) {
     // Skip 1st "ERROR: INVALID INPUT" after baud rate change
     command("", GSCOMMANDMODE_NORMAL);
 
+    return 0;
+}
+
+int8_t GSwifi::setRegDomain (char regdomain) {
+    char *cmd = PB("AT+WREGDOMAIN=%",1);
+    cmd[ 14 ] = regdomain;
+    command(cmd, GSCOMMANDMODE_NORMAL);
     return 0;
 }
 
