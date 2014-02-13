@@ -269,7 +269,9 @@ int8_t Keys::put(char code)
         return 0;
     }
     else if (filler.state == KeysFillerStateRegdomain) {
-        if ( (filler.index > 0) || (code > '2') ) {
+        if ( (filler.index > 0) ||
+             (code < REGDOMAIN_MIN) ||
+             (code > REGDOMAIN_MAX) ) {
             KEYLOG_PRINTLN("!E29");
             return -1;
         }
