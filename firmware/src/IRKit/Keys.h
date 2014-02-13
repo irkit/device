@@ -45,6 +45,12 @@ enum KeysFillerState {
     KeysFillerStateCRC       = 10,
 };
 
+#define REGDOMAIN_FCC   '0'
+#define REGDOMAIN_ETSI  '1' 
+#define REGDOMAIN_TELEC '2' 
+#define REGDOMAIN_MIN   REGDOMAIN_FCC
+#define REGDOMAIN_MAX   REGDOMAIN_TELEC
+
 class KeysFiller {
  public:
     KeysFiller();
@@ -134,7 +140,14 @@ class Keys {
 
     // don't need to remember in EEPROM
     // GS saves this value to Flash
-    char regdomain;  // '0': FCC, '1': ETSI, '2': TELEC (defaults to FCC)
+    // factory default is '0',
+    // iphone sends it's domain over morse,
+    // if regdomain information is not included in morse (ex: old version iOS SDK doesn't have this code)
+    // regdomain defaults to '2'
+    // WiFi access points automatically choose band within allowed bands,
+    // and Japanese WiFi access points might choose one from 13-14, which
+    // GS1011MIPS can't connect if in FCC regdomain, 
+    char regdomain;  // '0': FCC, '1': ETSI, '2': TELEC (factory default: FCC)
 
  private:
     bool isCRCOK();

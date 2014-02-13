@@ -198,6 +198,10 @@ int8_t Keys::put(char code)
                 container  = data->temp_key;
                 max_length = MAX_KEY_LENGTH;
                 break;
+            case KeysFillerStateRegdomain:
+                // defaults to 2
+                regdomain = REGDOMAIN_TELEC;
+                break;
             default:
                 break;
             }
