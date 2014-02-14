@@ -248,14 +248,14 @@ void on_timer() {
 }
 
 int8_t on_reset() {
-    MAINLOG_PRINT("!E10 "); MAINLOG_PRINTLN2( freeMemory(), HEX );
+    MAINLOG_PRINTLN("!E10");
 
     ring_put( &commands, COMMAND_SETUP );
     return 0;
 }
 
 int8_t on_disconnect() {
-    MAINLOG_PRINT("!E11 "); MAINLOG_PRINTLN2( freeMemory(), HEX );
+    MAINLOG_PRINTLN("!E11");
 
     ring_put( &commands, COMMAND_CONNECT );
     return 0;
