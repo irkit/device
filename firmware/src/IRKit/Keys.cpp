@@ -239,6 +239,16 @@ int8_t Keys::put(char code)
         }
     }
 
+    if (filler.state == KeysFillerStateRegdomain) {
+        if ( (code < REGDOMAIN_MIN) ||
+             (code > REGDOMAIN_MAX) ) {
+            KEYLOG_PRINTLN("!E29");
+            return -1;
+        }
+        regdomain = code;
+        return 0;
+    }
+
     if (filler.state == KeysFillerStateKey) {
         character = code;
     }
@@ -266,16 +276,6 @@ int8_t Keys::put(char code)
         }
         data->crc8 = character;
         filler.index ++;
-        return 0;
-    }
-    else if (filler.state == KeysFillerStateRegdomain) {
-        if ( (filler.index > 0) ||
-             (code < REGDOMAIN_MIN) ||
-             (code > REGDOMAIN_MAX) ) {
-            KEYLOG_PRINTLN("!E29");
-            return -1;
-        }
-        regdomain = code;
         return 0;
     }
 
