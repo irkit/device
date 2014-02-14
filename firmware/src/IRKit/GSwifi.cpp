@@ -1180,6 +1180,12 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     char cmd[ GS_CMD_SIZE ];
     char *cmd2;
 
+#ifdef TESTER
+    // Tester only requests against limited AP test target
+    // DNSLOOKUP should fail, because it's in limitedAP mode, ignore it.
+    sprintf( ipaddr_, "%s", "192.168.1.1" );
+#endif
+
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
 
