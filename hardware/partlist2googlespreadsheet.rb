@@ -70,7 +70,8 @@ class PartSheet
       else
 
         found_similar = spreadsheet_rows.index { |r|
-          (csv_row.field("Parts") == r["Parts"])
+          (csv_row.field("Parts") == r["Parts"]) ||
+         ((csv_row.field("Device") == r["Device"]) && (csv_row.field("Value") == r["Value"]))
         }
 
         if found_similar != nil
