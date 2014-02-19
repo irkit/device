@@ -15,6 +15,9 @@ void setup() {
     timer_init( &timerFired );
     timer_start( LED_BLINK_INTERVAL );
 
+    pinMode(FULLCOLOR_LED_R, OUTPUT);
+    pinMode(FULLCOLOR_LED_G, OUTPUT);
+    pinMode(FULLCOLOR_LED_B, OUTPUT);
     color.setLedColor( 1, 1, 1 );
 
     // USB serial
