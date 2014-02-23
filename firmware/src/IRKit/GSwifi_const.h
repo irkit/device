@@ -35,6 +35,8 @@
 #define GS_MAX_ROUTES           4
 #define GS_MAX_PATH_LENGTH      9    // max: "/messages"
 
+#define ESCAPE               0x1B
+
 enum GSSECURITY {
     GSSECURITY_AUTO     = 0,
     GSSECURITY_NONE     = 0,

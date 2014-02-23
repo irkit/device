@@ -1,12 +1,25 @@
-#include "Arduino.h"
-#include "pins.h"
-#include "pgmStrToRAM.h"
-#include "HardwareSerialX.h"
+/*
+ Copyright (C) 2013-2014 Masakazu Ohtsuka
+  
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+  
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+  
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#ifndef __CERT_H__
+#define __CERT_H__
 
-#define ESCAPE      0x1B
+#include "GSwifi_const.h"
 
-#define CERT_LENGTH 753
-
+// deviceapi.getirkit.com
 prog_uchar der[] PROGMEM = {
     ESCAPE, 'W',
     0x30, 0x82, 0x2, 0xed, 0x30, 0x82, 0x2, 0x56,
@@ -106,65 +119,6 @@ prog_uchar der[] PROGMEM = {
     0xa7,
 };
 
-void setup() {
-    // USB serial
-    Serial.begin(115200);
+#endif // __CERT_H__
 
-    // wait for connection
-    while ( ! Serial ) ;
 
-    pinMode( LDO33_ENABLE, OUTPUT );
-    digitalWrite( LDO33_ENABLE, HIGH );
-
-    // gainspan
-    Serial1X.begin(57600);
-}
-
-void loop() {
-    // gainspan -> usb
-    if (Serial1X.available()) {
-        Serial.write(Serial1X.read());
-    }
-
-    if (Serial.available()) {
-        static uint8_t last_character = '0';
-        static bool command_mode = false;
-        last_character = Serial.read();
-
-        Serial.write(last_character);
-        // Serial.println();
-
-        if (last_character == 0x1B) {
-            command_mode = ! command_mode;
-            Serial.print("command_mode:"); Serial.println(command_mode);
-        }
-        if (command_mode) {
-            Serial1X.write(last_character);
-        }
-        else if (last_character == 't') {
-            writeTCERTADD();
-        }
-        else if (last_character == 'w') {
-            writeData();
-        }
-    }
-}
-
-void writeTCERTADD () {
-    // Serial1X.println( "AT+TCERTADD=cacert,0,985,1" );
-    Serial1X.print( "AT+TCERTADD=cacert,0," ); // 0: Binary format
-    Serial1X.print( CERT_LENGTH );
-    Serial1X.println( ",1" ); // 0: store in ram
-}
-
-void writeData () {
-    /* for (uint16_t i=0; i<CERT_LENGTH; i++) { */
-    /*     Serial1X.write( der[ i ] ); */
-    /* } */
-    for (uint16_t i=0; i<753 + 2; i++) {
-        uint8_t read = pgm_read_byte_near(der + i);
-        Serial1X.write( read );
-        // Serial.write( read );
-        Serial.print( read, HEX );
-    }
-}

@@ -124,6 +124,7 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
     case 503: // heroku responds with 503 if longer than 30sec
     default:
         // try again
+        // TODO send this to next loop
         gs.close(cid);
         irkit_httpclient_post_door();
         break;
