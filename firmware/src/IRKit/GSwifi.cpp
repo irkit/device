@@ -1085,26 +1085,38 @@ int GSwifi::listen(uint16_t port) {
 }
 
 int8_t GSwifi::startLimitedAP () {
+    char *cmd;
+
     disconnect();
 
-    // open security (mDNS enabled firmware can't run WPA security on limited AP)
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
 
+    // AT+WPAPSK=IRKitXXXX,0123456789
+    cmd = PB("AT+WPAPSK=IRKitXXXX,%",1);
+    cmd[15] = mac_[12];
+    cmd[16] = mac_[13];
+    cmd[17] = mac_[15];
+    cmd[18] = mac_[16];
+    loadLimitedAPPassword( cmd + 20 );
+    command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
+
+    // WPA2
+    command(PB("AT+WSEC=8",1),           GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WAUTH=0",1),          GSCOMMANDMODE_NORMAL);
+
+    // limited AP
     command(PB("AT+WM=2",1),             GSCOMMANDMODE_NORMAL);
 
-    char *cmd = PB("AT+WA=IRKit%%%%,,11",1);
+    command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
+
+    // start
+    cmd = PB("AT+WA=IRKitXXXX,%",1);
     cmd[11] = mac_[12];
     cmd[12] = mac_[13];
     cmd[13] = mac_[15];
     cmd[14] = mac_[16];
-    command(cmd, GSCOMMANDMODE_NORMAL);
+    command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
-    // wep security (mDNS enabled firmware can't run WPA security on limited AP)
-    cmd = PB("AT+WWEP1=%", 1);
-    loadLimitedAPPassword( cmd + 9 );
-    command(cmd, GSCOMMANDMODE_NORMAL);
-
-    command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
     }
