@@ -53,9 +53,9 @@ void loop() {
 
 void writeTCERTADD () {
     // Serial1X.println( "AT+TCERTADD=cacert,0,985,1" );
-    Serial1X.print( "AT+TCERTADD=cacert,0," );
+    Serial1X.print( "AT+TCERTADD=cacert,0," ); // 0: Binary format
     Serial1X.print( CERT_LENGTH );
-    Serial1X.println( ",1" );
+    Serial1X.println( ",0" ); // 0: store in Flash
 }
 
 void writeData () {
