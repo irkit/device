@@ -23,7 +23,7 @@
 #ifndef __GSWIFI_CONST_H__
 #define __GSWIFI_CONST_H__
 
-#define DOMAIN "api.getirkit.com"
+#define DOMAIN "deviceapi.getirkit.com"
 
 #define GS_TIMEOUT             20 // [s]
 #define GS_TIMEOUT_LONG        50 // [s]

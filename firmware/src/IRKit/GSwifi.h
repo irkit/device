@@ -186,6 +186,7 @@ public:
     void write (const uint8_t data);
     void write (const uint16_t data);
     int8_t writeEnd ();
+    void writeCert ();
 
     /**
      * HTTP request
