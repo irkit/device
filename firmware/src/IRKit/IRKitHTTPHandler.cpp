@@ -116,7 +116,8 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
     case 401:
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
         // keys have expired, we have to start from morse sequence again
-        gs.close(cid);
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
         keys.clear();
         keys.save();
         break;
@@ -416,7 +417,8 @@ int8_t irkit_httpclient_post_keys() {
     if ( result < 0 ) {
         gs.writeHead( post_keys_cid, 500 );
         gs.writeEnd();
-        gs.close( post_keys_cid );
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, post_keys_cid );
     }
 }
 
