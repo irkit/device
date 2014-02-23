@@ -102,7 +102,7 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
     // disable association keep alive timer
     command(PB("AT+PSPOLLINTRL=0",1), GSCOMMANDMODE_NORMAL);
 
-    // set system time
+    // set system time (must be within cert valid period)
     command(PB("AT+SETTIME=01/01/2015,00:00:00",1), GSCOMMANDMODE_NORMAL);
 
     writeCert();
@@ -250,11 +250,6 @@ void GSwifi::parseByte(uint8_t dat) {
         // 0x1B : Escape
         GSLOG_PRINT("e< ");
     }
-    else if ((0x10 < dat) && (dat < 0x20)) {
-        // 0x11 : XON
-        // 0x13 : XOFF
-        GSLOG_PRINT("0x"); GSLOG_PRINT2(dat, HEX);
-    }
     else { // if (next_token != NEXT_TOKEN_DATA) {
         GSLOG_WRITE(dat);
     }
@@ -266,7 +261,6 @@ void GSwifi::parseByte(uint8_t dat) {
             case 'O':
             case 'F':
                 // ignore
-                GSLOG_PRINTLN();
                 break;
             case 'Z':
             case 'H':
@@ -460,8 +454,6 @@ void GSwifi::parseByte(uint8_t dat) {
                         break;
                     }
                     status_code                     = atoi(status_code_chars);
-                    GSLOG_PRINT("S:"); GSLOG_PRINTLN(status_code);
-
                     request_state                   = GSREQUESTSTATE_HEAD2;
                     continuous_newlines_            = 0;
                     content_lengths_[ current_cid ] = 0;
@@ -545,7 +537,6 @@ int8_t GSwifi::parseHead2(uint8_t dat, int8_t cid) {
             (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
             content_length_chars[20] = 0;
             content_lengths_[ cid ] = atoi(&content_length_chars[16]);
-            GSLOG_PRINT("C: "); GSLOG_PRINTLN(content_lengths_[cid]);
         }
         ring_clear(_buf_cmd);
     }
@@ -584,7 +575,6 @@ int8_t GSwifi::router (GSMETHOD method, const char *path) {
     for (i = 0; i < route_count_; i ++) {
         if ((method == routes_[i].method) &&
             (strncmp(path, routes_[i].path, GS_MAX_PATH_LENGTH) == 0)) {
-            GSLOG_PRINT("R:"); GSLOG_PRINTLN(i);
             return i;
         }
     }
@@ -867,8 +857,7 @@ void GSwifi::parseLine () {
             on_disconnect_();
             gs_failure_ = true;
         }
-        else if (strncmp(buf, P("UnExpected Warm Boot"), 20) == 0 ||
-                 strncmp(buf, P("APP Reset"), 9) == 0 ||
+        else if (strncmp(buf, P("APP Reset"), 9) == 0 ||
                  strncmp(buf, P("Serial2WiFi APP"), 15) == 0) {
             // APP Reset-APP SW Reset
             // APP Reset-Wlan Except
@@ -922,7 +911,7 @@ void GSwifi::parseCmdResponse (char *buf) {
         }
         break;
     case GSCOMMANDMODE_DHCP:
-        if (gs_response_lines_ == 0 && strstr(buf, P("SubNet")) && strstr(buf, P("Gateway"))) {
+        if (gs_response_lines_ == 0 && strstr(buf, P("SubNet"))) {
             gs_response_lines_ ++;
         }
         else if (gs_response_lines_ == 1) {
@@ -935,25 +924,12 @@ void GSwifi::parseCmdResponse (char *buf) {
             gs_response_lines_ = RESPONSE_LINES_ENDED;
         }
         break;
-    case GSCOMMANDMODE_STATUS:
-        if (gs_response_lines_ == 0 && strncmp(buf, P("NOT ASSOCIATED"), 14) == 0) {
-            joined_            = false;
-            listening_         = false;
-            gs_response_lines_ = RESPONSE_LINES_ENDED;
-        }
-        if (gs_response_lines_ == 0 && strncmp(buf, P("MODE:"), 5) == 0) {
-            gs_response_lines_ ++;
-        }
-        else if (gs_response_lines_ == 1 && strncmp(buf, P("BSSID:"), 6) == 0) {
-            gs_response_lines_ = RESPONSE_LINES_ENDED;
-        }
-        break;
     case GSCOMMANDMODE_MDNS:
         if (gs_response_lines_ == 0) {
             // 1st line is just OK
             gs_response_lines_ ++;
         }
-        else if ((gs_response_lines_ == 1) && (buf[1] == 'R')) {
+        else if (gs_response_lines_ == 1) {
             // 2nd line is something like:
             // " Registration Success!! for RR: IRKitXXXX"
             gs_response_lines_ = RESPONSE_LINES_ENDED;
@@ -1098,9 +1074,6 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
 
     disconnect();
 
-    // transmit power level: 19dBm - default
-    command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
-
     // infrastructure mode
     command(PB("AT+WM=0",1), GSCOMMANDMODE_NORMAL);
 
@@ -1199,9 +1172,6 @@ int GSwifi::listen(uint16_t port) {
 int8_t GSwifi::startLimitedAP () {
     disconnect();
 
-    // transmit power level: 5dBm
-    command(PB("AT+WP=7",1),           GSCOMMANDMODE_NORMAL);
-
     // open security (mDNS enabled firmware can't run WPA security on limited AP)
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
     command(PB("AT+WM=2",1),             GSCOMMANDMODE_NORMAL);
@@ -1243,6 +1213,8 @@ bool GSwifi::isLimitedAP () {
     return limited_ap_;
 }
 
+#ifdef FACTORY_CHECKER
+
 // 4.2.1 UART Parameters
 // Allowed baud rates include: 9600, 19200, 38400, 57600, 115200, 230400,460800 and 921600.
 // The new UART parameters take effect immediately. However, they are stored in RAM and will be lost when power is lost unless they are saved to a profile using AT&W (section 4.6.1). The profile used in that command must also be set as the power-on profile using AT&Y (section 4.6.3).
@@ -1267,6 +1239,8 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 
     return 0;
 }
+
+#endif
 
 int8_t GSwifi::setRegDomain (char regdomain) {
     char *cmd = PB("AT+WREGDOMAIN=%",1);
@@ -1364,11 +1338,11 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     serial_->print(path);
     serial_->println(P(" HTTP/1.1"));
 
-    sprintf(cmd, P("User-Agent: IRKit/%s"), version);
-    serial_->println(cmd);
+    serial_->print(P("User-Agent: IRKit/"));
+    serial_->println(version);
 
-    sprintf(cmd, P("Host: %s"), DOMAIN);
-    serial_->println(cmd);
+    serial_->print("Host: " DOMAIN);
+    // serial_->println(DOMAIN);
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("Content-Length: "));

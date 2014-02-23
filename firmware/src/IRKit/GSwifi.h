@@ -146,33 +146,11 @@ public:
      */
     int disconnect ();
 
+#ifdef FACTORY_CHECKER
     int8_t setBaud (uint32_t baud);
-    int8_t setRegDomain (char regdomain);
+#endif
 
-    /**
-     * use DHCP
-     */
-    int setAddress (char *name = NULL);
-    /**
-     * use static ip address
-     */
-    // int setAddress (IpAddr ipaddr, IpAddr netmask, IpAddr gateway, IpAddr nameserver);
-    /**
-     * get ip address
-     */
-    // int getAddress (IpAddr &ipaddr, IpAddr &netmask, IpAddr &gateway, IpAddr &nameserver);
-    /**
-     * resolv hostname
-     * @param name hostname
-     * @param addr resolved ip address
-     */
-    // int getHostByName (const char* name, IpAddr &addr);
-    /**
-     * resolv hostname
-     * @param host.name hostname
-     * @param host.ipaddr resolved ip address
-     */
-    // int getHostByName (Host &host);
+    int8_t setRegDomain (char regdomain);
 
     /**
      * attach uri, http method pair to function

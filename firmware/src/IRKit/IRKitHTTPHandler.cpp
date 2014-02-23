@@ -260,9 +260,9 @@ static int8_t on_get_messages_request(int8_t cid, GSwifi::GSREQUESTSTATE state) 
 
     IR_state( IR_READING );
 
-    gs.write(P("{\"format\":\"raw\",\"freq\":")); // format fixed to "raw" for now
+    gs.write("{\"format\":\"raw\",\"freq\":"); // format fixed to "raw" for now
     gs.write(IrCtrl.freq);
-    gs.write(P(",\"data\":["));
+    gs.write(",\"data\":[");
     for (uint16_t i=0; i<IrCtrl.len; i++) {
         gs.write( IR_get() );
         if (i != IrCtrl.len - 1) {
