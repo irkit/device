@@ -77,7 +77,7 @@ void setup() {
     pinMode(MICROPHONE,  INPUT);
     morse_state.letter_callback = &on_morse_letter;
     morse_state.word_callback   = &on_morse_word;
-    morse_state.pin            = MICROPHONE;
+    morse_state.pin             = MICROPHONE;
     morse_setup( &morse_state, 100 );
 
     //--- initialize IR

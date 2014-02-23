@@ -91,10 +91,8 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
         return -1;
     }
 
+    // write this before AT&K1, cert includes XON or XOFF hex
     writeCert();
-
-    // enable bulk data mode
-    command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
 
     // enable software flow control
     command(PB("AT&K1",1), GSCOMMANDMODE_NORMAL);
@@ -125,18 +123,14 @@ int8_t GSwifi::setupMDNS() {
     command(PB("AT+MDNSSTART",1), GSCOMMANDMODE_NORMAL);
 
     // ex: "00:1d:c9:01:99:99"
-    cmd = PB("AT+MDNSHNREG=IRKit%%%%,local",1);
-    cmd[18] = mac_[12];
-    cmd[19] = mac_[13];
-    cmd[20] = mac_[15];
-    cmd[21] = mac_[16];
+    cmd = PB("AT+MDNSHNREG=IRKitXXXX,local",1);
+    strcpy( cmd+13, hostname() );
+    cmd[22] = ',';
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    cmd = PB("AT+MDNSSRVREG=IRKit%%%%,,_irkit,_tcp,local,80",1);
-    cmd[19] = mac_[12];
-    cmd[20] = mac_[13];
-    cmd[21] = mac_[15];
-    cmd[22] = mac_[16];
+    cmd = "AT+MDNSSRVREG=IRKitXXXX,,_irkit,_tcp,local,80";
+    strcpy( cmd+14, hostname() );
+    cmd[23] = ',';
     command(cmd, GSCOMMANDMODE_MDNS);
 
     command(PB("AT+MDNSANNOUNCE",1), GSCOMMANDMODE_NORMAL);
@@ -177,6 +171,10 @@ int8_t GSwifi::factorySetup(uint32_t initial_baud) {
     setBaud(57600);
 
     command(PB("ATE0",1), GSCOMMANDMODE_NORMAL);
+
+    // enable bulk data mode
+    command(PB("AT+BDATA=1",1), GSCOMMANDMODE_NORMAL);
+
     command(PB("AT&W0",1), GSCOMMANDMODE_NORMAL);
     if (did_timeout_) {
         return -1;
@@ -378,7 +376,6 @@ void GSwifi::parseByte(uint8_t dat) {
 
                     routeid = router(method, path);
                     if ( routeid < 0 ) {
-                        GSLOG_PRINTLN("!E28");
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
                         ring_clear(_buf_cmd);
@@ -659,8 +656,7 @@ int8_t GSwifi::writeHead (int8_t cid, uint16_t status_code) {
     }
 
     serial_->println(msg);
-    serial_->println(P("Access-Control-Allow-Origin: *"));
-    serial_->print(P("Server: IRKit/"));
+    serial_->print("Access-Control-Allow-Origin: *\r\nServer: IRKit/");
     serial_->println(version);
     serial_->println(P("Content-Type: text/plain\r\n"));
 }
@@ -1092,11 +1088,9 @@ int8_t GSwifi::startLimitedAP () {
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
 
     // AT+WPAPSK=IRKitXXXX,0123456789
-    cmd = PB("AT+WPAPSK=IRKitXXXX,%",1);
-    cmd[15] = mac_[12];
-    cmd[16] = mac_[13];
-    cmd[17] = mac_[15];
-    cmd[18] = mac_[16];
+    cmd = PB("AT+WPAPSK=%,%",1);
+    strcpy( cmd+10, hostname() );
+    cmd[19] = ',';
     loadLimitedAPPassword( cmd + 20 );
     command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
@@ -1110,11 +1104,8 @@ int8_t GSwifi::startLimitedAP () {
     command(PB("AT+DHCPSRVR=1",1),       GSCOMMANDMODE_NORMAL);
 
     // start
-    cmd = PB("AT+WA=IRKitXXXX,%",1);
-    cmd[11] = mac_[12];
-    cmd[12] = mac_[13];
-    cmd[13] = mac_[15];
-    cmd[14] = mac_[16];
+    cmd = PB("AT+WA=%",1);
+    strcpy( cmd+6, hostname() );
     command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
     if (did_timeout_) {
@@ -1132,7 +1123,6 @@ int GSwifi::disconnect () {
     limited_ap_ = false;
     command(PB("AT+NCLOSEALL",1), GSCOMMANDMODE_NORMAL);
     command(PB("AT+WD",1),        GSCOMMANDMODE_NORMAL);
-    command(PB("AT+NDHCP=0",1),   GSCOMMANDMODE_NORMAL);
     return 0;
 }
 
@@ -1271,9 +1261,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         serial_->print(P("GET "));
     }
     serial_->print(path);
-    serial_->println(P(" HTTP/1.1"));
-
-    serial_->print(P("User-Agent: IRKit/"));
+    serial_->print(P(" HTTP/1.1\r\nUser-Agent: IRKit/"));
     serial_->println(version);
 
     serial_->println("Host: " DOMAIN);
@@ -1282,8 +1270,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         serial_->print(P("Content-Length: "));
         serial_->println( is_binary ? base64_length(length) : length );
 
-        serial_->println(P("Content-Type: application/x-www-form-urlencoded"));
-        serial_->println();
+        serial_->println("Content-Type: application/x-www-form-urlencoded\r\n");
         if (is_binary) {
             base64_encode((const uint8_t*)body, length, &base64encoded);
         }
