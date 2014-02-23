@@ -1341,8 +1341,7 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     serial_->print(P("User-Agent: IRKit/"));
     serial_->println(version);
 
-    serial_->print("Host: " DOMAIN);
-    // serial_->println(DOMAIN);
+    serial_->println("Host: " DOMAIN);
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("Content-Length: "));
