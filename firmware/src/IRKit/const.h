@@ -29,6 +29,7 @@
 
 // sizeof(KeysShared) + sizeof(KeysIndependent) + sizeof(tree)
 #define EEPROM_LIMITEDAPPASSWORD_OFFSET 505
-#define EEPROM_LIMITEDAPPASSWORD_LENGTH  10
+// length = 10 characters + NULL
+#define EEPROM_LIMITEDAPPASSWORD_LENGTH  11
 
 #endif
