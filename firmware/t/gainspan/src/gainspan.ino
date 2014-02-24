@@ -1,12 +1,15 @@
 #include "Arduino.h"
+#include <avr/wdt.h>
 #include "pins.h"
 #include "pgmStrToRAM.h"
 #include "MemoryFree.h"
 #include "GSwifi.h"
 #include "Keys.h"
+#include "const.h"
 
-GSwifi gs(&Serial1);
+GSwifi gs(&Serial1X);
 Keys keys;
+volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
 
 int8_t onReset() {
     Serial.println(P("!!! onReset"));
@@ -22,45 +25,24 @@ int8_t onDisconnect() {
 }
 
 void setup() {
-    // enable 3.3V LDO
-    pinMode( LDO33_ENABLE, OUTPUT );
-    digitalWrite( LDO33_ENABLE, HIGH );
-
-    // USB serial
     Serial.begin(115200);
 
     // wait for connection
     while ( ! Serial ); // debug
 
-    reset3V3();
-
-    // wait til gs wakes up
-    delay( 100 );
-
-    gs.setup( &onDisconnect, &onReset );
-
-    // load wifi credentials from EEPROM
-    {
-        if (keys.isWifiCredentialsSet()) {
-            gs.join(keys.getSecurity(),
-                    keys.getSSID(),
-                    keys.getPassword());
-        }
-        if (gs.isJoined()) {
-            Serial.println(P("joined!"));
-        }
-    }
+    // enable 3.3V LDO
+    pinMode( LDO33_ENABLE, OUTPUT );
+    digitalWrite( LDO33_ENABLE, HIGH );
+    // gs.setup( &onDisconnect, &onReset );
 
     printGuide();
-
-    gs.startLimitedAP();
 }
 
 void printGuide() {
     Serial.println(P("Menu:"));
     Serial.println(P("a) start adhoc"));
     Serial.println(P("b) change baud rate to 9600"));
-    Serial.println(P("B) change baud rate to 115200"));
+    Serial.println(P("B) change baud rate to 57600"));
     Serial.println(P("c) connect to wifi"));
     Serial.println(P("d) dump"));
     Serial.println(P("h) help (this)"));
@@ -79,15 +61,13 @@ void loop() {
 
         last_character = Serial.read();
 
-        Serial.print(P("> 0x"));
-        Serial.print(last_character, HEX);
+        Serial.print("> "); Serial.write(last_character);
+        Serial.print(" 0x"); Serial.print(last_character, HEX);
         Serial.println();
-        Serial.print(P("free memory: 0x")); Serial.println( freeMemory(), HEX );
-
 
         uint8_t status;
         if (is_command_mode) {
-            Serial1.write(last_character);
+            Serial1X.write(last_character);
 
             if ( last_character == 0x1B ) {
                 is_command_mode = false;
@@ -108,10 +88,12 @@ void loop() {
             gs.startLimitedAP();
         }
         else if (last_character == 'b') {
-            gs.setBaud(9600);
+            Serial1X.end();
+            Serial1X.begin(9600);
         }
         else if (last_character == 'B') {
-            gs.setBaud(115200);
+            Serial1X.end();
+            Serial1X.begin(57600);
         }
         else if (last_character == 'd') {
             Serial.println(P("---keys---"));
@@ -124,7 +106,7 @@ void loop() {
             printGuide();
         }
         else if (last_character == 'R') {
-            reset3V3();
+            wifi_hardware_reset();
         }
         else if (last_character == 'y') {
             keys.set(GSSECURITY_WPA2_PSK,
@@ -139,9 +121,9 @@ void loop() {
     }
 
     // gainspan
-    if (Serial1.available()) {
+    if (Serial1X.available()) {
         static uint8_t last_character_gainspan = '0';
-        last_character_gainspan = Serial1.read();
+        last_character_gainspan = Serial1X.read();
         if (last_character_gainspan >= 0x0D ||
             last_character_gainspan == 0x0A) {
             Serial.write(last_character_gainspan);
@@ -153,9 +135,21 @@ void loop() {
     }
 }
 
-void reset3V3 () {
-    Serial.println(P("hardware reset"));
+void wifi_hardware_reset () {
+    Serial.println(P("!E25"));
+
+    // UART line powers GS and pulls 3.3V line up to around 1.4V so GS won't reset without this
+    Serial1X.end();
+
     digitalWrite( LDO33_ENABLE, LOW );
-    delay( 100 );
+    delay( 1000 );
     digitalWrite( LDO33_ENABLE, HIGH );
+
+    // wait til gs wakes up
+    delay( 1000 );
+}
+
+void software_reset() {
+    wdt_enable(WDTO_15MS);
+    while (1) ;
 }

@@ -1,1 +1,1 @@
-../../../src/main/CRC8.c
+../../../src/IRKit/CRC8.c

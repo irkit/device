@@ -1,1 +1,1 @@
-../../../src/main/GSwifi.h
+../../../src/IRKit/GSwifi.h

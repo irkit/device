@@ -36,6 +36,7 @@
 #include "cert.h"
 #include <avr/eeprom.h>
 #include "const.h"
+#include "env.h"
 
 extern void software_reset();
 

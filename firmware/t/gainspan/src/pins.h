@@ -1,1 +1,1 @@
-../../../src/main/pins.h
+../../../src/IRKit/pins.h

@@ -1,1 +1,1 @@
-../../../src/main/version.h
+../../../src/IRKit/version.h
