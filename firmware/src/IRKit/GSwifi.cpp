@@ -1184,10 +1184,10 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     // Tester only requests against limited AP test target
     // DNSLOOKUP should fail, because it's in limitedAP mode, ignore it.
     sprintf( ipaddr_, "%s", "192.168.1.1" );
-#endif
-
+#else
     sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
+#endif
 
     // don't fail fatally on dnslookup failure,
     // we cache our server's ipaddress anyway
@@ -1201,7 +1201,11 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         return -1;
     }
 
+#ifdef TESTER
+    sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
+#else
     sprintf(cmd, P("AT+NCTCP=%s,443"), ipaddr_);
+#endif
 
     connected_cid_ = CID_UNDEFINED;
     command(cmd, GSCOMMANDMODE_CONNECT);
@@ -1220,9 +1224,11 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     handlers_[ cid ] = handler;
 
+#ifndef TESTER
     cmd2 = PB("AT+SSLOPEN=%,cacert",1);
     cmd2[ 11 ] = xid;
     command(cmd2, GSCOMMANDMODE_NORMAL);
+#endif
 
     // disable TCP_MAXRT and TCP_KEEPALIVE_X, because these commands takes some time to issue,
     // and GS1011MIPS denies short TCP_KEEPALIVE_INTVL,
