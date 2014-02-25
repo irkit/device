@@ -759,7 +759,7 @@ void GSwifi::parseLine () {
             }
             else if (! cidIsRequest(cid) ) {
                 // request *from* us was disconnected (ex: polling)
-                dispatchResponseHandler(i, HTTP_STATUSCODE_DISCONNECT, GSREQUESTSTATE_ERROR);
+                dispatchResponseHandler(cid, HTTP_STATUSCODE_DISCONNECT, GSREQUESTSTATE_ERROR);
             }
         }
         else if (strncmp(buf, P("DISASSOCIATED"), 13) == 0 ||
