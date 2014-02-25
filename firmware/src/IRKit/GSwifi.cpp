@@ -58,7 +58,8 @@ static void base64encoded( char encoded ) {
 }
 
 GSwifi::GSwifi( HardwareSerialX *serial ) :
-    serial_(serial)
+    serial_(serial),
+    server_cid_(-1)
 {
     _buf_cmd          = &ring_buffer_;
     ring_init( _buf_cmd, __buf_cmd, GS_CMD_SIZE + 1 );
