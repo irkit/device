@@ -7304,7 +7304,7 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 </classes>
 <parts>
 <part name="FRAME1" library="frames" deviceset="FRAME_B_L" device="" value="IRKit"/>
-<part name="R2" library="my" deviceset="RESISTOR-US" device="2012" value="5.1k"/>
+<part name="R2" library="my" deviceset="RESISTOR-US" device="2012" value="2.2k"/>
 <part name="C3" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="P+3" library="supply1" deviceset="+5V" device=""/>
@@ -7315,7 +7315,7 @@ Source: http://cache.national.com/ds/LM/LM386.pdf</description>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="P+5" library="supply1" deviceset="+5V" device=""/>
 <part name="C11" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
-<part name="LED1" library="my" deviceset="LED" device="-2012" value="OSG50805C1C"/>
+<part name="LED1" library="my" deviceset="LED" device="-2012" value="PG1112H-TR"/>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="T1" library="transistor" deviceset="*-NPN-" device="SC59-BEC" technology="MMUN2211LT1" value="2SD1781KT146Q"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
