@@ -29,7 +29,17 @@ class PartSheet
     spreadsheet_rows = worksheet.list.to_hash_array
 
     def update_row_id( worksheet, row_id, row_data )
-      worksheet.list[ row_id ][ "Used" ] = "1"
+      if worksheet.list[ row_id ][ "Used" ] != "1"
+        puts "update row[ #{row_id + 2} ] Part: #{ row_data["Parts"]}?"
+        puts "  before: Used=#{ worksheet.list[ row_id ][ "Used" ] }"
+        puts "  after:  Used=1"
+        puts "(Y/n)"
+        input = STDIN.gets.chomp
+        if input != "n"
+          worksheet.list[ row_id ][ "Used" ] = "1"
+        end
+      end
+
       row_data.each do |key,value|
         if key && ! key.empty? && ( worksheet.list[ row_id ][ key ] != value )
           puts "updating row[ #{row_id} ][ #{key} ] = #{value}"
@@ -77,8 +87,8 @@ class PartSheet
         if found_similar != nil
           found_row = worksheet.list[found_similar]
           puts "update row[ #{found_similar + 2} ] Part: #{ found_row["Parts"]}?"
-          puts "  before: Value=#{ found_row["Value"] } Device=#{ found_row["Device"]}"
-          puts "  after:  Value=#{ csv_row["Value"] }   Device=#{ csv_row["Device"] }"
+          puts "  before: Value=#{ found_row["Value"] } Device=#{ found_row["Device"] } Parts=#{ found_row["Parts"] }"
+          puts "  after:  Value=#{ csv_row["Value"]   } Device=#{ csv_row["Device"]   } Parts=#{ csv_row["Parts"]   }"
           puts "(Y/n)"
           input = STDIN.gets.chomp
           if input != "n"
@@ -87,16 +97,22 @@ class PartSheet
           end
         end
 
-        # create
         new_row = {}
         new_row[ "Used" ] = "1"
         csv_row.each do |key,value|
           new_row[ key ] = value if (key && ! key.empty?)
         end
-        worksheet.list.push( new_row )
-        puts "created new row: #{new_row}"
-      end
 
+        puts "insert Part: #{ found_row["Parts"]}?"
+        puts "  Value=#{ new_row["Value"] } Device=#{ new_row["Device"] } Parts=#{ new_row["Parts"] }"
+        puts "(Y/n)"
+        input = STDIN.gets.chomp
+        if input != "n"
+          worksheet.list.push( new_row )
+          puts "created new row: #{new_row}"
+          next
+        end
+      end
     end
 
     puts "saving..."
