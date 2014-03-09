@@ -49,6 +49,12 @@ int main() {
     }
     printf("/");
 
+    // regdomain
+    printf("2/");
+
+    // reserved
+    printf("/////");
+
     // crc8
     uint8_t crc = crc8( (uint8_t*)&data, sizeof(data) );
     {
@@ -59,4 +65,5 @@ int main() {
     printf("\n");
 
     printf("size: %lu", sizeof(data));
+    printf("\n");
 }
