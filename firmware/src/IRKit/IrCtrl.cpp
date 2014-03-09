@@ -287,18 +287,16 @@ ISR_COMPARE()
                 IR_TX_ON();
             }
             else {
-                // continue for another uin16_t loop
-                interval = 65535;
+                // 65535,0,XXXX sequence means:
+                // continue TX_OFF for 65535 + XXXX interval and turn TX_ON
+                interval = IR_get();
+                IrCtrl.tx_index ++;
             }
         }
 
         IR_COMPARE_NEXT( interval );
 
         // run heavy packer.unpack after setting timer
-        if (IrCtrl.next_interval == 0 ) {
-            IR_get(); // we're already counting 65535
-            IrCtrl.tx_index ++;
-        }
         IrCtrl.next_interval = IR_get();
         IrCtrl.tx_index ++;
         return;
