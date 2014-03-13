@@ -1123,8 +1123,9 @@ int GSwifi::disconnect () {
     joined_     = false;
     listening_  = false;
     limited_ap_ = false;
-    command(PB("AT+NCLOSEALL",1), GSCOMMANDMODE_NORMAL);
-    command(PB("AT+WD",1),        GSCOMMANDMODE_NORMAL);
+    command(PB("AT+NCLOSEALL",1),  GSCOMMANDMODE_NORMAL);
+    command(PB("AT+WD",1),         GSCOMMANDMODE_NORMAL);
+    command(PB("AT+DHCPSRVR=0",1), GSCOMMANDMODE_NORMAL);
     return 0;
 }
 
