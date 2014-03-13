@@ -281,7 +281,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 next_token = NEXT_TOKEN_CID;
                 break;
             default:
-                GSLOG_PRINT("!E1 "); GSLOG_PRINTLN2(dat,HEX);
+                // GSLOG_PRINT("!E1 "); GSLOG_PRINTLN2(dat,HEX);
                 break;
             }
             escape = false;
