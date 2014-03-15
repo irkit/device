@@ -11,7 +11,7 @@
 "2";"12pF";"CAPACITOR2012";"SMD2012";"C5, C6";"Generic Capacitor";"";
 "1";"16MHz CL:10pF";"CRYSTAL-3.2-2.5";"CRYSTAL-3.2-2.5";"XTAL1";"";"";
 "2";"1uF";"CAPACITOR2012";"SMD2012";"C7, C16";"Generic Capacitor";"";
-"3";"2.2k";"RESISTOR-US2012";"SMD2012";"R6, R10, R15";"Generic Registor";"";
+"4";"2.2k";"RESISTOR-US2012";"SMD2012";"R2, R6, R10, R15";"Generic Registor";"";
 "2";"22";"RESISTOR-US2012";"SMD2012";"R3, R4";"Generic Registor";"";
 "1";"220";"RESISTOR-US2012";"SMD2012";"R13";"Generic Registor";"";
 "1";"254-ECM6044-RO";"MICELECTRET_SMD";"MIC_SMD_4MM";"MIC";"Omni-directional electret condenser microphone.";"";
@@ -19,7 +19,7 @@
 "4";"3.3k";"RESISTOR-US2012";"SMD2012";"R5, R7, R11, R14";"Generic Registor";"";
 "1";"4.7k";"RESISTOR-US2012";"SMD2012";"R12";"Generic Registor";"";
 "2";"4.7uF";"CAPACITOR2012";"SMD2012";"C13, C14";"Generic Capacitor";"";
-"3";"5.1k";"RESISTOR-US2012";"SMD2012";"R2, R8, R16";"Generic Registor";"";
+"2";"5.1k";"RESISTOR-US2012";"SMD2012";"R8, R16";"Generic Registor";"";
 "1";"5MMRGBLED";"5MMRGBLED";"LED5MMRGB";"LED2";"";"";
 "1";"ATMEGA32U4AU";"ATMEGA32U4AU";"TQFP44-PAD";"IC1";"";"";
 "1";"BSS138";"BSS138";"SOT23";"T2";"";"";
@@ -31,7 +31,7 @@
 "2";"LK-5";"LED-SPACER-LK";"LED-SPACER-LK";"SP1, SP2";"";"";
 "1";"LM386M-1/NOPB";"LM386M-1";"SO08";"IC3";"Low Voltage Audio Power Amplifier";"";
 "1";"MF-MSMF075-2";"L-EUL1812";"L1812";"F1";"INDUCTOR, European symbol";"";
-"1";"OSG50805C1C";"LED-2012";"LED2012";"LED1";"Through-hole LED";"";
+"1";"PG1112H-TR";"LED-2012";"LED2012";"LED1";"Through-hole LED";"";
 "1";"PL-IRM2161";"PL-IRM2161";"IR-RECEIVER";"IR-RECEIVER";"PL-IRM2161-XD1";"";
 "4";"STAND-OFF";"STAND-OFF";"STAND-OFF";"STANDOFF1, STANDOFF2, STANDOFF3, STANDOFF4";"#4 Stand Off";"";
 "1";"TLV70233DBVT";"TLV702XXSMD";"SOT23-5";"IC2";"TLV702xx";"";
