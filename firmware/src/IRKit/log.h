@@ -21,10 +21,9 @@
 
 #define MAINLOG
 #define GSLOG
-// #define HTTPLOG
-// #define IRLOG
-// #define KEYLOG
-// #define MOLOG
+#define HTTPLOG
+#define IRLOG
+#define KEYLOG
 
 #ifdef MAINLOG
 # define MAINLOG_PRINTLN(a)    Serial.println(a)
@@ -94,20 +93,6 @@
 # define KEYLOG_PRINT(a)      
 # define KEYLOG_PRINT2(a,b)   
 # define KEYLOG_WRITE(a)      
-#endif
-
-#ifdef MOLOG
-# define MOLOG_PRINTLN(a)    Serial.println(a)
-# define MOLOG_PRINTLN2(a,b) Serial.println(a,b)
-# define MOLOG_PRINT(a)      Serial.print(a)
-# define MOLOG_PRINT2(a,b)   Serial.print(a,b)
-# define MOLOG_WRITE(a)      Serial.write(a)
-#else
-# define MOLOG_PRINTLN(a)    
-# define MOLOG_PRINTLN2(a,b) 
-# define MOLOG_PRINT(a)      
-# define MOLOG_PRINT2(a,b)   
-# define MOLOG_WRITE(a)      
 #endif
 
 #endif // __LOG_H__
