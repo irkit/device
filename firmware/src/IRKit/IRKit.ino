@@ -25,7 +25,6 @@
 #include "FullColorLed.h"
 #include "GSwifi.h"
 #include "Keys.h"
-#include "morse.h"
 #include "timer.h"
 #include "longpressbutton.h"
 #include "IRKitHTTPHandler.h"
@@ -33,10 +32,8 @@
 #include "version.h"
 #include "log.h"
 
-static struct morse_t morse_state;
 static struct long_press_button_state_t long_press_button_state;
 static volatile uint8_t reconnect_timer = TIMER_OFF;
-static bool morse_error = 0;
 static char commands_data[COMMAND_QUEUE_SIZE];
 static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 
@@ -72,14 +69,6 @@ void setup() {
     long_press_button_state.callback       = &long_pressed;
     long_press_button_state.threshold_time = 5;
 
-    //--- initialize morse listener
-
-    pinMode(MICROPHONE,  INPUT);
-    morse_state.letter_callback = &on_morse_letter;
-    morse_state.word_callback   = &on_morse_word;
-    morse_state.pin             = MICROPHONE;
-    morse_setup( &morse_state, 100 );
-
     //--- initialize IR
 
     pinMode(IR_OUT,           OUTPUT);
@@ -101,8 +90,6 @@ void setup() {
 
 void loop() {
     now = millis(); // always run first
-
-    morse_loop( &morse_state );
 
     irkit_http_loop();
 
@@ -263,7 +250,6 @@ int8_t on_disconnect() {
 
 void connect() {
     IR_state( IR_DISABLED );
-    morse_enable( &morse_state, false );
 
     // load wifi credentials from EEPROM
     keys.load();
@@ -310,53 +296,12 @@ void connect() {
         }
         else {
             keys.clear();
-            color.setLedColor( 1, 0, 0, true ); // red blink: listening for morse
-            morse_enable( &morse_state, true );
+            color.setLedColor( 1, 0, 0, true ); // red blink: listening for POST /wifi
             gs.startLimitedAP();
             if (gs.isLimitedAP()) {
                 gs.listen(80);
             }
         }
-    }
-}
-
-void on_morse_letter( char letter ) {
-    MOLOG_PRINT("L:"); MOLOG_WRITE(letter); MOLOG_PRINTLN();
-
-    if (morse_error) {
-        return;
-    }
-
-    int8_t result = keys.put( letter );
-    if (result != 0) {
-        // postpone til this "word" ends
-        morse_error = true;
-        color.setLedColor( 1, 0, 0, true ); // back to morse
-    }
-    else {
-        color.setLedColor( 1, 1, 0, true ); // yellow blink morse proceeding
-    }
-}
-
-void on_morse_word() {
-    MOLOG_PRINTLN("W");
-
-    if (morse_error) {
-        morse_error = false;
-        keys.clear();
-        return;
-    }
-
-    int8_t result = keys.putDone();
-    if ( result != 0 ) {
-        keys.clear();
-        color.setLedColor( 1, 0, 0, true ); // back to morse
-    }
-    else {
-        keys.dump();
-        keys.save();
-        gs.setRegDomain( keys.regdomain );
-        ring_put( &commands, COMMAND_CONNECT );
     }
 }
 
