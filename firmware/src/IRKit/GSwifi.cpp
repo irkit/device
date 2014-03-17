@@ -999,6 +999,8 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     case GSSECURITY_NONE:
     case GSSECURITY_OPEN:
     case GSSECURITY_WEP:
+        command(PB("AT+WSEC=0",1), GSCOMMANDMODE_NORMAL);
+
         cmd = PB("AT+WAUTH=%",1);
         cmd[ 9 ] = i2x(sec);
         command(cmd, GSCOMMANDMODE_NORMAL);
