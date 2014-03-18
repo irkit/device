@@ -195,6 +195,8 @@ void process_commands() {
             gs.close(command);
             break;
         case COMMAND_START_POLLING:
+            color.setLedColor( 0, 0, 1, false ); // blue: ready
+
             irkit_httpclient_start_polling( 0 );
             break;
         default:
@@ -275,8 +277,6 @@ void connect() {
     if (gs.isListening()) {
         // start mDNS
         gs.setupMDNS();
-
-        color.setLedColor( 0, 0, 1, false ); // blue: ready
 
         if (keys.isAPIKeySet() && ! keys.isValid()) {
             irkit_httpclient_post_door();
