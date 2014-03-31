@@ -5,11 +5,16 @@
 #include "IrPacker.h"
 #include "const.h"
 #include "FullColorLed.h"
+#include "timer.h"
 
 static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 static GSwifi gs(&Serial1X);
 
 void setup() {
+    //--- initialize timer
+    timer_init( on_timer );
+    timer_start( TIMER_INTERVAL );
+
     //--- initialize full color led
 
     pinMode(FULLCOLOR_LED_R, OUTPUT);
@@ -31,4 +36,8 @@ void loop() {
 void software_reset() {
     wdt_enable(WDTO_15MS);
     while (1) ;
+}
+
+void on_timer(){
+    color.onTimer();
 }
