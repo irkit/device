@@ -19,5 +19,6 @@
 
 // we're going to use saveLimitedAPPassword
 #define FACTORY_CHECKER 1
+#define SAVE_IRPACKER_TREE 1
 
 #endif
