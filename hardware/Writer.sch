@@ -3234,6 +3234,93 @@ Source: www.epcos.com .. 01430148.pdf</description>
 <rectangle x1="-6.604" y1="-0.254" x2="-6.096" y2="0.254" layer="51"/>
 <rectangle x1="6.096" y1="-0.254" x2="6.604" y2="0.254" layer="51"/>
 </package>
+<package name="2X03/D1.1">
+<wire x1="-3.81" y1="-1.905" x2="-3.175" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="-2.54" x2="-1.27" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="-1.905" x2="-0.635" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-2.54" x2="1.27" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="-3.81" y1="-1.905" x2="-3.81" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-3.81" y1="1.905" x2="-3.175" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="2.54" x2="-1.905" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="2.54" x2="-1.27" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="1.905" x2="-0.635" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="2.54" x2="0.635" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="2.54" x2="1.27" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-1.27" y1="1.905" x2="-1.27" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="1.905" x2="1.27" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-2.54" x2="0.635" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="-2.54" x2="-1.905" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="-1.905" x2="1.905" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="-2.54" x2="3.81" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="1.27" y1="1.905" x2="1.905" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="2.54" x2="3.175" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="2.54" x2="3.81" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="3.81" y1="1.905" x2="3.81" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="-2.54" x2="3.175" y2="-2.54" width="0.1524" layer="21"/>
+<pad name="1" x="-2.54" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="2" x="-2.54" y="1.27" drill="1.1" shape="octagon"/>
+<pad name="3" x="0" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="4" x="0" y="1.27" drill="1.1" shape="octagon"/>
+<pad name="5" x="2.54" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="6" x="2.54" y="1.27" drill="1.1" shape="octagon"/>
+<text x="-3.81" y="3.175" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-3.81" y="-4.445" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-2.794" y1="-1.524" x2="-2.286" y2="-1.016" layer="51"/>
+<rectangle x1="-2.794" y1="1.016" x2="-2.286" y2="1.524" layer="51"/>
+<rectangle x1="-0.254" y1="1.016" x2="0.254" y2="1.524" layer="51"/>
+<rectangle x1="-0.254" y1="-1.524" x2="0.254" y2="-1.016" layer="51"/>
+<rectangle x1="2.286" y1="1.016" x2="2.794" y2="1.524" layer="51"/>
+<rectangle x1="2.286" y1="-1.524" x2="2.794" y2="-1.016" layer="51"/>
+</package>
+<package name="2X04/D1.1">
+<wire x1="-5.08" y1="-1.905" x2="-4.445" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="-2.54" x2="-2.54" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-1.905" x2="-1.905" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-2.54" x2="0" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="0" y1="-1.905" x2="0.635" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="-2.54" x2="2.54" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="-5.08" y1="-1.905" x2="-5.08" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-5.08" y1="1.905" x2="-4.445" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-4.445" y1="2.54" x2="-3.175" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="2.54" x2="-2.54" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="1.905" x2="-1.905" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="2.54" x2="-0.635" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="2.54" x2="0" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="0" y1="1.905" x2="0.635" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="2.54" x2="1.905" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="2.54" x2="2.54" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="1.905" x2="-2.54" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="0" y1="1.905" x2="0" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="1.905" x2="2.54" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-2.54" x2="1.905" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="-2.54" x2="-0.635" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="-4.445" y1="-2.54" x2="-3.175" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-1.905" x2="3.175" y2="-2.54" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="-2.54" x2="5.08" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="1.905" x2="3.175" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="2.54" x2="4.445" y2="2.54" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="2.54" x2="5.08" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="5.08" y1="1.905" x2="5.08" y2="-1.905" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="-2.54" x2="4.445" y2="-2.54" width="0.1524" layer="21"/>
+<pad name="1" x="-3.81" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="2" x="-3.81" y="1.27" drill="1.1" shape="octagon"/>
+<pad name="3" x="-1.27" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="4" x="-1.27" y="1.27" drill="1.1" shape="octagon"/>
+<pad name="5" x="1.27" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="6" x="1.27" y="1.27" drill="1.1" shape="octagon"/>
+<pad name="7" x="3.81" y="-1.27" drill="1.1" shape="octagon"/>
+<pad name="8" x="3.81" y="1.27" drill="1.1" shape="octagon"/>
+<text x="-5.08" y="3.175" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-5.08" y="-4.445" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-4.064" y1="-1.524" x2="-3.556" y2="-1.016" layer="51"/>
+<rectangle x1="-4.064" y1="1.016" x2="-3.556" y2="1.524" layer="51"/>
+<rectangle x1="-1.524" y1="1.016" x2="-1.016" y2="1.524" layer="51"/>
+<rectangle x1="-1.524" y1="-1.524" x2="-1.016" y2="-1.016" layer="51"/>
+<rectangle x1="1.016" y1="1.016" x2="1.524" y2="1.524" layer="51"/>
+<rectangle x1="1.016" y1="-1.524" x2="1.524" y2="-1.016" layer="51"/>
+<rectangle x1="3.556" y1="1.016" x2="4.064" y2="1.524" layer="51"/>
+<rectangle x1="3.556" y1="-1.524" x2="4.064" y2="-1.016" layer="51"/>
+</package>
 </packages>
 <symbols>
 <symbol name="RESISTOR-US">
@@ -4811,6 +4898,21 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <technology name=""/>
 </technologies>
 </device>
+<device name="/D1.1" package="2X04/D1.1">
+<connects>
+<connect gate="A" pin="1" pad="1"/>
+<connect gate="A" pin="2" pad="2"/>
+<connect gate="A" pin="3" pad="3"/>
+<connect gate="A" pin="4" pad="4"/>
+<connect gate="A" pin="5" pad="5"/>
+<connect gate="A" pin="6" pad="6"/>
+<connect gate="A" pin="7" pad="7"/>
+<connect gate="A" pin="8" pad="8"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
 </devices>
 </deviceset>
 <deviceset name="PINHD-2X3" prefix="JP" uservalue="yes">
@@ -4833,6 +4935,19 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </technologies>
 </device>
 <device name="/90" package="2X03/90">
+<connects>
+<connect gate="A" pin="1" pad="1"/>
+<connect gate="A" pin="2" pad="2"/>
+<connect gate="A" pin="3" pad="3"/>
+<connect gate="A" pin="4" pad="4"/>
+<connect gate="A" pin="5" pad="5"/>
+<connect gate="A" pin="6" pad="6"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="/D1.1" package="2X03/D1.1">
 <connects>
 <connect gate="A" pin="1" pad="1"/>
 <connect gate="A" pin="2" pad="2"/>
@@ -4973,7 +5088,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <part name="STANDOFF1" library="my" deviceset="STAND-OFF" device=""/>
 <part name="STANDOFF2" library="my" deviceset="STAND-OFF" device=""/>
 <part name="STANDOFF4" library="my" deviceset="STAND-OFF" device=""/>
-<part name="ICSP1" library="my" deviceset="PINHD-2X3" device="" value="IRKit ICSP"/>
+<part name="ICSP1" library="my" deviceset="PINHD-2X3" device="/D1.1" value="IRKit ICSP"/>
 <part name="STANDOFF3" library="my" deviceset="STAND-OFF" device=""/>
 <part name="C4" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
 <part name="C6" library="my" deviceset="CAPACITOR" device="2012" value="0.1uF"/>
@@ -4997,7 +5112,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <part name="R1" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
 <part name="R2" library="my" deviceset="RESISTOR-US" device="2012" value="22"/>
 <part name="F1" library="my" deviceset="L-EU" device="L1812" value="MF-MSMF075-2"/>
-<part name="CN3" library="my" deviceset="PINHD-2X4" device="" value="WiFi-Header"/>
+<part name="CN3" library="my" deviceset="PINHD-2X4" device="/D1.1" value="WiFi-Header"/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
 <part name="V1" library="my" deviceset="VARISTOR" device="CN0603" value="CG0603MLC-05E"/>
@@ -6035,15 +6150,12 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <approved hash="106,1,276.86,157.48,A4,,,,,"/>
 <approved hash="106,1,276.86,154.94,A5,,,,,"/>
 <approved hash="106,1,276.86,182.88,D0,,,,,"/>
-<approved hash="106,1,276.86,185.42,D1,,,,,"/>
 <approved hash="106,1,276.86,180.34,D2,,,,,"/>
 <approved hash="106,1,276.86,177.8,D3,,,,,"/>
 <approved hash="106,1,276.86,187.96,D4,,,,,"/>
 <approved hash="106,1,276.86,208.28,D5,,,,,"/>
 <approved hash="106,1,276.86,195.58,D6,,,,,"/>
 <approved hash="106,1,276.86,203.2,D7,,,,,"/>
-<approved hash="106,1,276.86,228.6,D8,,,,,"/>
-<approved hash="106,1,276.86,231.14,D9,,,,,"/>
 <approved hash="106,1,276.86,236.22,D11,,,,,"/>
 <approved hash="106,1,276.86,193.04,D12,,,,,"/>
 <approved hash="106,1,276.86,210.82,D13,,,,,"/>
@@ -6052,6 +6164,9 @@ http://creativecommons.org/license/by-sa/2.5/</text>
 <approved hash="106,1,276.86,190.5,TXLED,,,,,"/>
 <approved hash="106,1,45.72,220.98,USB-ID,,,,,"/>
 <approved hash="106,1,63.5,119.38,VUSB,,,,,"/>
+<approved hash="113,1,308.222,153.67,LED_PMODE,,,,,"/>
+<approved hash="113,1,316.745,153.67,LED_ERR,,,,,"/>
+<approved hash="113,1,326.086,153.67,LED_HB,,,,,"/>
 </errors>
 </schematic>
 </drawing>
