@@ -28,6 +28,7 @@ extern GSwifi gs;
 extern Keys keys;
 extern struct RingBuffer commands;
 extern void on_ir_xmit();
+extern void on_irkit_ready();
 extern void wifi_hardware_reset();
 extern volatile char sharedbuffer[];
 
@@ -111,6 +112,8 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
         ring_put( &commands, COMMAND_CLOSE );
         ring_put( &commands, cid );
         ring_put( &commands, COMMAND_START_POLLING );
+
+        on_irkit_ready();
 
         break;
     case 401:

@@ -195,14 +195,16 @@ void process_commands() {
             gs.close(command);
             break;
         case COMMAND_START_POLLING:
-            color.setLedColor( 0, 0, 1, false ); // blue: ready
-
             irkit_httpclient_start_polling( 0 );
             break;
         default:
             break;
         }
     }
+}
+
+void on_irkit_ready() {
+    color.setLedColor( 0, 0, 1, false ); // blue: ready
 }
 
 void on_ir_receive() {
@@ -284,6 +286,7 @@ void connect() {
         else if (keys.isValid()) {
             IR_state( IR_IDLE );
             ring_put( &commands, COMMAND_START_POLLING );
+            on_irkit_ready();
         }
     }
     else {
