@@ -197,6 +197,9 @@ void process_commands() {
         case COMMAND_START_POLLING:
             irkit_httpclient_start_polling( 0 );
             break;
+        case COMMAND_POST_DOOR:
+            irkit_httpclient_post_door();
+            break;
         default:
             break;
         }
