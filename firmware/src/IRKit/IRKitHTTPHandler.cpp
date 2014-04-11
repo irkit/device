@@ -30,6 +30,7 @@ extern struct RingBuffer commands;
 extern void on_ir_xmit();
 extern void on_irkit_ready();
 extern void wifi_hardware_reset();
+extern void software_reset();
 extern volatile char sharedbuffer[];
 
 // if we have recently received GET or POST /messages request,
@@ -118,20 +119,20 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
         break;
     case 401:
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        // keys have expired, we have to start from morse sequence again
-        ring_put( &commands, COMMAND_CLOSE );
-        ring_put( &commands, cid );
+        // keys have expired, we have to start listening for POST /wifi again
         keys.clear();
         keys.save();
+        software_reset();
+
         break;
     case 400: // must be program bug, happens when there's no hostname parameter
     case 408:
     case 503: // heroku responds with 503 if longer than 30sec
     default:
-        // try again
-        // TODO send this to next loop
-        gs.close(cid);
-        irkit_httpclient_post_door();
+        // retry again on next loop
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+        ring_put( &commands, COMMAND_POST_DOOR );
         break;
     }
 
@@ -172,7 +173,8 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
         polling_cid = CID_UNDEFINED;
-        gs.close(cid);
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
         irkit_httpclient_start_polling( 5 );
         break;
     case HTTP_STATUSCODE_DISCONNECT:
@@ -184,7 +186,8 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
     case 503:
     default:
         if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-            gs.close(cid);
+            ring_put( &commands, COMMAND_CLOSE );
+            ring_put( &commands, cid );
             irkit_httpclient_start_polling( 5 );
         }
         break;
