@@ -172,7 +172,8 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
         break;
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
         polling_cid = CID_UNDEFINED;
-        gs.close(cid);
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
         irkit_httpclient_start_polling( 5 );
         break;
     case HTTP_STATUSCODE_DISCONNECT:
@@ -184,7 +185,8 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
     case 503:
     default:
         if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
-            gs.close(cid);
+            ring_put( &commands, COMMAND_CLOSE );
+            ring_put( &commands, cid );
             irkit_httpclient_start_polling( 5 );
         }
         break;
