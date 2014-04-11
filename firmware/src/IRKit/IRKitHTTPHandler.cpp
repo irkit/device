@@ -30,6 +30,7 @@ extern struct RingBuffer commands;
 extern void on_ir_xmit();
 extern void on_irkit_ready();
 extern void wifi_hardware_reset();
+extern void software_reset();
 extern volatile char sharedbuffer[];
 
 // if we have recently received GET or POST /messages request,
@@ -118,11 +119,11 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
         break;
     case 401:
     case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        // keys have expired, we have to start from morse sequence again
-        ring_put( &commands, COMMAND_CLOSE );
-        ring_put( &commands, cid );
+        // keys have expired, we have to start listening for POST /wifi again
         keys.clear();
         keys.save();
+        software_reset();
+
         break;
     case 400: // must be program bug, happens when there's no hostname parameter
     case 408:
