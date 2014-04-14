@@ -13,7 +13,7 @@
 +irkit.bootloader.high_fuses=0xd8
 +irkit.bootloader.extended_fuses=0xcb
 +irkit.bootloader.path=caterina
-+irkit.bootloader.file=Caterina-IRKit.hex
++irkit.bootloader.file=Caterina-Leonardo.hex
 +irkit.bootloader.unlock_bits=0x3F
 +irkit.bootloader.lock_bits=0x2F
 +irkit.build.mcu=atmega32u4
