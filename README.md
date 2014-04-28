@@ -126,6 +126,16 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
 
+### プログラムメモリについて
+
+IRKitのマイコン ATmega32U4 はプログラムメモリを 32kB 積んでいますが、  
+IRKitのファームウェアでそのほぼ全てを使用しています。
+
+ファームウェアに改造を行い、機能追加する場合には、  
+不必要な機能のログ出力や機能自体を削ってください。
+
+[log.hの22-26行目](https://github.com/irkit/device/blob/master/firmware/src/IRKit/log.h#L22) 辺りをコメントアウトすることで、ログ出力を止めることができます。
+
 <a id="logging"></a>
 ## ログ取得方法
 
