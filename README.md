@@ -96,6 +96,14 @@ Follow this procedure (for MacOS).
 IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Software) を使って書き込むことができます。  
 以下の手順で書き込みできます(MacOS編)。
 
+出荷時のファームウェアバージョンによって、どのファームウェアバージョンまでアップデートできるかが変わります。  
+[現在のバージョンを確認し](#checkversion) 以下の対応するバージョンを使用してください。
+
+| 現在のバージョン | 対応する最新のバージョン |
+| --- | --- |
+| 1.3.3以下 | [1.3.3](https://github.com/irkit/device/releases/tag/v1.3.3) |
+| 1.3.4以上 | [最新](https://github.com/irkit/device/releases/latest) |
+
 1. [Arduino IDE](http://arduino.cc/en/Main/Software) をダウンロードしてインストール後、起動します。
 1. IRKitをUSB Micro-Bケーブルを使ってMacに接続します。
 1. Arduino IDEのメニューから ツール -> マイコンボード -> "Arduino Leonardo" を選びます。
@@ -103,7 +111,7 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 
    環境によってXXXXの部分やその前後が異なる場合があります。
 
-1. [IRKit device tag一覧](https://github.com/irkit/device/releases) から最新のzipを選択しダウンロードし、解凍します。
+1. ファームウェアをダウンロードし、zipファイルを解凍します。
 1. 解凍したディレクトリ内にある `firmware/src/IRKit/` ディレクトリを開きます。
 1. 同ディレクトリ内の `version.template` を `version.c` にリネームします。  
 
@@ -112,6 +120,16 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 1. 同ディレクトリ内の `IRKit.ino` をダブルクリックして Arduino IDE で開きます。
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
+
+<a id="checkversion"></a>
+## ファームウェアバージョン確認方法
+
+IRKitのファームウェアのバージョンを、以下の方法で確認することができます。
+
+1. [IRKitシンプルリモコン](https://itunes.apple.com/us/app/irkit-simple-remote/id778790928?l=ja&ls=1&mt=8) を起動します（セットアップ済とします）。
+1. 左上のボタンから設定画面を開くと、以下の画像の赤の四角のようにファームウェアバージョンを表示します。
+
+<a href="https://www.flickr.com/photos/99687464@N00/14023119426" title="IRKit-firmware-version"><img src="https://farm6.staticflickr.com/5285/14023119426_aff8549745.jpg" width="282" height="500" alt="IRKit-firmware-version"></a>
 
 <a id="logging"></a>
 ## ログ取得方法
