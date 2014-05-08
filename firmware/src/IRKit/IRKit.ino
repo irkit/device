@@ -216,6 +216,10 @@ void on_ir_receive() {
     IR_dump();
 #endif
     if (IR_packedlength() > 0) {
+        if (IR_looks_like_noise()) {
+            IRLOG_PRINTLN("!E31");
+            return;
+        }
         color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
         irkit_httpclient_post_messages();
     }

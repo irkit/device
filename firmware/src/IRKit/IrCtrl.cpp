@@ -177,6 +177,11 @@
 #define T_TRAIL       65535
 #define T_TRAIL_COUNT 4
 
+// if interval between Rising and Falling edges are smaller than this time interval,
+// this should be noise
+// decided by experience
+#define MAX_NOISE_INTERVAL 100
+
 // my air conditioner takes 270ms, 2sec should be enough
 #define RECV_TIMEOUT           2
 #define XMIT_TIMEOUT           2
@@ -191,11 +196,14 @@ extern volatile char sharedbuffer[];
 volatile struct irpacker_t packer_state;
 extern uint16_t tree[TREE_SIZE];
 
+// don't Serial.print inside ISR
 static void IR_put_ (uint16_t data)
 {
     if (irpacker_safelength(&packer_state) >= IR_BUFF_SIZE) {
-        IRLOG_PRINTLN("!E27");
         return;
+    }
+    if ((data != 0) && (data < MAX_NOISE_INTERVAL)) {
+        IrCtrl.looks_like_noise = 1;
     }
     irpacker_pack(&packer_state, data);
     IrCtrl.len ++;
@@ -355,16 +363,12 @@ int IR_xmit ()
 // _clear clears data, but _reset just resets it's state
 void IR_clear (void)
 {
-    IrCtrl.len      = 0;
-    IrCtrl.tx_index = 0;
-    IrCtrl.freq     = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+    IrCtrl.len              = 0;
+    IrCtrl.tx_index         = 0;
+    IrCtrl.freq             = IR_DEFAULT_CARRIER; // reset to 38kHz every time
+    IrCtrl.looks_like_noise = 0;
     memset( (void*)sharedbuffer, 0, sizeof(uint8_t) * IR_BUFF_SIZE );
     irpacker_clear( &packer_state );
-}
-
-void IR_reset (void)
-{
-    irpacker_reset( &packer_state );
 }
 
 uint16_t IR_get ()
@@ -372,6 +376,7 @@ uint16_t IR_get ()
     return irpacker_unpack( &packer_state );
 }
 
+// don't Serial.print inside ISR
 void IR_put (uint16_t data)
 {
     if ( IrCtrl.state != IR_WRITING ) {
@@ -391,6 +396,11 @@ uint16_t IR_rawlength (void)
     return IrCtrl.len;
 }
 
+uint8_t IR_looks_like_noise (void)
+{
+    return IrCtrl.looks_like_noise;
+}
+
 void IR_timer (void)
 {
     if (IrCtrl.state == IR_RECVING) {
@@ -398,8 +408,6 @@ void IR_timer (void)
 
         if ( TIMER_FIRED( IrCtrl.recv_timer ) ) {
             TIMER_STOP( IrCtrl.recv_timer );
-
-            // IRLOG_PRINTLN("!E14");
             IR_state( IR_RECVED );
         }
     }
@@ -409,8 +417,6 @@ void IR_timer (void)
 
         if ( TIMER_FIRED( IrCtrl.xmit_timer ) ) {
             TIMER_STOP( IrCtrl.xmit_timer );
-
-            IRLOG_PRINTLN("!E15");
             IR_state( IR_IDLE );
         }
     }
