@@ -118,7 +118,6 @@ static int8_t on_post_door_response(int8_t cid, uint16_t status_code, GSwifi::GS
 
         break;
     case 401:
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
         // keys have expired, we have to start listening for POST /wifi again
         keys.clear();
         keys.save();
@@ -170,12 +169,6 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
             // if polling_cid != cid
             // there's already an ongoing polling request, so request again when that one finishes
         }
-        break;
-    case HTTP_STATUSCODE_CLIENT_TIMEOUT:
-        polling_cid = CID_UNDEFINED;
-        ring_put( &commands, COMMAND_CLOSE );
-        ring_put( &commands, cid );
-        irkit_httpclient_start_polling( 5 );
         break;
     case HTTP_STATUSCODE_DISCONNECT:
         polling_cid = CID_UNDEFINED;

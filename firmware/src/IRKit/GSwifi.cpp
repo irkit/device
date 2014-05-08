@@ -39,6 +39,7 @@
 #include "env.h"
 
 extern void software_reset();
+extern void wifi_hardware_reset();
 
 #define RESPONSE_LINES_ENDED -1
 
@@ -48,6 +49,7 @@ extern void software_reset();
 #define NEXT_TOKEN_LENGTH 3
 #define NEXT_TOKEN_DATA   4
 
+// memory is corruputed or something terrible that only AVR reset can rescue us
 #define ASSERT(a) if (!(a)) { software_reset(); }
 
 static char __buf_cmd[GS_CMD_SIZE + 1];
@@ -245,7 +247,10 @@ void GSwifi::loop() {
 
             GSLOG_PRINT("!E4 "); GSLOG_PRINTLN(i);
 
-            dispatchResponseHandler(i, HTTP_STATUSCODE_CLIENT_TIMEOUT, GSREQUESTSTATE_ERROR);
+            // request timeout means GS is in trouble,
+            // and it's easy to just rescue ourselves to reset
+            wifi_hardware_reset();
+            return;
         }
     }
 }

@@ -33,7 +33,6 @@
 #define CID_UNDEFINED     0xFF
 
 // nginx took 499
-#define HTTP_STATUSCODE_CLIENT_TIMEOUT 498
 #define HTTP_STATUSCODE_DISCONNECT     497
 
 /**
