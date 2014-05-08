@@ -186,6 +186,7 @@ static int8_t on_get_messages_response(int8_t cid, uint16_t status_code, GSwifi:
     case 503:
     default:
         if (state == GSwifi::GSREQUESTSTATE_RECEIVED) {
+            polling_cid = CID_UNDEFINED;
             ring_put( &commands, COMMAND_CLOSE );
             ring_put( &commands, cid );
             irkit_httpclient_start_polling( 5 );
@@ -406,10 +407,18 @@ int8_t irkit_httpclient_post_messages() {
     // /p?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
     char path[54];
     sprintf(path, P("/p?devicekey=%s&freq=%d"), keys.getKey(), IrCtrl.freq);
-    return gs.postBinary( path,
-                          (const char*)sharedbuffer, IR_packedlength(),
-                          &on_post_messages_response,
-                          10 );
+    int8_t cid = gs.postBinary( path,
+                                (const char*)sharedbuffer, IR_packedlength(),
+                                &on_post_messages_response,
+                                10 );
+    if (cid == polling_cid) {
+        // we're polling on this cid, and our response handler is registered with this cid.
+        // we already overwritten the response handler, so restart everything.
+        HTTPLOG_PRINTLN("!E30");
+        wifi_hardware_reset();
+        return -1;
+    }
+    return cid;
 }
 
 int8_t irkit_httpclient_post_keys() {
