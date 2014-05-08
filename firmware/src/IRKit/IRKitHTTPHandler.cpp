@@ -229,7 +229,7 @@ static int8_t on_post_keys_response(int8_t cid, uint16_t status_code, GSwifi::GS
 }
 
 static int8_t on_post_messages_response(int8_t cid, uint16_t status_code, GSwifi::GSREQUESTSTATE state) {
-    HTTPLOG_PRINT(P("< P /m ")); HTTPLOG_PRINTLN(status_code);
+    HTTPLOG_PRINT(P("< P /p ")); HTTPLOG_PRINTLN(status_code);
 
     if (status_code != 200) {
         gs.bufferClear();
