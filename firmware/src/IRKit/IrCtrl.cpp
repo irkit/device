@@ -371,6 +371,11 @@ void IR_clear (void)
     irpacker_clear( &packer_state );
 }
 
+void IR_reset (void)
+{
+    irpacker_reset( &packer_state );
+}
+
 uint16_t IR_get ()
 {
     return irpacker_unpack( &packer_state );
