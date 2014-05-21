@@ -330,6 +330,15 @@ int8_t irpacker_save( void *offset ) {
         50610, 52381, 54214, 56112, 58076, 60108, 62212, 64390
     };
     eeprom_write_block( tree, offset, sizeof(tree) );
+
+    // verify
+    for (uint16_t i=0; i<TREE_SIZE; i++) {
+        uint16_t leaf = eeprom_read_word( (const uint16_t *)(offset + i * 2) );
+        if (leaf != tree[ i ]) {
+            return -1;
+        }
+    }
+
     return 0;
 #endif
     return -1;
