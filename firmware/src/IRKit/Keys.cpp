@@ -58,7 +58,7 @@ void Keys::load()
 
 bool Keys::isCRCOK()
 {
-    uint8_t crc = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
+    uint8_t crc = crc8( (uint8_t*)data, sizeof(KeysCRCed), CRC8INIT );
     return (crc == data->crc8);
 }
 
@@ -131,7 +131,7 @@ void Keys::setKeyValid(bool valid)
 
 void Keys::save(void)
 {
-    data->crc8    = crc8( (uint8_t*)data, sizeof(KeysCRCed) );
+    data->crc8    = crc8( (uint8_t*)data, sizeof(KeysCRCed), CRC8INIT );
     eeprom_write_block((const void*)data,   (void*)EEPROM_KEYS_OFFSET,        sizeof(KeysShared));
     save2();
 }
