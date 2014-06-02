@@ -103,7 +103,7 @@ class PartSheet
           new_row[ key ] = value if (key && ! key.empty?)
         end
 
-        puts "insert Part: #{ found_row["Parts"]}?"
+        puts "insert Part: #{ new_row["Parts"]} ?"
         puts "  Value=#{ new_row["Value"] } Device=#{ new_row["Device"] } Parts=#{ new_row["Parts"] }"
         puts "(Y/n)"
         input = STDIN.gets.chomp
