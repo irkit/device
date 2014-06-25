@@ -823,7 +823,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 
             // don't close other connections,
             // other connections close theirselves on their turn
-            
+
             TIMER_STOP(timers_[cid]);
             connected_cid_ = cid;
         }
@@ -1178,6 +1178,13 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 #endif
 
 int8_t GSwifi::setRegDomain (char regdomain) {
+
+#if WIFI_MODULE == GS1011MEPS
+    if (regdomain == 1) {
+        regdomain = 3;
+    }
+#endif
+
     char *cmd = PB("AT+WREGDOMAIN=%",1);
     cmd[ 14 ] = regdomain;
     command(cmd, GSCOMMANDMODE_NORMAL);
