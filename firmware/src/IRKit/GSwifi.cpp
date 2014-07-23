@@ -95,6 +95,14 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
         return -1;
     }
 
+    // disable external PA
+    // we might be connected to GS1011MIPS or GS1011MEPS
+    command(PB("AT+EXTPA=0",1), GSCOMMANDMODE_NORMAL);
+    delay( 100 );
+
+    // explicitly set transmit power
+    command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
+
     // write this before AT&K1, cert includes XON or XOFF hex
     writeCert();
 
