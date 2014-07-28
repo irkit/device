@@ -95,6 +95,14 @@ int8_t GSwifi::setup(GSEventHandler on_disconnect, GSEventHandler on_reset) {
         return -1;
     }
 
+    // disable external PA
+    // we might be connected to GS1011MIPS or GS1011MEPS
+    command(PB("AT+EXTPA=0",1), GSCOMMANDMODE_NORMAL);
+    delay( 100 );
+
+    // explicitly set transmit power
+    command(PB("AT+WP=0",1), GSCOMMANDMODE_NORMAL);
+
     // write this before AT&K1, cert includes XON or XOFF hex
     writeCert();
 
@@ -823,7 +831,7 @@ void GSwifi::parseCmdResponse (char *buf) {
 
             // don't close other connections,
             // other connections close theirselves on their turn
-            
+
             TIMER_STOP(timers_[cid]);
             connected_cid_ = cid;
         }
@@ -1178,6 +1186,13 @@ int8_t GSwifi::setBaud (uint32_t baud) {
 #endif
 
 int8_t GSwifi::setRegDomain (char regdomain) {
+
+#if WIFI_MODULE == GS1011MEPS
+    if (regdomain == 1) {
+        regdomain = 3;
+    }
+#endif
+
     char *cmd = PB("AT+WREGDOMAIN=%",1);
     cmd[ 14 ] = regdomain;
     command(cmd, GSCOMMANDMODE_NORMAL);
