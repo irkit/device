@@ -40,7 +40,6 @@ static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
 struct RingBuffer commands;
 GSwifi gs(&Serial1X);
 Keys keys;
-unsigned long now;
 volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
 
 void setup() {
@@ -89,8 +88,6 @@ void setup() {
 }
 
 void loop() {
-    now = millis(); // always run first
-
     irkit_http_loop();
 
     if (TIMER_FIRED(reconnect_timer)) {
