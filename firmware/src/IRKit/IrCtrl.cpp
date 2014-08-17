@@ -509,7 +509,6 @@ void IR_initialize (IRReceiveCallback _on_receive)
     IR_state( IR_DISABLED );
 
     irpacker_init( &packer_state, (volatile uint8_t*)sharedbuffer );
-    irpacker_load( (void*)EEPROM_PACKERTREE_OFFSET );
 }
 
 void IR_dump (void)
