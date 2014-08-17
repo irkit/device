@@ -152,19 +152,7 @@ int8_t GSwifi::setupMDNS() {
     return 0;
 }
 
-void GSwifi::loadLimitedAPPassword( char *password ) {
-    eeprom_read_block( (void*)password,
-                       (void*)EEPROM_LIMITEDAPPASSWORD_OFFSET,
-                       EEPROM_LIMITEDAPPASSWORD_LENGTH );
-}
-
 #ifdef FACTORY_CHECKER
-
-void GSwifi::saveLimitedAPPassword( const char *password ) {
-    eeprom_write_block( password,
-                        (void*)EEPROM_LIMITEDAPPASSWORD_OFFSET,
-                        EEPROM_LIMITEDAPPASSWORD_LENGTH );
-}
 
 int8_t GSwifi::factorySetup(uint32_t initial_baud) {
     clear();
@@ -1104,11 +1092,10 @@ int8_t GSwifi::startLimitedAP () {
 
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
 
-    // AT+WPAPSK=IRKitXXXX,0123456789
-    cmd = PB("AT+WPAPSK=%,%",1);
+    // password area overwritten in factory
+    cmd = PB("AT+WPAPSK=IRKitXXXX,0123456789",1);
     strcpy( cmd+10, hostname() );
     cmd[19] = ',';
-    loadLimitedAPPassword( cmd + 20 );
     command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
     // WPA2
