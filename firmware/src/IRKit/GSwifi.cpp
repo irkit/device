@@ -260,6 +260,7 @@ void GSwifi::reset () {
 void GSwifi::parseByte(uint8_t dat) {
     static uint8_t  next_token; // split each byte into tokens (cid,ip,port,length,data)
     static bool     escape = false;
+    char temp[GS_MAX_PATH_LENGTH+1];
 
     if (dat == ESCAPE) {
         // 0x1B : Escape
@@ -361,11 +362,13 @@ void GSwifi::parseByte(uint8_t dat) {
                 }
                 else {
                     // end of request line
-                    char    method_chars[8];
-                    char    path[ GS_MAX_PATH_LENGTH + 1 ];
-                    int8_t  result      = parseRequestLine((char*)method_chars, 7);
+
+                    // reuse "temp" buffer to parse method and path
+                    int8_t  result  = parseRequestLine((char*)temp, 7);
+                    GSMETHOD method = GSMETHOD_UNKNOWN;
                     if ( result == 0 ) {
-                        result = parseRequestLine((char*)path, GS_MAX_PATH_LENGTH);
+                        method = x2method(temp);
+                        result = parseRequestLine((char*)temp, GS_MAX_PATH_LENGTH);
                     }
                     if ( result != 0 ) {
                         // couldn't detect method or path
@@ -374,9 +377,8 @@ void GSwifi::parseByte(uint8_t dat) {
                         ring_clear(_buf_cmd);
                         break;
                     }
-                    GSMETHOD method = x2method(method_chars);
 
-                    routeid = router(method, path);
+                    routeid = router(method, temp);
                     if ( routeid < 0 ) {
                         request_state = GSREQUESTSTATE_ERROR;
                         error_code    = 404;
@@ -451,14 +453,13 @@ void GSwifi::parseByte(uint8_t dat) {
                     uint8_t i=0;
 
                     // skip 9 characters "HTTP/1.1 "
-                    char trash;
                     while (i++ < 9) {
-                        ring_get( _buf_cmd, &trash, 1 );
+                        ring_get( _buf_cmd, &temp[0], 1 );
                     }
 
-                    char status_code_chars[4];
-                    status_code_chars[ 3 ] = 0;
-                    int8_t count = ring_get( _buf_cmd, status_code_chars, 3 );
+                    // copy 3 numbers representing status code into temp buffer
+                    temp[ 3 ] = 0;
+                    int8_t count = ring_get( _buf_cmd, temp, 3 );
                     if (count != 3) {
                         // protocol error
                         // we should receive something like: "200 OK", "401 Unauthorized"
@@ -466,7 +467,7 @@ void GSwifi::parseByte(uint8_t dat) {
                         request_state = GSREQUESTSTATE_ERROR;
                         break;
                     }
-                    status_code                     = atoi(status_code_chars);
+                    status_code                     = atoi(temp);
                     request_state                   = GSREQUESTSTATE_HEAD2;
                     continuous_newlines_            = 0;
                     content_lengths_[ current_cid ] = 0;
