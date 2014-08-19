@@ -362,12 +362,10 @@ void GSwifi::parseByte(uint8_t dat) {
                 else {
                     // end of request line
                     char    method_chars[8];
-                    uint8_t method_size = 7;
                     char    path[ GS_MAX_PATH_LENGTH + 1 ];
-                    uint8_t path_size   = GS_MAX_PATH_LENGTH;
-                    int8_t  result      = parseRequestLine((char*)method_chars, method_size);
+                    int8_t  result      = parseRequestLine((char*)method_chars, 7);
                     if ( result == 0 ) {
-                        result = parseRequestLine((char*)path, path_size);
+                        result = parseRequestLine((char*)path, GS_MAX_PATH_LENGTH);
                     }
                     if ( result != 0 ) {
                         // couldn't detect method or path
