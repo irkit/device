@@ -712,7 +712,7 @@ GSwifi::GSMETHOD GSwifi::x2method(const char *method) {
 }
 
 void GSwifi::parseLine () {
-    char buf[GS_CMD_SIZE];
+    static char buf[GS_CMD_SIZE];
 
     while (! ring_isempty(_buf_cmd)) {
         // received "\n"
