@@ -197,6 +197,13 @@ void process_commands() {
         case COMMAND_POST_DOOR:
             irkit_httpclient_post_door();
             break;
+        case COMMAND_SETREGDOMAIN:
+            {
+                char regdomain;
+                ring_get( &commands, &regdomain, 1 );
+                gs.setRegDomain( regdomain );
+            }
+            break;
         default:
             break;
         }

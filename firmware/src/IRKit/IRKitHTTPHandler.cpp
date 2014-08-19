@@ -353,7 +353,8 @@ static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
         ring_put( &commands, cid );
 
         if (result == 0) {
-            gs.setRegDomain( keys.regdomain );
+            ring_put( &commands, COMMAND_SETREGDOMAIN );
+            ring_put( &commands, keys.regdomain );
             ring_put( &commands, COMMAND_CONNECT );
         }
     }

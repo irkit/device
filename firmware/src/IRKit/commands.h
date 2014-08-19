@@ -23,6 +23,7 @@
 #define COMMAND_CLOSE         4
 #define COMMAND_START_POLLING 5
 #define COMMAND_POST_DOOR     6
+#define COMMAND_SETREGDOMAIN  7
 
 #define COMMAND_QUEUE_SIZE 8
 

@@ -204,6 +204,7 @@ const char *GSwifi::wlanVersion() {
 
 #endif // FACTORY_CHECKER
 
+// does recurse
 int8_t GSwifi::close (int8_t cid) {
     char *cmd = PB("AT+NCLOSE=0", 1);
     cmd[ 10 ] = i2x(cid);
@@ -421,6 +422,7 @@ void GSwifi::parseByte(uint8_t dat) {
                 if ( request_state == GSREQUESTSTATE_ERROR ) {
                     writeHead( current_cid, error_code );
                     writeEnd();
+                    // TODO send to next loop?
                     close( current_cid );
                 }
                 else {
