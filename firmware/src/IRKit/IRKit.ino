@@ -277,7 +277,7 @@ void connect() {
         keys.save();
 
         // start http server
-        gs.listen(80);
+        gs.listen();
     }
 
     if (gs.isListening()) {
@@ -306,7 +306,7 @@ void connect() {
             color.setLedColor( 1, 0, 0, true ); // red blink: listening for POST /wifi
             gs.startLimitedAP();
             if (gs.isLimitedAP()) {
-                gs.listen(80);
+                gs.listen();
             }
         }
     }

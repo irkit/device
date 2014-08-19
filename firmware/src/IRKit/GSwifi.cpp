@@ -1069,12 +1069,8 @@ int8_t GSwifi::join (GSSECURITY sec, const char *ssid, const char *pass, int dhc
     return 0;
 }
 
-int GSwifi::listen(uint16_t port) {
-    char cmd[15];
-
-    // longest: "AT+NSTCP=65535"
-    sprintf(cmd, P("AT+NSTCP=%d"), port);
-    command(cmd, GSCOMMANDMODE_CONNECT);
+int GSwifi::listen() {
+    command(PB("AT+NSTCP=80",1), GSCOMMANDMODE_CONNECT);
     if (did_timeout_) {
         return -1;
     }
@@ -1093,7 +1089,7 @@ int8_t GSwifi::startLimitedAP () {
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
 
     // password area overwritten in factory
-    cmd = PB("AT+WPAPSK=IRKitXXXX,0123456789",1);
+    cmd = PB("AT+WPAPSK=IRKitXXXX,XXXXXXXXXX",1);
     strcpy( cmd+10, hostname() );
     cmd[19] = ',';
     command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);

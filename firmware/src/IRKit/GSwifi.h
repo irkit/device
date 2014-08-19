@@ -134,7 +134,7 @@ public:
     int8_t join (GSSECURITY sec, const char *ssid, const char *pass, int dhcp = 1, char *name = NULL);
     bool isJoined ();
 
-    int listen (uint16_t port);
+    int listen (); // always listen on 80
     bool isListening ();
 
     int8_t startLimitedAP ();
