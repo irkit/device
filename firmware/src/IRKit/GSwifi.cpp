@@ -1184,15 +1184,14 @@ int8_t GSwifi::setRegDomain (char regdomain) {
 
 // returns -1 on error, >0 on success
 int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *body, uint16_t length, GSwifi::GSResponseHandler handler, uint8_t timeout, uint8_t is_binary) {
-    char cmd[ GS_CMD_SIZE ];
-    char *cmd2;
+    char *cmd;
 
 #ifdef TESTER
     // Tester only requests against limited AP test target
     // DNSLOOKUP should fail, because it's in limitedAP mode, ignore it.
     sprintf( ipaddr_, "%s", "192.168.1.1" );
 #else
-    sprintf(cmd, P("AT+DNSLOOKUP=%s"), DOMAIN);
+    cmd = PB("AT+DNSLOOKUP=" DOMAIN,1);
     command(cmd, GSCOMMANDMODE_DNSLOOKUP);
 #endif
 
@@ -1208,10 +1207,12 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
         return -1;
     }
 
+    cmd = PB("AT+NCTCP=",1);
+    strcpy( cmd+9, ipaddr_ );
 #ifdef TESTER
-    sprintf(cmd, P("AT+NCTCP=%s,80"), ipaddr_);
+    strcpy( cmd+9+strlen(ipaddr_), ",80");
 #else
-    sprintf(cmd, P("AT+NCTCP=%s,443"), ipaddr_);
+    strcpy( cmd+9+strlen(ipaddr_), ",443");
 #endif
 
     connected_cid_ = CID_UNDEFINED;
@@ -1232,9 +1233,9 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
     handlers_[ cid ] = handler;
 
 #ifndef TESTER
-    cmd2 = PB("AT+SSLOPEN=%,cacert",1);
-    cmd2[ 11 ] = xid;
-    command(cmd2, GSCOMMANDMODE_NORMAL);
+    cmd = PB("AT+SSLOPEN=%,cacert",1);
+    cmd[ 11 ] = xid;
+    command(cmd, GSCOMMANDMODE_NORMAL);
 #endif
 
     // disable TCP_MAXRT and TCP_KEEPALIVE_X, because these commands takes some time to issue,
@@ -1244,35 +1245,35 @@ int8_t GSwifi::request(GSwifi::GSMETHOD method, const char *path, const char *bo
 
     // TCP_MAXRT = 10
     // AT+SETSOCKOPT=0,6,10,10,4
-    // cmd2 = PB("AT+SETSOCKOPT=%,6,10,10,4",1);
-    // cmd2[ 14 ] = xid;
-    // command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd = PB("AT+SETSOCKOPT=%,6,10,10,4",1);
+    // cmd[ 14 ] = xid;
+    // command(cmd, GSCOMMANDMODE_NORMAL);
 
     // Enable TCP_KEEPALIVE on this socket
     // AT+SETSOCKOPT=0,65535,8,1,4
-    // cmd2 = PB("AT+SETSOCKOPT=%,65535,8,1,4",1);
-    // cmd2[ 14 ] = xid;
-    // command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd = PB("AT+SETSOCKOPT=%,65535,8,1,4",1);
+    // cmd[ 14 ] = xid;
+    // command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_PROBES = 2
     // AT+SETSOCKOPT=0,6,4005,2,4
-    // cmd2 = PB("AT+SETSOCKOPT=%,6,4005,2,4",1);
-    // cmd2[ 14 ] = xid;
-    // command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd = PB("AT+SETSOCKOPT=%,6,4005,2,4",1);
+    // cmd[ 14 ] = xid;
+    // command(cmd, GSCOMMANDMODE_NORMAL);
 
     // TCP_KEEPALIVE_INTVL = 150
     // AT+SETSOCKOPT=0,6,4001,150,4
     // mysteriously, GS1011MIPS denies with "ERROR: INVALID INPUT" for seconds less than 150
-    // cmd2 = PB("AT+SETSOCKOPT=%,6,4001,150,4",1);
-    // cmd2[ 14 ] = xid;
-    // command(cmd2, GSCOMMANDMODE_NORMAL);
+    // cmd = PB("AT+SETSOCKOPT=%,6,4001,150,4",1);
+    // cmd[ 14 ] = xid;
+    // command(cmd, GSCOMMANDMODE_NORMAL);
     // if (did_timeout_) {
     //     return -1;
     // }
 
-    cmd2 = PB("S0",1);
-    cmd2[ 1 ]  = xid;
-    escape( cmd2 );
+    cmd = PB("S0",1);
+    cmd[ 1 ]  = xid;
+    escape( cmd );
 
     if (method == GSMETHOD_POST) {
         serial_->print(P("POST "));
