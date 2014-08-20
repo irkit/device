@@ -142,7 +142,7 @@ int8_t GSwifi::setupMDNS() {
     cmd[22] = ',';
     command(cmd, GSCOMMANDMODE_MDNS);
 
-    cmd = "AT+MDNSSRVREG=IRKitXXXX,,_irkit,_tcp,local,80";
+    cmd = PB("AT+MDNSSRVREG=IRKitXXXX,,_irkit,_tcp,local,80",1);
     strcpy( cmd+14, hostname() );
     cmd[23] = ',';
     command(cmd, GSCOMMANDMODE_MDNS);
