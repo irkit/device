@@ -391,7 +391,7 @@ int8_t irkit_httpclient_post_door() {
 
 int8_t irkit_httpclient_get_messages() {
     // /m?devicekey=C7363FDA0F06406AB11C29BA41272AE3&newer_than=4294967295
-    char path[70];
+    char path[68];
     sprintf(path, P("/m?devicekey=%s&newer_than=%ld"), keys.getKey(), newest_message_id);
     return gs.get(path, &on_get_messages_response, 50);
 }
