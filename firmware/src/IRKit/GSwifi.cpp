@@ -37,9 +37,11 @@
 #include <avr/eeprom.h>
 #include "const.h"
 #include "env.h"
+#include "commands.h"
 
 extern void software_reset();
 extern void wifi_hardware_reset();
+extern struct RingBuffer commands;
 
 #define RESPONSE_LINES_ENDED -1
 
@@ -422,8 +424,8 @@ void GSwifi::parseByte(uint8_t dat) {
                 if ( request_state == GSREQUESTSTATE_ERROR ) {
                     writeHead( current_cid, error_code );
                     writeEnd();
-                    // TODO send to next loop?
-                    close( current_cid );
+                    ring_put( &commands, COMMAND_CLOSE );
+                    ring_put( &commands, current_cid );
                 }
                 else {
                     if (content_lengths_[ current_cid ] == 0) {
