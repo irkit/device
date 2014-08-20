@@ -24,7 +24,7 @@
 // index 1,.. is for passing char* into next function
 
 // choose different index to use simultaneously
-char to_print[3][PROGMEM_CACHE_SIZE];
+char to_print[2][PROGMEM_CACHE_SIZE];
 
 char *pgmStrToRAM(PROGMEM char *theString, uint8_t index) {
     strcpy_P( to_print[ index ], theString );

@@ -1328,7 +1328,9 @@ int8_t GSwifi::postBinary(const char *path, const char *body, uint16_t length, G
 }
 
 char* GSwifi::hostname() {
-    char *ret = PB("IRKit%%%%", 2);
+    // reuse index: 0 area
+    // this should be safe if we immediately call `strcpy( target, hostname() )`
+    char *ret = PB("IRKit%%%%", 0);
     ret[ 5 ] = mac_[12];
     ret[ 6 ] = mac_[13];
     ret[ 7 ] = mac_[15];
