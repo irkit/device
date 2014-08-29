@@ -44,6 +44,7 @@ static volatile uint8_t polling_timer         = TIMER_OFF;
 static uint32_t newest_message_id = 0; // on memory only should be fine
 static int8_t post_keys_cid;
 static int8_t polling_cid = CID_UNDEFINED; // GET /m continues forever
+static bool is_posting_message = false;
 
 #define POST_DOOR_BODY_LENGTH 61
 #define POST_KEYS_BODY_LENGTH 42
@@ -235,6 +236,8 @@ static int8_t on_post_messages_response(int8_t cid, uint16_t status_code, GSwifi
         gs.bufferClear();
     }
 
+    is_posting_message = false;
+
     if (state != GSwifi::GSREQUESTSTATE_RECEIVED) {
         return 0;
     }
@@ -396,7 +399,7 @@ int8_t irkit_httpclient_get_messages() {
     return gs.get(path, &on_get_messages_response, 50);
 }
 
-int8_t irkit_httpclient_post_messages() {
+int8_t irkit_httpclient_post_messages_() {
     // post body is IR data, move devicekey parameter to query, for implementation simplicity
     // /p?devicekey=C7363FDA0F06406AB11C29BA41272AE3&freq=38
     char path[54];
@@ -411,6 +414,19 @@ int8_t irkit_httpclient_post_messages() {
         HTTPLOG_PRINTLN("!E30");
         wifi_hardware_reset();
         return -1;
+    }
+    return cid;
+}
+
+// stack memory to initiate a HTTP request is not small;
+// do POST /p sequentially
+int8_t irkit_httpclient_post_messages() {
+    if (is_posting_message) {
+        return -1;
+    }
+    int8_t cid = irkit_httpclient_post_messages_();
+    if (cid >= 0) {
+        is_posting_message = true; // this function is not called inside ISR; safe to set here
     }
     return cid;
 }
@@ -454,6 +470,7 @@ void irkit_http_init() {
     irkit_httpserver_register_handler();
 
     polling_cid = CID_UNDEFINED;
+    is_posting_message = false;
 }
 
 void irkit_http_on_timer() {

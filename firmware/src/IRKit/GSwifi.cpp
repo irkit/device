@@ -246,7 +246,7 @@ void GSwifi::loop() {
 
             GSLOG_PRINT("!E4 "); GSLOG_PRINTLN(i);
 
-            // request timeout means GS is in trouble,
+            // request (from us) timeout means GS is in trouble,
             // and it's easy to just rescue ourselves to reset
             wifi_hardware_reset();
             return;
@@ -633,6 +633,7 @@ inline void GSwifi::setCidIsRequest(int8_t cid, bool is_request) {
     }
 }
 
+// request against us
 inline bool GSwifi::cidIsRequest(int8_t cid) {
     return cid_bitmap_ & _BV(cid);
 }
@@ -746,7 +747,7 @@ void GSwifi::parseLine () {
             int8_t cid = x2i(buf[10]); // 2nd cid = HTTP client cid
             ASSERT((0 <= cid) && (cid <= 16));
 
-            setCidIsRequest(cid, true); // request against us
+            setCidIsRequest(cid, true);
             content_lengths_[ cid ] = 0;
 
             // don't close other connections,

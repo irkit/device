@@ -82,7 +82,6 @@ void setup() {
 
     pinMode(LDO33_ENABLE,     OUTPUT);
     wifi_hardware_reset();
-    irkit_http_init();
 
     // add your own code here!!
 }
@@ -181,6 +180,7 @@ void process_commands() {
             irkit_httpclient_post_keys();
             break;
         case COMMAND_SETUP:
+            irkit_http_init();
             gs.setup( &on_disconnect, &on_reset );
 
             // vv continues
@@ -224,8 +224,10 @@ void on_ir_receive() {
             IRLOG_PRINTLN("!E31");
             return;
         }
-        color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
-        irkit_httpclient_post_messages();
+        int8_t cid = irkit_httpclient_post_messages();
+        if (cid >= 0) {
+            color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
+        }
     }
 }
 
