@@ -2,10 +2,10 @@ BOARD_TAG    = leonardo
 ARDUINO_PORT = /dev/cu.usb*
 # ARDUINO_LIBS = SoftwareSerial BGLib
 ARDUINO_DIR  = /Applications/Arduino.app/Contents/Resources/Java
-ARDMK_DIR    = ~/proj/Arduino-Makefile
-USER_LIB_PATH = ${HOME}/shared/arduino/imote
+ARDMK_DIR    = ~/src/github.com/sudar/Arduino-Makefile
+USER_LIB_PATH = ../../lib
 
-include ~/proj/Arduino-Makefile/arduino-mk/Arduino.mk
+include ~/src/github.com/sudar/Arduino-Makefile/Arduino.mk
 
 ### flymake
 
