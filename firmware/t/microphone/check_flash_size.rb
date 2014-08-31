@@ -1,1 +1,0 @@
-../../check_flash_size.rb
