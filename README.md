@@ -122,6 +122,12 @@ IRKitのファームウェアは、 [Arduino IDE](http://arduino.cc/en/Main/Soft
 
    参考) 製品版ではIRKitのバージョン情報をここに埋め込んでいます。
 
+1. 同ディレクトリ内の `GSwifi.cpp` 内に埋め込んであるWi-Fiアクセスポイントのパスワードを書き換えます。  
+
+   https://github.com/irkit/device/blob/master/firmware/src/IRKit/GSwifi.cpp#L1096  
+   の `XXXXXXXXXX` を任意の文字列に書き換えてください。  
+   参考) IRKitの出荷前に書き換えてから出荷しています。
+
 1. 同ディレクトリ内の `IRKit.ino` をダブルクリックして Arduino IDE で開きます。
 1. Arduino IDEのメニューから ファイル -> マイコンボードに書き込む を押してIRKitに書き込みます。
 1. 完了！
