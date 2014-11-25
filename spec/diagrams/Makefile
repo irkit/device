@@ -1,5 +1,5 @@
 
-OUT = ir-state.png ir-learn.png ir-send.png packer.png wifi-morse-setup.png
+OUT = ir-state.png ir-learn.png ir-send.png packer.png setup.png
 
 all: $(OUT)
 
