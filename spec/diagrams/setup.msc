@@ -1,0 +1,58 @@
+msc {
+    # entities
+    User, Phone, App, IRKit, Server;
+
+    # space
+    |||;
+
+    IRKit note IRKit [label = "Powered Off"];
+
+    User -> IRKit    [label = "Power On"];
+    IRKit note IRKit [label = "Not connected to home Wi-Fi access point"];
+    IRKit note IRKit [label = "Start IRKit's own access point and start HTTP server"];
+    Phone note Phone [label = "Connected to home Wi-Fi access point"];
+
+    |||;
+
+    User -> Phone    [label = "Launch App"];
+    Phone -> App     [label = "Launches"];
+
+    |||;
+
+    App => Server    [label = "POST /1/clients"];
+    App << Server    [label = "clientkey"];
+
+    App => Server    [label = "POST /1/devices (body: clientkey=#{clientkey})"];
+    App << Server    [label = "receives devicekey, deviceid"];
+
+    |||;
+
+    User -> App      [label = "Input home Wi-Fi's SSID and password"];
+    User -> Phone    [label = "Connect to IRKit's own access point"];
+    User -> Phone    [label = "Relaunch App"];
+    Phone -> App     [label = "Launches"];
+
+    App => IRKit     [label = "POST /wifi (body: #{home Wi-Fi's security, SSID, password, devicekey, REGDOMAIN})"];
+    App << IRKit     [label = "200 OK"];
+
+    IRKit note IRKit [label = "Connect to home Wi-Fi"];
+
+    IRKit => Server  [label = "POST /door (body: devicekey=#{devicekey}&&hostname=#{hostname})"];
+    IRKit << Server  [label = "Door Response (status code: 200)"];
+
+    IRKit note IRKit [label = "Setup successfully finished"];
+
+    |||;
+
+    User -> Phone    [label = "Connect to home Wi-Fi access point"];
+    User -> Phone    [label = "Relaunch App"];
+    Phone -> App     [label = "Launches"];
+
+    App => Server    [label = "POST /1/door (body: clientkey=#{clientkey}&deviceid=#{deviceid}) (longpoll)"];
+
+    App << Server    [label = "200 OK, receives IRKit's hostname"];
+
+    |||;
+
+    App note App     [label = "Setup successfully finished"];
+}

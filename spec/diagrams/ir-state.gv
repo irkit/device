@@ -5,20 +5,16 @@ digraph ir_state {
 
     node [shape=ellipse, fontsize=12, fixedsize=true, width=1.5, height=0.8];
 
-    DISCONNECTED [ label = "DISCONNECTED (0)" ];
-    START -> DISCONNECTED [ label = "Power Up", weight = 100 ];
+    DISABLED [ label = "DISABLED (255)" ];
+    START -> DISABLED [ label = "Power Up", weight = 100 ];
 
     CONNECTED [ label = "CONNECTED (1)" ];
     IDLE      [ label = "IDLE (2)" ];
-    DISCONNECTED -> CONNECTED    [ label = "Successfully connected" ];
-    DISCONNECTED -> DISCONNECTED [ label = "Connect failed" ];
-    DISCONNECTED -> IDLE         [ label = "Connect failed XX times" ];
+    DISABLED -> IDLE [ label = "Successfully connected to Internet and setup HTTP Server" ];
+    DISABLED -> DISABLED  [ label = "Connect failed" ];
 
-    READY     [ label = "READY (3)" ];
-    CONNECTED -> READY           [ label = "Successfully reported to server" ];
-
-    subgraph cluster_ir {
-        label = "IR -> BLE";
+    subgraph cluster_learn {
+        label = "Learn IR";
         color=lightgray;
         rank=source;
 
@@ -27,29 +23,29 @@ digraph ir_state {
         RECVED_IDLE [ label = "RECVED_IDLE (3)" ];
         READING     [ label = "READING (4)" ];
 
-        RECVING     -> RECVED      [ label = "Overflowed" ];
-        RECVING     -> RECVED      [ label = "Trailer detected" ];
+        RECVING     -> RECVED      [ label = "IR receive buffer overflowed" ];
+        RECVING     -> RECVED      [ label = "IR trailer detected" ];
 
-        RECVED      -> RECVED_IDLE [ label = "Notified BLE central using\n\"IR Unread Status\" characteristic" ];
-        RECVED_IDLE -> READING     [ label = "BLE central starts reading" ];
+        RECVED      -> RECVED_IDLE [ label = "Sent IR data to server on Internet" ];
+        RECVED_IDLE -> READING     [ label = "HTTP client reads data from IRKit" ];
 
     }
-    subgraph cluster_ble {
-        label = "BLE -> IR";
+    subgraph cluster_send {
+        label = "Send IR";
         color=lightgray;
         rank=source;
 
         WRITING     [ label = "WRITING (10)" ];
         XMITTING    [ label = "XMITTING (11)" ];
 
-        WRITING     -> XMITTING    [ label = "IR_xmit called" ];
+        WRITING     -> XMITTING    [ label = "Finished receiving IR data" ];
     }
 
     IDLE -> IDLE        [ label = "Overflow continues" ];
-    IDLE -> RECVING     [ label = "Falling edge", weight = 10 ];
-    IDLE -> WRITING     [ label = "BLE central writing\nIR data into peripheral", weight = 10 ];
+    IDLE -> RECVING     [ label = "IR receiver detected falling edge", weight = 10 ];
+    IDLE -> WRITING     [ label = "Started receiving IR data", weight = 10 ];
 
-    RECVED_IDLE -> IDLE [ label = "Falling edge\n(starts RECVING)" ];
-    READING     -> IDLE [ label = "Reading finished or any error" ];
+    RECVED_IDLE -> IDLE [ label = "IR receiver detected falling edge" ];
+    READING     -> IDLE [ label = "Reading finished" ];
     XMITTING    -> IDLE [ label = "All data sent" ];
 }

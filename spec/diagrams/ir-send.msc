@@ -1,40 +1,32 @@
 msc {
     # entities
-    User, App, IRKit, Server, TV;
+    User, IRKit, Server, TV;
 
     # space
     |||;
 
     IRKit note Server [label = "Successfully connected"];
 
-    IRKit note IRKit  [label = "Started listening on port 80"];
+    IRKit note IRKit  [label = "Start listening on port 80"];
 
-    IRKit -> Server   [label = "GET /irsignals (longpoll)"];
+    IRKit => Server   [label = "GET /1/m (longpoll)"];
 
     |||;
 
-    User -> App       [label = "User launches App using IRKit SDK"];
+    User note IRKit   [label = "IF User and IRKit are in the same Wifi"];
 
-    App => Server     [label = "GET /devices"];
-    App << Server     [label = "List of devices' local IP addresses"];
+    User => IRKit     [label = "POST /messages"];
+    IRKit -> TV       [label = "Send IR signal"];
+    User << IRKit     [label = "200 OK"];
 
-    User -> App       [label = "User wants to send IR signal"];
+    |||;
 
-    App note IRKit    [label = "IF App and IRKit are in the same Wifi(BSSID)"];
+    User note IRKit   [label = "IF User and IRKit are not in the same Wifi"];
 
-    App => IRKit      [label = "POST /irsignals (access within local Wifi)"];
+    User => Server    [label = "POST /1/messages"];
+    User << Server    [label = "200 OK"];
+
+    IRKit << Server   [label = "Response to \"GET /1/m\" longpoll: 200 OK, IR signal in body"];
     IRKit -> TV       [label = "IR signal"];
-    App << IRKit      [label = "200 OK"];
-
-    App note IRKit    [label = "IF App and IRKit are not in the same Wifi"];
-
-    App => Server     [label = "POST /devices/xxxxx/irsignals"];
-
-    IRKit << Server   [label = "Response to \"GET /irsignals\" longpoll: 200 OK, IR signal in body"];
-
-    IRKit => Server   [label = "GET /irsignals (continuously)"];
-
-    IRKit -> TV       [label = "IR signal"];
-
-    App << Server     [label = "200 OK"];
+    IRKit => Server   [label = "GET /1/m (longpoll)"];
 }
