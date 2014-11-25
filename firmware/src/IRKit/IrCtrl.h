@@ -33,7 +33,6 @@
 typedef void (*IRReceiveCallback)();
 
 typedef struct _irstruct {
-    uint8_t           enabled;
     uint8_t           state;    // Communication state
     uint8_t           trailer_count; // Number of T_TRAIL time to wait to determine signal ended
     uint8_t           freq;     // carrier wave freq in kHz
