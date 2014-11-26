@@ -326,17 +326,17 @@ ISR_COMPARE()
     IR_state( IR_IDLE );
 }
 
-int IR_xmit ()
+void IR_xmit ()
 {
     if (IrCtrl.len == 0) {
         IRLOG_PRINTLN("!E26");
         IR_state( IR_IDLE );
-        return 0;
+        return;
     }
 #ifndef FACTORY_CHECKER
     // factory checker xmits after receiving
     if ( IrCtrl.state != IR_WRITING ) {
-        return 0; // Abort when collision detected
+        return; // Abort when collision detected
     }
 #endif
 
@@ -359,7 +359,7 @@ int IR_xmit ()
     // unpacking takes time, so we want to run unpack while timer is running
     IrCtrl.next_interval = IR_get();
 
-    return 1;
+    return;
 }
 
 // _clear clears data, but _reset just resets it's state

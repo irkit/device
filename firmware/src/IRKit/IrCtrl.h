@@ -108,7 +108,7 @@ extern void IR_ISR_Compare (void);
 
 /// Transmit IR data from IR LEDs which is stored in buffer.
 /// Call IR_put beforehand to set IR data in buffer.
-extern int  IR_xmit (void);
+extern void IR_xmit (void);
 
 /// Reset IR packer state but preserve IR data.
 /// Only use in factory checker.
