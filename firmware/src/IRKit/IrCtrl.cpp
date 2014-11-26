@@ -189,12 +189,14 @@
 // down -1- up -2- down -3- up -4- down -5- up -6- down -7- up
 #define VALID_IR_LEN_MIN   7
 
+/// IR packed data storage size.
+/// Known most longest IR data uses 363bytes (after compressed using IrPacker).
+#define IR_BUFF_SIZE       SHARED_BUFFER_SIZE
+
 // Working area for IR communication
 
 volatile IR_STRUCT IrCtrl;
-extern volatile char sharedbuffer[];
 volatile struct irpacker_t packer_state;
-extern uint16_t tree[TREE_SIZE];
 
 // don't Serial.print inside ISR
 static void IR_put_ (uint16_t data)
