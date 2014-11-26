@@ -32,6 +32,8 @@
 #define IRPACKER_OFFSET 30 // 0-29 is reserved for special data
 #define BITPACK_MARKER  0x01
 
+/// IR packer tree.
+/// Used to pack IR data; map 16bit -> 8bit.
 uint16_t tree[TREE_SIZE] = {
     205, 213, 220, 228, 236, 244, 253, 262,
     271, 280, 290, 300, 311, 322, 333, 345,

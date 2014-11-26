@@ -1,3 +1,4 @@
+/** \file const.h */
 /*
  Copyright (C) 2013-2014 Masakazu Ohtsuka
   
@@ -17,6 +18,7 @@
 #ifndef __CONST_H__
 #define __CONST_H__
 
+/// Buffer shared between IR and Wi-Fi credentials
 #define SHARED_BUFFER_SIZE 512
 
 #define EEPROM_KEYS_OFFSET                0
