@@ -45,7 +45,6 @@
 /// IR receive/xmit is disabled. This is our initial state
 #define IR_DISABLED    0xFF
 
-/// IRReceiveCallback is called inside IR_loop() in IR_RECVED state.
 typedef void (*IRReceiveCallback)();
 
 /// IR internal state
@@ -93,7 +92,8 @@ extern "C" {
 
 /// Initializer.
 /// Call on boot.
-/// Provide callback to be called after receiving IR signal.
+/// Provide callback to be called after receiving an IR signal; in IR_RECVED state, inside IR_loop().
+/// You should POST IR signal to server on Internet inside callback.
 extern void IR_initialize (IRReceiveCallback);
 
 /// IR receiving interrupt handler.
