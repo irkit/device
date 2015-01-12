@@ -31,6 +31,7 @@
 #include "commands.h"
 #include "version.h"
 #include "log.h"
+#include "config.h"
 
 static struct long_press_button_state_t long_press_button_state;
 static volatile uint8_t reconnect_timer = TIMER_OFF;
@@ -59,7 +60,9 @@ void setup() {
     pinMode(FULLCOLOR_LED_R, OUTPUT);
     pinMode(FULLCOLOR_LED_G, OUTPUT);
     pinMode(FULLCOLOR_LED_B, OUTPUT);
-    color.setLedColor( 1, 0, 0, false ); // red: error
+    if (config::ledFeedback < config::LED_OFF) {
+        color.setLedColor( 1, 0, 0, FullColorLed::ALWAYS_ON ); // red: error
+    }
 
     //--- initialize long press button
 
@@ -163,7 +166,7 @@ void wifi_hardware_reset () {
 }
 
 void long_pressed() {
-    color.setLedColor( 1, 0, 0, false ); // red: error
+    color.setLedColor( 1, 0, 0, FullColorLed::ALWAYS_ON ); // red: error
 
     keys.clear();
     keys.save();
@@ -211,7 +214,14 @@ void process_commands() {
 }
 
 void on_irkit_ready() {
-    color.setLedColor( 0, 0, 1, false ); // blue: ready
+    // blue: ready
+    if (config::ledFeedback <= config::LED_VERBOSE) {
+        color.setLedColor( 0, 0, 1, FullColorLed::ALWAYS_ON ); 
+    } else if (config::ledFeedback <= config::LED_QUIET) {
+        color.setLedColor( 0, 0, 1, FullColorLed::BLINK_THEN_OFF, 1);
+    } else {
+        color.off();
+    }
 }
 
 void on_ir_receive() {
@@ -226,14 +236,24 @@ void on_ir_receive() {
         }
         int8_t cid = irkit_httpclient_post_messages();
         if (cid >= 0) {
-            color.setLedColor( 0, 0, 1, true, 1 ); // received: blue blink for 1sec
+            if (config::ledFeedback <= config::LED_QUIET) {
+                FullColorLed::LightMode lightMode = (config::ledFeedback == config::LED_VERBOSE)? FullColorLed::BLINK_THEN_ON : FullColorLed::BLINK_THEN_OFF;
+                color.setLedColor( 0, 0, 1, lightMode, 1 ); // received: blue blink for 1sec
+            } else {
+                color.off();
+            }
         }
     }
 }
 
 void on_ir_xmit() {
     MAINLOG_PRINTLN("i>");
-    color.setLedColor( 0, 0, 1, true, 1 ); // xmit: blue blink for 1sec
+    if (config::ledFeedback <= config::LED_QUIET) {
+        FullColorLed::LightMode lightMode = (config::ledFeedback == config::LED_VERBOSE)? FullColorLed::BLINK_THEN_ON : FullColorLed::BLINK_THEN_OFF;
+        color.setLedColor( 0, 0, 1, lightMode, 1 ); // xmit: blue blink for 1sec
+    } else {
+        color.off();
+    }
 }
 
 // inside ISR, be careful
@@ -272,7 +292,9 @@ void connect() {
     keys.load();
 
     if (keys.isWifiCredentialsSet()) {
-        color.setLedColor( 0, 1, 0, true ); // green blink: connecting
+        if (config::ledFeedback < config::LED_OFF) {
+            color.setLedColor( 0, 1, 0, FullColorLed::BLINK_THEN_ON ); // green blink: connecting
+        }
 
         gs.join(keys.getSecurity(),
                 keys.getSSID(),
@@ -280,7 +302,9 @@ void connect() {
     }
 
     if (gs.isJoined()) {
-        color.setLedColor( 0, 1, 1, true ); // cyan blink: setting up
+        if (config::ledFeedback < config::LED_OFF) {
+            color.setLedColor( 0, 1, 1, FullColorLed::BLINK_THEN_ON ); // cyan blink: setting up
+        }
 
         keys.setWifiWasValid(true);
         keys.save();
@@ -290,16 +314,23 @@ void connect() {
     }
 
     if (gs.isListening()) {
-        // start mDNS
-        gs.setupMDNS();
-
-        if (keys.isAPIKeySet() && ! keys.isValid()) {
-            irkit_httpclient_post_door();
-        }
-        else if (keys.isValid()) {
+        
+        if (!config::useCloudControl) {
+            // No WAN access, we don't need to validate key, we're ready.
             IR_state( IR_IDLE );
-            ring_put( &commands, COMMAND_START_POLLING );
             on_irkit_ready();
+        } else {
+            // start mDNS
+            gs.setupMDNS();
+    
+            if (keys.isAPIKeySet() && ! keys.isValid()) {
+                irkit_httpclient_post_door();
+            }
+            else if (keys.isValid()) {
+                IR_state( IR_IDLE );
+                ring_put( &commands, COMMAND_START_POLLING );
+                on_irkit_ready();
+            }
         }
     }
     else {
@@ -307,12 +338,14 @@ void connect() {
 
         if (keys.wasWifiValid()) {
             // retry
-            color.setLedColor( 1, 0, 0, false ); // red: error
+            if (config::ledFeedback < config::LED_OFF) {
+                color.setLedColor( 1, 0, 0, FullColorLed::ALWAYS_ON ); // red: error
+            }
             TIMER_START(reconnect_timer, 5);
         }
         else {
             keys.clear();
-            color.setLedColor( 1, 0, 0, true ); // red blink: listening for POST /wifi
+            color.setLedColor( 1, 0, 0, FullColorLed::BLINK_THEN_ON ); // red blink: listening for POST /wifi
             gs.startLimitedAP();
             if (gs.isLimitedAP()) {
                 gs.listen();
