@@ -70,6 +70,14 @@ Follow this procedure (for MacOS).
 1. Navigate to Arduino IDE Menu and click File -> Upload, to write into IRKit.
 1. All Done!
 
+### Example fork of IRKit firmware
+
+[@acourreges](https://github.com/acourreges) created a branch [settings-led-cloud](https://github.com/acourreges/device/tree/settings-led-cloud/firmware) that enables you to configure:  
+* Status LED behaviour (you might want to turn the LED off when the device is idle?)
+* Enable/Disable cloud control (you might want IRKit not to connect to Internet?)
+
+See [config.h](https://github.com/acourreges/device/blob/settings-led-cloud/firmware/src/IRKit/config.h) for details.
+
 <a id="logging-en"></a>
 ## How to get logs
 
@@ -141,6 +149,19 @@ IRKitのファームウェアでそのほぼ全てを使用しています。
 不必要な機能のログ出力や機能自体を削ってください。
 
 [log.hの22-26行目](https://github.com/irkit/device/blob/master/firmware/src/IRKit/log.h#L22) 辺りをコメントアウトすることで、ログ出力を止めることができます。
+
+### IRKitファームウェアのFork例
+
+[@acourreges](https://github.com/acourreges)の[settings-led-cloud](https://github.com/acourreges/device/tree/settings-led-cloud/firmware)では、以下を変更可能にしています。  
+* ステータスLEDの動作 (赤外線を送受信していない時にはLEDを消灯しておきたい??)
+* クラウドとの接続を有効/無効 (IRKitをインターネットに接続せずに使いたい??)
+
+詳しくは [config.h](https://github.com/acourreges/device/blob/settings-led-cloud/firmware/src/IRKit/config.h) を見てください。
+
+[@shokai](https://github.com/shokai)の[tempe_sensor](https://github.com/shokai/irkit-device/compare/master...tempe_sensor)ブランチ、[sensors_json](https://github.com/shokai/irkit-device/compare/master...sensors_json)ブランチでは、  
+温度センサからの入力、アナログピンの値を読み、IRKit内蔵のWebサーバからHTTP GETで取得できるようにしています。
+
+詳しくは [IRKitのファームウェアを改造して温度センサーを追加した](http://shokai.org/blog/archives/8802) をご覧ください。
 
 <a id="logging"></a>
 ## ログ取得方法

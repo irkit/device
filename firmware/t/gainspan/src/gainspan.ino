@@ -6,7 +6,10 @@
 #include "GSwifi.h"
 #include "Keys.h"
 #include "const.h"
+#include "commands.h"
 
+static char commands_data[COMMAND_QUEUE_SIZE];
+struct RingBuffer commands;
 GSwifi gs(&Serial1X);
 Keys keys;
 volatile char sharedbuffer[ SHARED_BUFFER_SIZE ];
