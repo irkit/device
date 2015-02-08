@@ -36,7 +36,7 @@
 static struct long_press_button_state_t long_press_button_state;
 static volatile uint8_t reconnect_timer = TIMER_OFF;
 static char commands_data[COMMAND_QUEUE_SIZE];
-static FullColorLed color( FULLCOLOR_LED_R, FULLCOLOR_LED_G, FULLCOLOR_LED_B );
+static FullColorLed color;
 
 struct RingBuffer commands;
 GSwifi gs(&Serial1X);

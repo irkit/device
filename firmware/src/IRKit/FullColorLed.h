@@ -28,7 +28,7 @@ public:
         BLINK_THEN_OFF  = 2     // LED blinks, then turns off.
     } LightMode;
 
-    FullColorLed(int pinR, int pinG, int pinB);
+    FullColorLed();
 
     // Lights-up the LED with a specific color, with optional blinking parameters.
     void setLedColor(
@@ -44,9 +44,6 @@ public:
     void onTimer();
 
 private:
-    int pinR_;
-    int pinG_;
-    int pinB_;
     bool colorR_;
     bool colorG_;
     bool colorB_;
