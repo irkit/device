@@ -1,20 +1,21 @@
 IRKit Device
 ===
 
-IRKit device and [IRKit SDK](https://github.com/irkit/ios-sdk) lets you control your home electronics from your iOS devices.
+IRKit device and [IRKit SDK](https://github.com/irkit/ios-sdk) lets you control your home electronics from your iOS and Android devices.
 IRKit device has a Infrared LED and receiver, and a WiFi module inside.
 Internet connected devices can make IRKit send IR signals for you.
 
 ## Get IRKit Device
 
-Buy on [amazon.co.jp](http://www.amazon.co.jp/gp/product/B00H91KK26)
+In Japan: [amazon.co.jp](http://www.amazon.co.jp/gp/product/B00H91KK26)  
+World wide shipping available: [switch-science](https://international.switch-science.com/catalog/1644/)
 
 ## Schematics
 
 Basically, it's a [Arduino Leonardo](http://arduino.cc/en/Main/ArduinoBoardLeonardo) fork with following modifications:
 
 * added a [WiFi module](http://www.gainspan.com/gs1011mips) ( [GainSpan](http://www.gainspan.com/home) 's WiFi module ).
-* added Infrared Receiver, Infrared LED, some LEDs, and a microphone.
+* added Infrared Receiver, Infrared LED and some LEDs.
 
 <img src="https://raw.github.com/irkit/device/master/hardware/schematic.png" />
 
