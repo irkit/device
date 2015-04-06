@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-char *pgmStrToRAM(PROGMEM char *theString, uint8_t index);
+char *pgmStrToRAM(const PROGMEM char *theString, uint8_t index);
 
 #ifdef __cplusplus
 }
