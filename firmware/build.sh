@@ -1,7 +1,7 @@
 #!/bin/sh
 set -xe
 
-AVRBIN=/Applications/Arduino.app/Contents/Resources/Java/hardware/tools/avr/bin
+AVRBIN=/Applications/Arduino-1.0.5.app/Contents/Resources/Java/hardware/tools/avr/bin
 
 # remove Arduino IDE build files
 rm -rf src/IRKit/build-uno/
