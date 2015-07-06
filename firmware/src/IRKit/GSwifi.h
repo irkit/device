@@ -157,6 +157,7 @@ public:
     void clearRoutes ();
     int8_t registerRoute (GSMETHOD method, const char *path);
     void setRequestHandler (GSRequestHandler handler);
+    bool validRequest ();
     int8_t writeHead (int8_t cid, uint16_t status_code);
     void write (const char *data);
     void write (const char data);
@@ -203,6 +204,7 @@ private:
     GSMODE             gs_mode_;
     GSCOMMANDMODE      gs_commandmode_;
     uint8_t            continuous_newlines_; // this should be per cid to handle multiple concurrent connections
+    bool               has_requested_with_; // request has X-Requested-With header
     char               ipaddr_[16]; // xxx.xxx.xxx.xxx
     char               mac_[18];    // 00:1d:c9:01:99:99
 #ifdef FACTORY_CHECKER

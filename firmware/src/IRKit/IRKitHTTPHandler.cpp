@@ -364,6 +364,15 @@ static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
 }
 
 static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
+    if ((state == GSwifi::GSREQUESTSTATE_RECEIVED) &&
+        ! gs.validRequest()) {
+        gs.writeHead(cid, 400);
+        gs.writeEnd();
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+        return -1;
+    }
+
     switch (routeid) {
     case 0: // POST /messages
         return on_post_messages_request(cid, state);

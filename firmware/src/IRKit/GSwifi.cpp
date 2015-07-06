@@ -390,6 +390,7 @@ void GSwifi::parseByte(uint8_t dat) {
                     request_state                   = GSREQUESTSTATE_HEAD2;
                     continuous_newlines_            = 0;
                     content_lengths_[ current_cid ] = 0;
+                    has_requested_with_             = false;
                     ring_clear(_buf_cmd);
                 }
                 break;
@@ -545,6 +546,7 @@ int8_t GSwifi::parseHead2(uint8_t dat, int8_t cid) {
         // 1st ends just after headers, and 2nd contains only response body
         // "Content-Length: "    .length = 16
         // "Content-Length: 9999".length = 20
+        // "X-Requested-With: "  .length = 18
         char content_length_chars[21];
         memset( content_length_chars, 0, 21 );
 
@@ -553,6 +555,10 @@ int8_t GSwifi::parseHead2(uint8_t dat, int8_t cid) {
             (strncmp(content_length_chars, "Content-Length: ", 16) == 0)) {
             content_length_chars[20] = 0;
             content_lengths_[ cid ] = atoi(&content_length_chars[16]);
+        }
+        if ((copied >= 18) &&
+            (strncmp(content_length_chars, "X-Requested-With: ", 18) == 0)) {
+            has_requested_with_ = true;
         }
         ring_clear(_buf_cmd);
     }
@@ -612,6 +618,10 @@ int8_t GSwifi::registerRoute (GSwifi::GSMETHOD method, const char *path) {
 
 void GSwifi::setRequestHandler (GSRequestHandler handler) {
     request_handler_ = handler;
+}
+
+bool GSwifi::validRequest () {
+    return has_requested_with_;
 }
 
 // request against us
