@@ -23,7 +23,7 @@
 #define GSLOG
 #define HTTPLOG
 #define IRLOG
-#define KEYLOG
+// #define KEYLOG
 
 #ifdef MAINLOG
 # define MAINLOG_PRINTLN(a)    Serial.println(a)
