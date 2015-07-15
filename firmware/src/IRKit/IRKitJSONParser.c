@@ -76,6 +76,7 @@ void irkit_json_parse (char letter,
     case '7':
     case '8':
     case '9':
+    case 'X':
         if ( (current_token == IrJsonParserDataKeyId)   ||
              (current_token == IrJsonParserDataKeyFreq) ||
              (current_token == IrJsonParserDataKeyData) ) {

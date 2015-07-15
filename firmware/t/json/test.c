@@ -232,6 +232,33 @@ int main() {
         ok( memcmp( data_called_pass, expected4, 10 )  == 0, "pass is same" );
     }
 
+    {
+        int i=0;
+        printf("test 8\n");
+
+        reset();
+
+        char buf[] = "{\"pass\":\"XXXXXXXXXX\",\"format\":\"raw\",\"freq\":38,\"data\":[50489,9039,1205,1127],\"id\":3}";
+        for (i=0; i<strlen(buf); i++) {
+            irkit_json_parse(buf[i], &start, &data, &end);
+        }
+
+        ok( start_called           == 1, "start called" );
+        ok( end_called             == 1, "end called" );
+        ok( data_called_freq_index == 1, "freq called" );
+        ok( data_called_data_index == 4, "data called" );
+        ok( data_called_id_index   == 1, "id called" );
+        ok( data_called_pass_index == 1, "pass called" );
+        uint16_t expected1[1] = { 38 };
+        ok( memcmp( data_called_freq, expected1, 1 ) == 0, "freq is same" );
+        uint16_t expected2[4] = { 50489,9039,1205,1127 };
+        ok( memcmp( data_called_data, expected2, 4 ) == 0, "data is same" );
+        uint16_t expected3[1] = { 3 };
+        ok( memcmp( data_called_id,   expected3, 1 )  == 0, "id is same" );
+        uint8_t expected4[10] = { 'X','X','X','X','X','X','X','X','X','X' };
+        ok( memcmp( data_called_pass, expected4, 10 )  == 0, "pass is same" );
+    }
+
     done_testing();
     return 0;
 }
