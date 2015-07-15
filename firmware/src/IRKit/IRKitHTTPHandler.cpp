@@ -428,7 +428,7 @@ int8_t irkit_httpclient_post_messages_() {
     if (cid == polling_cid) {
         // we're polling on this cid, and our response handler is registered with this cid.
         // we already overwritten the response handler, so restart everything.
-        HTTPLOG_PRINTLN("!E30");
+        // HTTPLOG_PRINTLN("!E30");
         wifi_hardware_reset();
         return -1;
     }
