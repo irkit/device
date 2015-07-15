@@ -177,6 +177,7 @@ public:
     int8_t close(int8_t cid);
 
     char *hostname();
+    char *password();
 
     // on timer ISR
     void onTimer();

@@ -1103,9 +1103,12 @@ int8_t GSwifi::startLimitedAP () {
     command(PB("AT+NSET=192.168.1.1,255.255.255.0,192.168.1.1",1), GSCOMMANDMODE_NORMAL);
 
     // password area overwritten in factory
-    cmd = PB("AT+WPAPSK=IRKitXXXX,XXXXXXXXXX",1);
+    // AT+WPAPSK=IRKitXXXX,XXXXXXXXXX
+    cmd = PB("AT+WPAPSK=",1);
     strcpy( cmd+10, hostname() );
     cmd[19] = ',';
+    strcpy( cmd+20, password() );
+    cmd[30] = 0;
     command(cmd, GSCOMMANDMODE_NORMAL, GS_TIMEOUT_LONG);
 
     // WPA2
@@ -1347,6 +1350,12 @@ char* GSwifi::hostname() {
     ret[ 7 ] = mac_[15];
     ret[ 8 ] = mac_[16];
     return ret;
+}
+
+char* GSwifi::password() {
+    // reuse index: 0 area
+    // this should be safe if we immediately call `strcpy( target, password() )`
+    return PB("XXXXXXXXXX", 0);
 }
 
 void GSwifi::bufferClear() {
