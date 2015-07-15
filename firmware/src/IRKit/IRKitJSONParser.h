@@ -23,10 +23,11 @@
 #define IrJsonParserDataKeyFormat  0x02
 #define IrJsonParserDataKeyFreq    0x03
 #define IrJsonParserDataKeyData    0x04
+#define IrJsonParserDataKeyPass    0x05
 #define IrJsonParserDataKeyUnknown 0xFF
 
 typedef void (*JSONParserStartEnd)();
-typedef void (*JSONParserData)(uint8_t key, uint32_t value);
+typedef void (*JSONParserData)(uint8_t key, uint32_t value, char *pass);
 
 #ifdef __cplusplus
 extern "C" {
