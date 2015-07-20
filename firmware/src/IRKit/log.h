@@ -19,10 +19,10 @@
 
 #include "Arduino.h"
 
-#define MAINLOG
-#define GSLOG
-#define HTTPLOG
-#define IRLOG
+// #define MAINLOG
+// #define GSLOG
+// #define HTTPLOG
+// #define IRLOG
 // #define KEYLOG
 
 #ifdef MAINLOG
