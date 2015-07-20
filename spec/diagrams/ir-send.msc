@@ -9,7 +9,7 @@ msc {
 
     IRKit note IRKit  [label = "Start listening on port 80"];
 
-    IRKit => Server   [label = "GET /1/m (longpoll)"];
+    IRKit => Server   [label = "GET /m (longpoll)"];
 
     |||;
 
@@ -23,10 +23,10 @@ msc {
 
     User note IRKit   [label = "IF User and IRKit are not in the same Wifi"];
 
-    User => Server    [label = "POST /1/messages"];
+    User => Server    [label = "POST /1/messages (body: clientkey=#{clientkey}&deviceid=#{deviceid})"];
     User << Server    [label = "200 OK"];
 
-    IRKit << Server   [label = "Response to \"GET /1/m\" longpoll: 200 OK, IR signal in body"];
+    IRKit << Server   [label = "Response to \"GET /m\" longpoll: 200 OK, IR signal in body"];
     IRKit -> TV       [label = "IR signal"];
-    IRKit => Server   [label = "GET /1/m (longpoll)"];
+    IRKit => Server   [label = "GET /m (longpoll)"];
 }

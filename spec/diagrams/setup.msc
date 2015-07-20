@@ -9,8 +9,9 @@ msc {
 
     User -> IRKit    [label = "Power On"];
     IRKit note IRKit [label = "Not connected to home Wi-Fi access point"];
-    IRKit note IRKit [label = "Start IRKit's own access point and start HTTP server"];
+    IRKit note IRKit [label = "Start IRKit's own access point (WPA2) and start HTTP server"];
     Phone note Phone [label = "Connected to home Wi-Fi access point"];
+    Server note Server [label = "All APIs are HTTPS"];
 
     |||;
 
@@ -37,7 +38,7 @@ msc {
 
     IRKit note IRKit [label = "Connect to home Wi-Fi"];
 
-    IRKit => Server  [label = "POST /door (body: devicekey=#{devicekey}&&hostname=#{hostname})"];
+    IRKit => Server  [label = "POST /door (body: devicekey=#{devicekey}&hostname=#{hostname})"];
     IRKit << Server  [label = "Door Response (status code: 200)"];
 
     IRKit note IRKit [label = "Setup successfully finished"];
