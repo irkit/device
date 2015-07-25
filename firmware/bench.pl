@@ -18,6 +18,9 @@ if (! $number_of_requests) {
 my $agent = Furl->new(
     agent   => 'Bench/1.0',
     timeout => 20,
+    headers => [
+        'X-Requested-With' => 'Furl',
+    ],
 );
 
 my $get_message = sub {
