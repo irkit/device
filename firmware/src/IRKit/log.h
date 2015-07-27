@@ -19,11 +19,11 @@
 
 #include "Arduino.h"
 
-#define MAINLOG
-#define GSLOG
-#define HTTPLOG
-#define IRLOG
-#define KEYLOG
+// #define MAINLOG
+// #define GSLOG
+// #define HTTPLOG
+// #define IRLOG
+// #define KEYLOG
 
 #ifdef MAINLOG
 # define MAINLOG_PRINTLN(a)    Serial.println(a)

@@ -18,6 +18,7 @@
 #endif
 
 static int TEST_COUNT = 0;
+static int FAIL_COUNT = 0;
 
 /**
  * This simply evaluates any expression ("$got eq $expected" is just a
@@ -25,6 +26,9 @@ static int TEST_COUNT = 0;
  * failed.  A true expression passes, a false one fails.  Very simple.
  */
 NANOTAP_INLINE NANOTAP_DECLARE void ok(int x, const char *msg) {
+    if (!x) {
+        FAIL_COUNT++;
+    }
     printf("%s %d - %s\n", (x ? "ok" : "not ok"), ++TEST_COUNT, msg ? msg : "");
 }
 
@@ -54,7 +58,7 @@ NANOTAP_INLINE NANOTAP_DECLARE void contains_string(const char *string, const ch
  */
 NANOTAP_INLINE NANOTAP_DECLARE void done_testing() {
     printf("1..%d\n", TEST_COUNT);
-    exit(0);
+    exit(FAIL_COUNT == 0 ? 0 : 1);
 }
 
 #ifdef __cplusplus

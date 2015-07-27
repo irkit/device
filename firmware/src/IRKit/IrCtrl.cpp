@@ -329,7 +329,7 @@ ISR_COMPARE()
 void IR_xmit ()
 {
     if (IrCtrl.len == 0) {
-        IRLOG_PRINTLN("!E26");
+        // IRLOG_PRINTLN("!E26");
         IR_state( IR_IDLE );
         return;
     }

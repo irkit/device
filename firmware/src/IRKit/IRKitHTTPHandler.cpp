@@ -45,6 +45,7 @@ static uint32_t newest_message_id = 0; // on memory only should be fine
 static int8_t post_keys_cid;
 static int8_t polling_cid = CID_UNDEFINED; // GET /m continues forever
 static bool is_posting_message = false;
+static bool has_valid_pass = false;
 
 #define POST_DOOR_BODY_LENGTH 61
 #define POST_KEYS_BODY_LENGTH 42
@@ -53,9 +54,10 @@ static void on_json_start() {
     HTTPLOG_PRINTLN("j<");
 
     IR_state( IR_WRITING );
+    has_valid_pass = false;
 }
 
-static void on_json_data( uint8_t key, uint32_t value ) {
+static void on_json_data( uint8_t key, uint32_t value, char *pass ) {
     if ( IrCtrl.state != IR_WRITING ) {
         return;
     }
@@ -70,6 +72,10 @@ static void on_json_data( uint8_t key, uint32_t value ) {
     case IrJsonParserDataKeyData:
         IR_put( value );
         break;
+    case IrJsonParserDataKeyPass:
+        if (strncmp(pass, gs.password(), 10) == 0) {
+            has_valid_pass = true;
+        }
     default:
         break;
     }
@@ -364,6 +370,17 @@ static int8_t on_post_wifi_request(uint8_t cid, GSwifi::GSREQUESTSTATE state) {
 }
 
 static int8_t on_request(int8_t cid, int8_t routeid, GSwifi::GSREQUESTSTATE state) {
+    if ( (state == GSwifi::GSREQUESTSTATE_RECEIVED) &&
+         (! gs.validRequest()) &&
+         (! has_valid_pass) ) {
+        HTTPLOG_PRINTLN("!E32");
+        gs.writeHead(cid, 400);
+        gs.writeEnd();
+        ring_put( &commands, COMMAND_CLOSE );
+        ring_put( &commands, cid );
+        return -1;
+    }
+
     switch (routeid) {
     case 0: // POST /messages
         return on_post_messages_request(cid, state);
@@ -411,7 +428,7 @@ int8_t irkit_httpclient_post_messages_() {
     if (cid == polling_cid) {
         // we're polling on this cid, and our response handler is registered with this cid.
         // we already overwritten the response handler, so restart everything.
-        HTTPLOG_PRINTLN("!E30");
+        // HTTPLOG_PRINTLN("!E30");
         wifi_hardware_reset();
         return -1;
     }

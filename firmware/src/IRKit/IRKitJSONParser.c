@@ -14,8 +14,6 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "Arduino.h"
-#include "pins.h"
 #include "IRKitJSONParser.h"
 
 void irkit_json_parse (char letter,
@@ -27,27 +25,32 @@ void irkit_json_parse (char letter,
     static uint8_t  data_exists;
     static uint8_t  first_letter_of_key;
     static uint8_t  is_key;
+    static char     pass[10];
+    static uint8_t  pass_index;
+    static uint8_t  before_colon;
 
-    // special case only json parser
+    // special case only json parser (don't try to reuse this)
     // non-nested Object with following possible keys
     // (check only the first 2 letters to identify key)
     // - ID
     // - FOrmat
     // - FReq
     // - DAta
+    // - Pass
     switch (letter) {
     case '{':
         is_key = 0;
+        before_colon = 1;
         on_start();
         break;
     case '}':
         if (data_exists) {
-            on_data(current_token, data);
+            on_data(current_token, data, pass);
         }
         on_end();
         break;
     case '"':
-        if ( ! is_key ) {
+        if ( (! is_key) && before_colon ) {
             // detected JSON Object's key
             is_key              = 1;
             first_letter_of_key = 0;
@@ -60,6 +63,8 @@ void irkit_json_parse (char letter,
     case ':':
         data          = 0;
         data_exists   = 0;
+        pass_index    = 0;
+        before_colon  = 0;
         break;
     case '0':
     case '1':
@@ -71,6 +76,7 @@ void irkit_json_parse (char letter,
     case '7':
     case '8':
     case '9':
+    case 'X':
         if ( (current_token == IrJsonParserDataKeyId)   ||
              (current_token == IrJsonParserDataKeyFreq) ||
              (current_token == IrJsonParserDataKeyData) ) {
@@ -80,14 +86,23 @@ void irkit_json_parse (char letter,
             data        += (letter - '0');
             data_exists  = 1;
         }
+        else if (current_token == IrJsonParserDataKeyPass) {
+            if (pass_index > 9) {
+                return;
+            }
+            pass[ pass_index ] = letter;
+            pass_index ++;
+            data_exists = 1;
+        }
         break;
     case ',':
     case ']':
         if (data_exists) {
-            on_data(current_token, data);
+            on_data(current_token, data, pass);
             data        = 0;
             data_exists = 0;
         }
+        before_colon = 1;
         break;
     default:
         break;
@@ -103,6 +118,7 @@ void irkit_json_parse (char letter,
             // - format
             // - freq
             // - data
+            // - pass
             if (first_letter_of_key == 'i' && letter == 'd') {
                 current_token = IrJsonParserDataKeyId;
             }
@@ -114,6 +130,9 @@ void irkit_json_parse (char letter,
             }
             else if (first_letter_of_key == 'd' && letter == 'a') {
                 current_token = IrJsonParserDataKeyData;
+            }
+            else if (first_letter_of_key == 'p' && letter == 'a') {
+                current_token = IrJsonParserDataKeyPass;
             }
         }
     }
