@@ -1355,7 +1355,8 @@ char* GSwifi::hostname() {
 char* GSwifi::password() {
     // reuse index: 0 area
     // this should be safe if we immediately call `strcpy( target, password() )`
-    return PB("XXXXXXXXXX", 0);
+    char *ret = PB("XXXX,XXXXXXXXXX", 0);
+    return ret + 5; // we detect ^ this pattern in password replacer
 }
 
 void GSwifi::bufferClear() {
