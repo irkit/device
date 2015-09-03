@@ -17,58 +17,53 @@
 #include <Arduino.h>
 #include "FullColorLed.h"
 #include "timer.h"
+#include "pins.h"
 
-FullColorLed::FullColorLed(int pinR, int pinG, int pinB) :
-    pinR_(pinR),
-    pinG_(pinG),
-    pinB_(pinB),
+FullColorLed::FullColorLed() :
     blinkOn_(0),
-    isBlinking_(false),
+    blinkMode_(ALWAYS_ON),
     blink_timer_(TIMER_OFF)
 {
 }
 
-void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB) {
-    setLedColor(colorR, colorG, colorB, false);
-}
-
-void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink) {
+void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, LightMode lightMode, uint8_t blinkTimeout) {
     colorR_      = colorR;
     colorG_      = colorG;
     colorB_      = colorB;
-    isBlinking_  = blink;
+    blinkMode_   = lightMode;
 
     blink_timer_ = TIMER_OFF;
-}
-
-void FullColorLed::setLedColor(bool colorR, bool colorG, bool colorB, bool blink, uint8_t blink_timeout) {
-    setLedColor( colorR, colorG, colorB, blink );
-
-    TIMER_START(blink_timer_, blink_timeout);
+    if (blinkTimeout > 0) {
+        TIMER_START(blink_timer_, blinkTimeout);
+    }
 }
 
 void FullColorLed::off() {
-    setLedColor( 0, 0, 0, false );
+    setLedColor( 0, 0, 0 );
 }
 
 void FullColorLed::onTimer() {
     blinkOn_ = ! blinkOn_;
 
-    if ( blinkOn_ || ! isBlinking_ ) {
+    if ( blinkOn_ || (blinkMode_ == ALWAYS_ON) ) {
         // not blinking = always on
-        digitalWrite(pinR_, colorR_);
-        digitalWrite(pinG_, colorG_);
-        digitalWrite(pinB_, colorB_);
+        digitalWrite(FULLCOLOR_LED_R, colorR_);
+        digitalWrite(FULLCOLOR_LED_G, colorG_);
+        digitalWrite(FULLCOLOR_LED_B, colorB_);
     }
     else {
-        digitalWrite(pinR_, LOW);
-        digitalWrite(pinG_, LOW);
-        digitalWrite(pinB_, LOW);
+        digitalWrite(FULLCOLOR_LED_R, LOW);
+        digitalWrite(FULLCOLOR_LED_G, LOW);
+        digitalWrite(FULLCOLOR_LED_B, LOW);
     }
 
     TIMER_TICK(blink_timer_);
     if (TIMER_FIRED(blink_timer_)) {
         TIMER_STOP(blink_timer_);
-        isBlinking_ = false;
+        if (blinkMode_ == BLINK_THEN_OFF) {
+            off();
+        } else if (blinkMode_ == BLINK_THEN_ON) {
+            blinkMode_ = ALWAYS_ON;
+        }
     }
 }

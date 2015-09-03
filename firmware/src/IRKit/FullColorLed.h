@@ -20,21 +20,34 @@
 class FullColorLed
 {
 public:
-    FullColorLed(int pinR, int pinG, int pinB);
-    void setLedColor(bool colorR, bool colorG, bool colorB);
-    void setLedColor(bool colorR, bool colorG, bool colorB, bool blink);
-    void setLedColor(bool colorR, bool colorG, bool colorB, bool blink, uint8_t blink_timeout);
+
+    // The different modes for lighting the LED
+    typedef enum  {
+        ALWAYS_ON       = 0,    // LED stays always on.
+        BLINK_THEN_ON   = 1,    // LED blinks, then stays on.
+        BLINK_THEN_OFF  = 2     // LED blinks, then turns off.
+    } LightMode;
+
+    FullColorLed();
+
+    // Lights-up the LED with a specific color, with optional blinking parameters.
+    void setLedColor(
+            bool colorR,
+            bool colorG,
+            bool colorB,
+            LightMode lightMode = ALWAYS_ON,
+            uint8_t blinkTimeout = 0);
+
+    // Turns-off the LED
     void off();
+
     void onTimer();
 
 private:
-    int pinR_;
-    int pinG_;
-    int pinB_;
     bool colorR_;
     bool colorG_;
     bool colorB_;
-    bool isBlinking_; // defaults to off
+    LightMode blinkMode_; // defaults to ALWAYS_ON
     volatile bool blinkOn_; // altered inside timer ISR
     volatile uint8_t blink_timer_;
 };
